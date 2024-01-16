@@ -25,9 +25,9 @@ void enable_system_calls();
  * 
 */
 void syscall_response(
-    struct CPURegister cpu,
+    CPURegister cpu,
     uint32_t int_number,
-    struct InterruptStack info
+    InterruptStack info
 );
 
 

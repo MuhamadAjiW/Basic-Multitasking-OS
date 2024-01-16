@@ -11,24 +11,32 @@ call_generic_handler:
     ; [esp + 0 ] error code
 
     ; CPURegister
-    push    esp
-    push    ebp
-    push    edx
-    push    ecx
-    push    ebx
-    push    eax
+    pushad
+    ; Pushad is actually equal to these below
+    ; push    eax
+    ; push    ecx
+    ; push    edx
+    ; push    ebx
+    ; push    ebp
+    ; push    esp
+    ; push    esi
+    ; push    edi
 
 
     ; call the C function
     call    main_interrupt_handler
 
     ; restore the registers
-    pop     eax
-    pop     ebx
-    pop     ecx
-    pop     edx
-    pop     ebp
-    pop     esp
+    ; push    edi
+    ; push    esi
+    ; pop     esp
+    ; pop     ebp
+    ; pop     ebx
+    ; pop     edx
+    ; pop     ecx
+    ; pop     eax
+    ; Pushad is actually equal to these above
+    popad
 
     ; restore the esp (interrupt number & error code)
     add     esp, 8

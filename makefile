@@ -41,7 +41,8 @@ dir:
 kernel: $(OBJ)
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/kernel_loader.s -o $(OUTPUT_FOLDER)/kernel_loader.o
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/cpu/intsetup.s -o $(OUTPUT_FOLDER)/intsetup.o
-	@$(LIN) $(LFLAGS) $(OBJ) $(OUTPUT_FOLDER)/intsetup.o $(OUTPUT_FOLDER)/kernel_loader.o -o $(OUTPUT_FOLDER)/kernel
+	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/task/context-switch.s -o $(OUTPUT_FOLDER)/context-switch.o
+	@$(LIN) $(LFLAGS) $(OBJ) $(OUTPUT_FOLDER)/intsetup.o $(OUTPUT_FOLDER)/kernel_loader.o $(OUTPUT_FOLDER)/context-switch.o -o $(OUTPUT_FOLDER)/kernel
 	
 	@echo Linking object files and generate elf32...
 	@rm -rf ${DIR}

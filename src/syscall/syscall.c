@@ -11,9 +11,9 @@ void register_syscall_response(uint8_t no, InterruptHandler response){
 /*syscall functions*/
 // use as template
 void idle(
-    __attribute__((unused)) struct CPURegister cpu,
+    __attribute__((unused)) CPURegister cpu,
     __attribute__((unused)) uint32_t int_number,
-    __attribute__((unused)) struct InterruptStack info
+    __attribute__((unused)) InterruptStack info
 ){
     return;
 }

@@ -83,9 +83,9 @@ void pic_remap(void) {
 }
 
 void main_interrupt_handler(
-    __attribute__((unused)) struct CPURegister cpu,
+    __attribute__((unused)) CPURegister cpu,
     uint32_t int_number,
-    __attribute__((unused)) struct InterruptStack info
+    __attribute__((unused)) InterruptStack info
 ) {
     if(int_number < 0x20){
         // Error, message is exception_msg[int_number]

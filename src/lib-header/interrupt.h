@@ -2,6 +2,7 @@
 #define _INTERRUPT_H
 
 #include "stdtype.h"
+#include "cpu.h"
 
 /* -- PIC constants -- */
 
@@ -59,22 +60,6 @@
 #define IRQ_PRIMARY_ATA  14
 #define IRQ_SECOND_ATA   15
 
-
-/**
- * CPURegister, store CPU registers that can be used for interrupt handler / ISRs
- * 
- * @param gp_register    CPU general purpose register (a, b, c, d)
- * @param stack_register CPU stack register (bp, sp)
- */
-struct CPURegister {
-    uint32_t eax;
-    uint32_t ebx;
-    uint32_t ecx;
-    uint32_t edx;
-    uint32_t ebp;
-    uint32_t esp;
-} __attribute__((packed));
-
 /**
  * InterruptInfo, data pushed by CPU when interrupt / exception is raised.
  * Refer to Intel x86 Vol 3a: Figure 6-4 Stack usage on transfer to Interrupt.
@@ -87,12 +72,12 @@ struct CPURegister {
  * @param cs         Code segment selector where interrupt is raised
  * @param eflags     CPU eflags register when interrupt is raised
  */
-struct InterruptStack {
+typedef struct InterruptStack {
     uint32_t error_code;
     uint32_t eip;
     uint32_t cs;
     uint32_t eflags;
-} __attribute__((packed));
+} __attribute__((packed)) InterruptStack;
 
 
 
@@ -121,17 +106,17 @@ void pic_remap(void);
  * @param info       Information about interrupt that pushed automatically by CPU
  */
 void main_interrupt_handler(
-    struct CPURegister cpu,
+    CPURegister cpu,
     uint32_t int_number,
-    struct InterruptStack info
+    InterruptStack info
 );
 
 
 //TODO: Document
 typedef void (*InterruptHandler)(
-    struct CPURegister cpu,
+    CPURegister cpu,
     uint32_t int_number,
-    struct InterruptStack info
+    InterruptStack info
 );
 void register_irq_handler(uint16_t int_no, InterruptHandler handler);
 void activate_interrupts();
