@@ -1,0 +1,11 @@
+*.o
+*.iso
+*.img
+*.class
+bin/
+other/*.txt
+other/*.png
+other/*.jpg
+obsolete/
+
+!.gitignore

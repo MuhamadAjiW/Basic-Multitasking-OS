@@ -1,7 +1,7 @@
 #ifndef _PORTIO_H
 #define _PORTIO_H
 
-#include "lib-header/stdtype.h"
+#include "stdtype.h"
 
 /** out:
  *  Sends the given data to the given I/O port
@@ -10,6 +10,8 @@
  *  @param data The data to send to the I/O port
  */
 void out(uint16_t port, uint8_t data);
+void out2(uint16_t port, uint16_t data);
+void out4(uint32_t port, uint32_t data);
 
 /** in:
  *  Read data from the given I/O port
@@ -18,5 +20,7 @@ void out(uint16_t port, uint8_t data);
  *  @return Recieved data from the corresponding I/O port
  */
 uint8_t in(uint16_t port);
+uint16_t in2(uint16_t port);
+uint32_t in4(uint32_t port);
 
 #endif

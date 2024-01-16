@@ -42,4 +42,8 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c);
  */
 void framebuffer_clear(void);
 
+
+// TODO: Delete
+void framebuffer_keyboard(void);
+
 #endif
