@@ -5,6 +5,8 @@
         "stdtype.h": "c",
         "idt.h": "c",
         "portio.h": "c",
-        "interrupt.h": "c"
+        "interrupt.h": "c",
+        "keyboard.h": "c",
+        "kernel_loader.h": "c"
     },
 }

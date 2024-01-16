@@ -7,6 +7,8 @@
 #include "lib-header/idt.h"
 #include "lib-header/interrupt.h"
 #include "lib-header/keyboard.h"
+#include "lib-header/pit.h"
+#include "lib-header/syscall.h"
 
 void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);
@@ -18,6 +20,11 @@ void kernel_setup(void) {
     activate_interrupts();
     activate_irq(IRQ_TIMER);
     activate_irq(IRQ_KEYBOARD);
+
+    register_irq_handler(IRQ_KEYBOARD, keyboard_isr);
+    register_irq_handler(IRQ_TIMER, pit_isr);
+
+    enable_system_calls();
 
     while (TRUE){
       keyboard_state_activate();

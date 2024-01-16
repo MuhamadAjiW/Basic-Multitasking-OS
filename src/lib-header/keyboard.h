@@ -69,6 +69,6 @@ bool is_keyboard_blocking(void);
  * This can be made into blocking input with `while (is_keyboard_blocking());` 
  * after calling `keyboard_state_activate();`
  */
-void keyboard_isr(void);
+void keyboard_isr();
 
 #endif

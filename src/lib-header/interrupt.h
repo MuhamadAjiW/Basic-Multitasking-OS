@@ -36,6 +36,8 @@
 
 
 /* -- PICs IRQ list -- */
+#define IRQ_OFFSET       0x20
+#define IRQ_COUNT        0x10
 
 // PIC Master
 #define IRQ_TIMER        0
@@ -118,10 +120,20 @@ void pic_remap(void);
  * @param int_number Interrupt number that trigger interrupt exception
  * @param info       Information about interrupt that pushed automatically by CPU
  */
-void main_interrupt_handler(struct CPURegister cpu, uint32_t int_number, struct InterruptStack info);
+void main_interrupt_handler(
+    struct CPURegister cpu,
+    uint32_t int_number,
+    struct InterruptStack info
+);
 
 
 //TODO: Document
+typedef void (*InterruptHandler)(
+    struct CPURegister cpu,
+    uint32_t int_number,
+    struct InterruptStack info
+);
+void register_irq_handler(uint16_t int_no, InterruptHandler handler);
 void activate_interrupts();
 void activate_irq(uint8_t irq);
 

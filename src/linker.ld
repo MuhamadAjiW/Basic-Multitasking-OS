@@ -12,11 +12,6 @@ SECTIONS {
         *(.multiboot)        /* put GRUB multiboot header at front */
     }
 
-    .setup.text ALIGN (0x1000) : AT (ADDR (.setup.text) - 0xC0000000)
-    {
-        *(.setup.text)       /* initial setup code */
-    }
-
     .text ALIGN (0x1000) : AT (ADDR (.text) - 0xC0000000)
     {
         *(.text)             /* all text sections from all files */

@@ -1,9 +1,45 @@
 #include "lib-header/interrupt.h"
 #include "lib-header/portio.h"
 #include "lib-header/idt.h"
+#include "lib-header/syscall.h"
 
-#include "lib-header/keyboard.h"
-#include "lib-header/pit.h"
+InterruptHandler irq_handlers[IRQ_COUNT];
+InterruptHandler syscall_handlers[SYSCALL_COUNT];
+
+char *exception_msg[] = {
+    "Division By Zero",                 //0
+    "Debug",                            //1
+    "Non Maskable Interrupt",           //2
+    "Breakpoint",                       //3
+    "Into Detected Overflow",           //4
+    "Out of Bounds",                    //5
+    "Invalid Opcode",                   //6
+    "No Coprocessor",                   //7
+    "Double Fault",                     //8
+    "Coprocessor Segment Overrun",      //9
+    "Bad TSS",                          //10
+    "Segment Not Present",              //11
+    "Stack Fault",                      //12
+    "General Protection Fault",         //13
+    "Page Fault",                       //14
+    "Unknown Interrupt",                //15
+    "Coprocessor Fault",                //16
+    "Alignment Check",                  //17
+    "Machine Check",                    //18
+    "SIMD Floating-Point Exception",    //19
+    "Virtualization Exception",         //20
+    "Control Protection Exception",     //21
+    "Intel Reserved",                   //22
+    "Intel Reserved",                   //23
+    "Intel Reserved",                   //24
+    "Intel Reserved",                   //25
+    "Intel Reserved",                   //26
+    "Intel Reserved",                   //27
+    "Hypervisor Injection Exception",   //28
+    "VMM Communication Exception",      //29
+    "Security Exception",               //30
+    "Intel Reserved"                    //31
+};
 
 void io_wait(void) {
     out(0x80, 0);
@@ -51,20 +87,29 @@ void main_interrupt_handler(
     uint32_t int_number,
     __attribute__((unused)) struct InterruptStack info
 ) {
-    switch (int_number) {
-        case 32:
-            pit_isr();
-            break;
-        case 33:
-            keyboard_isr();
-            break;
+    if(int_number < 0x20){
+        // Error, message is exception_msg[int_number]
+        __asm__ volatile("hlt");
     }
+    else{
+        // IRQs or Syscalls
+        InterruptHandler handler = {0};
+        if (int_number < 0x30)
+            handler = irq_handlers[int_number - IRQ_OFFSET];
+        else if (int_number == 0x30)
+            handler = syscall_handlers[cpu.eax];
+        
+        if(handler) handler(cpu, int_number, info);
 
-    if (int_number >=40){
-        out(PIC2, 0x20);
+        // Refresh PIC
+        if (int_number >=40){
+            out(PIC2, 0x20);
+        }
+
+        out(PIC1, 0x20);
     }
+    
 
-    out(PIC1, 0x20);
 }
 
 void activate_interrupts(){
@@ -98,4 +143,8 @@ void disable_irq(uint8_t irq){
     }
     value = in(port) | (1 << irq);
     out(port, value);  
+}
+
+void register_irq_handler(uint16_t int_no, InterruptHandler handler){
+    irq_handlers[int_no] = handler;
 }
