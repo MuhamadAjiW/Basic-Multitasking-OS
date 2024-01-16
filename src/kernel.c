@@ -8,7 +8,10 @@
 #include "lib-header/interrupt.h"
 #include "lib-header/keyboard.h"
 #include "lib-header/pit.h"
+#include "lib-header/tss.h"
 #include "lib-header/syscall.h"
+
+#include "lib-header/task.h"
 
 void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);
@@ -18,6 +21,12 @@ void kernel_setup(void) {
     framebuffer_set_cursor(0, 0);
 
     activate_interrupts();
+    
+    gdt_install_tss();
+    set_tss_register_kernel();
+    set_tss_kernel_current_stack();
+    initialize_tasking();
+
     activate_irq(IRQ_TIMER);
     activate_irq(IRQ_KEYBOARD);
 

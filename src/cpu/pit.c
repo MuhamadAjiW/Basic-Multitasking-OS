@@ -1,6 +1,7 @@
 #include "lib-header/idt.h"
 #include "lib-header/interrupt.h"
 #include "lib-header/portio.h"
+#include "lib-header/task.h"
 
 uint32_t tick = 0;
 
@@ -11,7 +12,7 @@ void tick_counter(){
 // TODO: Rework pit to do schedule task instead
 void pit_isr(){
     tick_counter();
-    // schedule();
+    schedule();
 }
 
 void set_pit_freq(uint32_t freq){
@@ -28,7 +29,7 @@ void set_pit_freq(uint32_t freq){
 
 void sleep(uint32_t duration){
     uint32_t cachedTime = tick;
-    while (cachedTime + duration != tick){}
+    while (cachedTime + duration > tick){}
 
     return;
 }
