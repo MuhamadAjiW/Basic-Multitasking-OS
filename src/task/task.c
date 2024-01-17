@@ -11,8 +11,7 @@ PCB tasks[MAX_TASKS] = {0};
 int num_task = 0;
 PCB* current_task;
 
-//TODO: Fix this, it should NOT mess with existing stack without orderly fashion
-// ALLOCATE PAGES INSTEAD!
+//TODO: Allocate pages instead
 uint32_t k_stack = 0xC0400000;
 extern TSSEntry tss;
 
@@ -20,10 +19,13 @@ void initialize_tasking(){
     num_task = 1;
     current_task = &tasks[0];
     current_task->pid = 0;
+    *(current_task->name) = '0';
 }
 
-void create_task(uint32_t pid, uint32_t eip, uint32_t u_stack, uint8_t STACKTYPE){
+// TODO: Manage, this is unmanaged
+void create_task(uint32_t pid, uint32_t eip, uint32_t u_stack, uint8_t STACKTYPE, uint32_t eflags){
 
+    // Set Context to be at the bottom of the current stack
     uint8_t* k_esp = (uint8_t*) k_stack - 4;
     k_esp -= sizeof(Context);
     Context* c_ptr = (Context*) k_esp;
@@ -35,23 +37,11 @@ void create_task(uint32_t pid, uint32_t eip, uint32_t u_stack, uint8_t STACKTYPE
     c_ptr->cs = cs;
     c_ptr->segments.ds = ds;
 
-    //TODO: Improve, might be utilized by other tasks
-    c_ptr->segments.gs = ds;
-    c_ptr->segments.fs = ds;
-    c_ptr->segments.es = ds;
-    c_ptr->registers.edi = 0;
-    c_ptr->registers.esi = 0;
-    c_ptr->registers.ebp = 0;
-    c_ptr->registers.esp = 0;
-    c_ptr->registers.ebx = 0;
-    c_ptr->registers.ecx = 0;
-    c_ptr->registers.eax = 0;
-
     c_ptr->userss = ds;
     c_ptr->useresp = u_stack;
 
     //TODO: Improve, flags might not always be this value
-    c_ptr->eflags = 0x206;
+    c_ptr->eflags = eflags;
     c_ptr->eip = eip;
 
     k_esp -= sizeof(ContextReturn);

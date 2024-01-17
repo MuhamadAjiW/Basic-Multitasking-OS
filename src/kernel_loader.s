@@ -6,7 +6,7 @@ extern kernel_setup                           ; kernel C entrypoint
 extern _paging_kernel_page_directory          ; kernel page directory
 
 KERNEL_VIRTUAL_BASE equ 0xC0000000            ; kernel virtual memory
-KERNEL_STACK_SIZE   equ 2097152               ; size of stack in bytes
+KERNEL_STACK_SIZE   equ 0x600000              ; size of stack in bytes (6MB)
 MAGIC_NUMBER        equ 0x1BADB002            ; define the magic number constant
 FLAGS               equ 0x0                   ; multiboot flags
 CHECKSUM            equ -MAGIC_NUMBER         ; calculate the checksum
