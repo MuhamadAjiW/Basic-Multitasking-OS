@@ -4,9 +4,22 @@ global restore_context
 ;void switch_context(Task* old_task, Task* new_task)
 switch_context:
 	mov eax, [esp + 4] ; move old_task to eax
+
+	; These registers are not saved by previous function calls
+    push ebp
+    push ebx
+    push esi
+    push edi
+
 	mov [eax + 4], esp ; move esp to old_task's tsp 
-	mov eax, [esp + 8] ; get new_task to eax
+	mov eax, [esp + 24] ; get new_task to eax
 	mov esp, [eax + 4] ; load new_task's esp
+
+	; Restore registers
+    pop edi
+    pop esi
+    pop ebx
+    pop ebp
 
 	ret
 

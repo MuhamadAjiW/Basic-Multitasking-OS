@@ -72,9 +72,13 @@ uint8_t create_task(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type
     //NOTE: entry is assumed to be always set at 0 when linking a program
     c_ptr->eip = (uint32_t)request.buf;
 
-    t_esp -= sizeof(void*);
-    void** exit = (void**) t_esp;
-    *exit = restore_context;
+    t_esp -= sizeof(ContextReturn);
+    ContextReturn* exit = (ContextReturn*) t_esp;
+    exit->edi = 0;
+    exit->esi = 0;
+    exit->ebx = 0;
+    exit->ebp = 0;
+    exit->ret_eip = (uint32_t) restore_context;
 
     tasks[pid].context.registers.ebp = t_stack - 4;
     tasks[pid].esp = (uint32_t) t_esp;
@@ -88,25 +92,13 @@ uint8_t create_task(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type
 }
 
 void schedule(){
-    if(current_task->pid == 0){
-        int next_id = (current_task->pid + 1) % num_task;
+    int next_id = (current_task->pid + 1) % num_task;
 
-        PCB* new = &tasks[next_id];
-        PCB* old = current_task;
-        current_task = new;
+    PCB* new = &tasks[next_id];
+    PCB* old = current_task;
+    current_task = new;
 
-        tss.esp0 = new->context.registers.ebp;
+    tss.esp0 = new->context.registers.ebp;
 
-        switch_context(old, new);
-    } else{
-        int next_id = (current_task->pid + 1) % num_task;
-
-        PCB* new = &tasks[next_id];
-        PCB* old = current_task;
-        current_task = new;
-
-        tss.esp0 = new->context.registers.ebp;
-
-        switch_context(old, new);
-    }
+    switch_context(old, new);
 }
