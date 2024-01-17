@@ -106,6 +106,7 @@ void pic_remap(void);
  * @param info       Information about interrupt that pushed automatically by CPU
  */
 void main_interrupt_handler(
+    CPUSegments seg,
     CPURegister cpu,
     uint32_t int_number,
     InterruptStack info
@@ -114,6 +115,7 @@ void main_interrupt_handler(
 
 //TODO: Document
 typedef void (*InterruptHandler)(
+    CPUSegments seg,
     CPURegister cpu,
     uint32_t int_number,
     InterruptStack info

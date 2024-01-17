@@ -33,6 +33,7 @@ uint8_t create_task(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type
     uint32_t t_stack = allocate_resource(resource_amount, pid) - 4;
     if (!t_stack) return 0;
 
+    // Load file into memory
     request.buf = (void*)(t_stack + 4 - resource_amount * PAGE_FRAME_SIZE);
 
     load(request);
@@ -52,6 +53,17 @@ uint8_t create_task(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type
     c_ptr->segments.gs = ds;
     c_ptr->segments.fs = ds;
     c_ptr->segments.es = ds;
+
+    c_ptr->registers.edi = 0;
+    c_ptr->registers.esi = 0;
+    c_ptr->registers.ebp = 0;
+    c_ptr->registers.esp = 0;
+    c_ptr->registers.ebx = 0;
+    c_ptr->registers.edx = 0;
+    c_ptr->registers.ecx = 0;
+    c_ptr->registers.eax = 0;
+    c_ptr->int_no = 0;
+    c_ptr->err_code = 0;
 
     c_ptr->userss = ds;
     c_ptr->useresp = t_stack;
@@ -76,13 +88,25 @@ uint8_t create_task(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type
 }
 
 void schedule(){
-    int next_id = (current_task->pid + 1) % num_task;
+    if(current_task->pid == 0){
+        int next_id = (current_task->pid + 1) % num_task;
 
-    PCB* new = &tasks[next_id];
-    PCB* old = current_task;
-    current_task = new;
+        PCB* new = &tasks[next_id];
+        PCB* old = current_task;
+        current_task = new;
 
-    tss.esp0 = new->context.registers.ebp;
+        tss.esp0 = new->context.registers.ebp;
 
-    switch_context(old, new);
+        switch_context(old, new);
+    } else{
+        int next_id = (current_task->pid + 1) % num_task;
+
+        PCB* new = &tasks[next_id];
+        PCB* old = current_task;
+        current_task = new;
+
+        tss.esp0 = new->context.registers.ebp;
+
+        switch_context(old, new);
+    }
 }

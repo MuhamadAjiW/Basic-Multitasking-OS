@@ -22,9 +22,30 @@ call_generic_handler:
     ; push    esi
     ; push    edi
 
+    ; save segment registers
+    push ds
+	push es
+	push fs
+	push gs
+
+    ; set segment registers to kernel_code before handling interrupt
+	push eax
+	mov ax, 0x10
+	mov ds, ax
+	mov es, ax
+	mov fs, ax
+	mov gs, ax
+	pop eax
+
 
     ; call the C function
     call    main_interrupt_handler
+
+    ; restore segment registers
+	pop gs
+	pop fs
+	pop es
+	pop ds
 
     ; restore the registers
     ; push    edi

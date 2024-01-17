@@ -83,6 +83,7 @@ void pic_remap(void) {
 }
 
 void main_interrupt_handler(
+    __attribute__((unused)) CPUSegments seg,
     __attribute__((unused)) CPURegister cpu,
     uint32_t int_number,
     __attribute__((unused)) InterruptStack info
@@ -100,7 +101,7 @@ void main_interrupt_handler(
         else if (int_number == 0x30)
             handler = syscall_handlers[cpu.eax];
         
-        if(handler) handler(cpu, int_number, info);
+        if(handler) handler(seg, cpu, int_number, info);
 
         // Refresh PIC
         pic_ack(irq_num);

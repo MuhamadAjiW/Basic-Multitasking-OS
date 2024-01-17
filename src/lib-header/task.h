@@ -28,7 +28,6 @@ typedef struct Context{
     CPUSegments segments;
     CPURegister registers;
     uint32_t int_no, err_code;
-
     uint32_t eip, cs, eflags, useresp, userss;
 } __attribute__((packed)) Context;
 
