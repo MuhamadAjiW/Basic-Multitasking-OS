@@ -10,6 +10,9 @@
 #include "lib-header/pit.h"
 #include "lib-header/tss.h"
 #include "lib-header/syscall.h"
+#include "lib-header/fat32.h"
+#include "lib-header/paging.h"
+#include "lib-header/memory_manager.h"
 
 #include "lib-header/task.h"
 
@@ -29,14 +32,30 @@ void kernel_setup(void) {
 
     activate_irq(IRQ_TIMER);
     activate_irq(IRQ_KEYBOARD);
+    activate_irq(IRQ_PRIMARY_ATA);
+    activate_irq(IRQ_SECOND_ATA);
 
     register_irq_handler(IRQ_KEYBOARD, keyboard_isr);
     register_irq_handler(IRQ_TIMER, pit_isr);
 
     enable_system_calls();
 
-    while (TRUE){
-      keyboard_state_activate();
-    }
+    initialize_memory();
+
+    struct FAT32DriverRequest shell = {
+        .buf                   = (uint8_t*)0,
+        .name                  = "sh",
+        .ext                   = "\0\0\0",
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
+        .buffer_size           = 0x100000,
+    };
+    allocate_single_user_page_frame(0);
+
+    keyboard_state_activate();
+
+
+    load(shell);
+
+    while (TRUE);
 
 }

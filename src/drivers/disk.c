@@ -1,7 +1,6 @@
 
-#include "../lib-header/stdtype.h"
-#include "../lib-header/portio.h"
-#include "../lib-header/fat32.h"
+#include "lib-header/stdtype.h"
+#include "lib-header/portio.h"
 
 void read_blocks(uint32_t target_address, uint32_t lba, uint8_t sector_count){
     while(in(0x1F7) & 0x80){} 
