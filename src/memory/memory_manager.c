@@ -10,7 +10,8 @@ static uint32_t heap_end = 0;
 
 static uint32_t dynamic_pointers = 0;
 
-//heap
+// heap is placed under kernel space
+// heap size is HEAP_PAGE_COUNT * PAGE_FRAME_SIZE
 void initialize_memory(){
     struct PageDirectoryEntryFlag flags ={
         .present_bit       = 1,
@@ -19,13 +20,16 @@ void initialize_memory(){
         .use_pagesize_4_mb = 1
     };
     
-    for (int i = 0; i < 4; i++)    {
-        update_page_directory_entry((void *)(0x800000 + (i*0x400000)), (void *)(0xc0800000 + (i*0x400000)), flags);
+    for (int i = 0; i < HEAP_PAGE_COUNT; i++)    {
+        update_page_directory_entry(
+            (void *)(KERNEL_PMEMORY_END + (i * PAGE_FRAME_SIZE)),
+            (void *)(HEAP_VMEMORY_OFFSET + (i * PAGE_FRAME_SIZE)),
+            flags);
     }
 
-    last_alloc = 0xc0800000; //start alignment
+    last_alloc = HEAP_VMEMORY_OFFSET; //start alignment
     heap_start = last_alloc;
-    heap_end = 0xc1800000; // 16mb heap
+    heap_end = HEAP_VMEMORY_OFFSET + HEAP_PAGE_COUNT * PAGE_FRAME_SIZE;
     memset((char*) heap_start, 0, heap_end - heap_start);
 }
 

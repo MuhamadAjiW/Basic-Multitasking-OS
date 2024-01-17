@@ -4,15 +4,18 @@
 #include "lib-header/tss.h"
 #include "lib-header/stdmem.h"
 #include "lib-header/memory_manager.h"
+#include "lib-header/resource.h"
+#include "lib-header/paging.h"
 
+#include "lib-header/fat32.h"
 
 // TODO: Make tasks with dynamic memory, paging, variable authority, priority, blocking, etc
+uint8_t resources_allocated = 0;
+
 PCB tasks[MAX_TASKS] = {0};
 int num_task = 0;
 PCB* current_task;
 
-//TODO: Allocate pages instead
-uint32_t k_stack = 0xC0400000;
 extern TSSEntry tss;
 
 void initialize_tasking(){
@@ -22,44 +25,62 @@ void initialize_tasking(){
     *(current_task->name) = '0';
 }
 
-// TODO: Manage, this is unmanaged
-void create_task(uint32_t pid, uint32_t eip, uint32_t u_stack, uint8_t STACKTYPE, uint32_t eflags){
+// TODO: Manage, this is just the function
+uint8_t create_task(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type, uint32_t eflags){
 
-    // Set Context to be at the bottom of the current stack
-    uint8_t* k_esp = (uint8_t*) k_stack - 4;
-    k_esp -= sizeof(Context);
-    Context* c_ptr = (Context*) k_esp;
+    // Allocate resources with ceiling division
+    uint8_t resource_amount = (request.buffer_size + PAGE_FRAME_SIZE - 1) / PAGE_FRAME_SIZE;
+    uint32_t t_stack = allocate_resource(resource_amount, pid) - 4;
+    if (!t_stack) return 0;
+
+    request.buf = (void*)(t_stack + 4 - resource_amount * PAGE_FRAME_SIZE);
+
+    load(request);
+
+    // Set Context to be at the bottom of the given stack
+    uint8_t* t_esp = (uint8_t*) t_stack;
+    t_esp -= sizeof(Context);
+    Context* c_ptr = (Context*) t_esp;
     memset(c_ptr, 0, sizeof(Context));
 
-    uint32_t cs = STACKTYPE == STACKTYPE_KERNEL ? GDT_KERNEL_CODE_SEGMENT_SELECTOR : (GDT_USER_CODE_SEGMENT_SELECTOR | USER_PRIVILEGE);
-    uint32_t ds = STACKTYPE == STACKTYPE_KERNEL ? GDT_KERNEL_DATA_SEGMENT_SELECTOR : (GDT_USER_DATA_SEGMENT_SELECTOR | USER_PRIVILEGE);
+    uint32_t cs = stack_type == STACKTYPE_KERNEL ? GDT_KERNEL_CODE_SEGMENT_SELECTOR : (GDT_USER_CODE_SEGMENT_SELECTOR | USER_PRIVILEGE);
+    uint32_t ds = stack_type == STACKTYPE_KERNEL ? GDT_KERNEL_DATA_SEGMENT_SELECTOR : (GDT_USER_DATA_SEGMENT_SELECTOR | USER_PRIVILEGE);
 
     c_ptr->cs = cs;
     c_ptr->segments.ds = ds;
 
+    c_ptr->segments.gs = ds;
+    c_ptr->segments.fs = ds;
+    c_ptr->segments.es = ds;
+    
+    c_ptr->registers.edi = 0;
+    c_ptr->registers.esi = 0;
+    c_ptr->registers.ebx = 0;
+    c_ptr->registers.edx = 0;
+    c_ptr->registers.ecx = 0;
+    c_ptr->registers.eax = 0;
+    
+    c_ptr->registers.ebp = 0;
+    c_ptr->registers.esp = 0;
+
     c_ptr->userss = ds;
-    c_ptr->useresp = u_stack;
-
-    //TODO: Improve, flags might not always be this value
+    c_ptr->useresp = t_stack;
     c_ptr->eflags = eflags;
-    c_ptr->eip = eip;
 
-    k_esp -= sizeof(ContextReturn);
-    ContextReturn* exit = (ContextReturn*) k_esp;
-    exit->edi = 0;
-    exit->esi = 0;
-    exit->ebx = 0;
-    exit->ebp = 0;
-    exit->ret_eip = (uint32_t) restore_context;
+    //NOTE: entry is assumed to be always set at 0 when linking a program
+    c_ptr->eip = (uint32_t)request.buf;
 
-    tasks[pid].context.registers.ebp = k_stack - 4;
-    tasks[pid].context.registers.esp = (uint32_t) k_esp;
+    t_esp -= sizeof(void*);
+    void** exit = (void**) t_esp;
+    *exit = restore_context;
+
+    tasks[pid].context.registers.ebp = t_stack - 4;
+    tasks[pid].esp = (uint32_t) t_esp;
     tasks[pid].pid = pid;
 
-    //TODO: kernel stack size?
-    k_stack = (uint32_t) k_esp - 0x40000;
-
     num_task++;
+
+    return 1;
 }
 
 void schedule(){

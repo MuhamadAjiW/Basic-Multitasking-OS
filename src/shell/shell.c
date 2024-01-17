@@ -4,7 +4,7 @@
 
 int main(void) {
     while (TRUE){
-        syscall(SYSCALL_NULL, 0, 0, 0);
+        // syscall(SYSCALL_NULL, 0, 0, 0);
     }
 
     return 0;

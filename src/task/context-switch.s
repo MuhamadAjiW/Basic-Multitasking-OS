@@ -14,19 +14,19 @@ switch_context:
 	; mov [eax + 12], ebx
 	; mov [eax + 24], esi
 	; mov [eax + 28], edi
-    push ebp
-    push ebx
-    push esi
-    push edi
+    ; push ebp
+    ; push ebx
+    ; push esi
+    ; push edi
 
-	mov [eax + 8], esp
-	mov eax, [esp + 24]
-	mov esp, [eax + 8] 
+	mov [eax + 4], esp
+	mov eax, [esp + 8]
+	mov esp, [eax + 4] 
 
-    pop edi
-    pop esi
-    pop ebx
-    pop ebp
+    ; pop edi
+    ; pop esi
+    ; pop ebx
+    ; pop ebp
 	; mov edi, [eax + 28]
 	; mov esi, [eax + 24]
 	; mov ebx, [eax + 12]

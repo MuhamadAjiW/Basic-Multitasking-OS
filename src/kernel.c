@@ -42,19 +42,18 @@ void kernel_setup(void) {
 
     initialize_memory();
 
-    struct FAT32DriverRequest shell = {
-        .buf                   = (uint8_t*)0,
-        .name                  = "sh",
-        .ext                   = "\0\0\0",
-        .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
-        .buffer_size           = 0x100000,
-    };
-    allocate_single_user_page_frame(0);
+    // allocate_single_user_page_frame(0);
 
     keyboard_state_activate();
 
+    // FAT32DriverRequest shell = {
+    //     .name                  = "sh",
+    //     .ext                   = "\0\0\0",
+    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
+    //     .buffer_size           = 0x100000,
+    // };
+    // create_task(shell, 1, STACKTYPE_USER, INTERRUPT_FLAG);
 
-    load(shell);
 
     while (TRUE);
 

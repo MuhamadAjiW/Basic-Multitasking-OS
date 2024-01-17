@@ -5,6 +5,9 @@
 
 #include "stdtype.h"
 #include "cpu.h"
+#include "fat32.h"
+
+#define INTERRUPT_FLAG 0x200
 
 #define PSTATE_NEW 0
 #define PSTATE_READY 1
@@ -22,6 +25,8 @@
 typedef struct Context{
     CPUSegments segments;
     CPURegister registers;
+    uint32_t int_no, err_code;
+    
     uint32_t eip, cs, eflags, useresp, userss;
 } __attribute__((packed)) Context;
 
@@ -32,14 +37,16 @@ typedef struct ContextReturn {
 
 typedef struct PCB
 {
+    // context needs to be first for context switching
+    uint32_t eip;                   // program counter
+    uint32_t esp;                   // program counter
+    Context context;
+    uint32_t cr3;                   // virtual address space
+
     uint8_t pstate;                // process state
     uint8_t pid;                   // id
     uint8_t parent_pid;            // parent id
-    uint8_t eip;                   // program counter
     
-    // context
-    Context context;
-    uint32_t cr3;                   // virtual address space
 
     // Extras
     struct PCB* next;               // next process for pipelining
@@ -53,7 +60,9 @@ void restore_context();
 void isr_exit();
 
 void initialize_tasking();
-void create_task(uint32_t pid, uint32_t eip, uint32_t u_stack, uint8_t STACKTYPE, uint32_t eflags);
+
+// returns 0 if failed, 1 if successful
+uint8_t create_task(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type, uint32_t eflags);
 void schedule();
 
 #endif

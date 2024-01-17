@@ -4,7 +4,7 @@
 #include "stdtype.h"
 
 #define PAGE_ENTRY_COUNT 1024
-#define PAGE_FRAME_SIZE  (4*1024*1024)
+#define PAGE_FRAME_SIZE  0x400000
 
 // Operating system page directory, using page size PAGE_FRAME_SIZE (4 MiB)
 extern struct PageDirectory _paging_kernel_page_directory;

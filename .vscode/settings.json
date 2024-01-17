@@ -10,6 +10,8 @@
         "kernel_loader.h": "c",
         "memory_manager.h": "c",
         "task.h": "c",
-        "gdt.h": "c"
+        "gdt.h": "c",
+        "fat32.h": "c",
+        "tss.h": "c"
     },
 }
