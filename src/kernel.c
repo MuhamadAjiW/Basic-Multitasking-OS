@@ -30,7 +30,6 @@ void kernel_setup(void) {
     set_tss_kernel_current_stack();
     initialize_tasking();
 
-    activate_irq(IRQ_TIMER);
     activate_irq(IRQ_KEYBOARD);
     activate_irq(IRQ_PRIMARY_ATA);
     activate_irq(IRQ_SECOND_ATA);
@@ -53,6 +52,9 @@ void kernel_setup(void) {
     };
 
     create_task(shell, 1, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+    create_task(shell, 2, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+
+    activate_irq(IRQ_TIMER);
 
     //TODO: Delete
     // allocate_single_user_page_frame((void*) 0 );

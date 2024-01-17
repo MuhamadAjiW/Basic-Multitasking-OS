@@ -13,24 +13,24 @@ uint32_t allocate_resource(uint8_t amount, uint8_t pid){
     while (i < RESOURCE_AMOUNT - amount){
         available = 1;
         for (uint8_t j = i; j < i + amount; j++){
-            if (available_resource->used){
+            if (available_resource[j].used){
                 available = 0;
                 break;
             }
         }
         
         if(available) break;
+        i++;
     }
 
     // If not, return 0
     if (!available) return 0;
     
     // If yes, allocate the pages and return the end of stack
-    for (uint8_t j = 0; j < amount; j++){
-        uint8_t location = i + j;
-        allocate_single_user_page_frame((void*) ((i + j) * PAGE_FRAME_SIZE));
-        available_resource[location].pid = pid;
-        available_resource[location].used = 1;
+    for (uint8_t j = i; j < i + amount; j++){
+        allocate_single_user_page_frame((void*) ((j) * PAGE_FRAME_SIZE));
+        available_resource[j].pid = pid;
+        available_resource[j].used = 1;
     }
 
     return (i + amount) * PAGE_FRAME_SIZE;
