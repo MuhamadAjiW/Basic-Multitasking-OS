@@ -92,21 +92,18 @@ void main_interrupt_handler(
         __asm__ volatile("hlt");
     }
     else{
+        uint8_t irq_num = int_number - IRQ_OFFSET;
         // IRQs or Syscalls
         InterruptHandler handler = {0};
         if (int_number < 0x30)
-            handler = irq_handlers[int_number - IRQ_OFFSET];
+            handler = irq_handlers[irq_num];
         else if (int_number == 0x30)
             handler = syscall_handlers[cpu.eax];
         
         if(handler) handler(cpu, int_number, info);
 
         // Refresh PIC
-        if (int_number >=40){
-            out(PIC2, 0x20);
-        }
-
-        out(PIC1, 0x20);
+        pic_ack(irq_num);
     }
     
 

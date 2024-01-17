@@ -43,8 +43,8 @@ uint8_t create_task(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type
     Context* c_ptr = (Context*) t_esp;
     memset(c_ptr, 0, sizeof(Context));
 
-    uint32_t cs = stack_type == STACKTYPE_KERNEL ? GDT_KERNEL_CODE_SEGMENT_SELECTOR : (GDT_USER_CODE_SEGMENT_SELECTOR | USER_PRIVILEGE);
-    uint32_t ds = stack_type == STACKTYPE_KERNEL ? GDT_KERNEL_DATA_SEGMENT_SELECTOR : (GDT_USER_DATA_SEGMENT_SELECTOR | USER_PRIVILEGE);
+    uint32_t cs = stack_type == STACKTYPE_KERNEL ? GDT_KERNEL_CODE_SEGMENT_SELECTOR : (GDT_USER_CODE_SEGMENT_SELECTOR | PRIVILEGE_USER);
+    uint32_t ds = stack_type == STACKTYPE_KERNEL ? GDT_KERNEL_DATA_SEGMENT_SELECTOR : (GDT_USER_DATA_SEGMENT_SELECTOR | PRIVILEGE_USER);
 
     c_ptr->cs = cs;
     c_ptr->segments.ds = ds;
@@ -52,16 +52,6 @@ uint8_t create_task(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type
     c_ptr->segments.gs = ds;
     c_ptr->segments.fs = ds;
     c_ptr->segments.es = ds;
-    
-    c_ptr->registers.edi = 0;
-    c_ptr->registers.esi = 0;
-    c_ptr->registers.ebx = 0;
-    c_ptr->registers.edx = 0;
-    c_ptr->registers.ecx = 0;
-    c_ptr->registers.eax = 0;
-    
-    c_ptr->registers.ebp = 0;
-    c_ptr->registers.esp = 0;
 
     c_ptr->userss = ds;
     c_ptr->useresp = t_stack;
@@ -77,6 +67,8 @@ uint8_t create_task(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type
     tasks[pid].context.registers.ebp = t_stack - 4;
     tasks[pid].esp = (uint32_t) t_esp;
     tasks[pid].pid = pid;
+    tasks[pid].parent_pid = current_task->pid;
+    tasks[pid].privilege = stack_type;
 
     num_task++;
 

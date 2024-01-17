@@ -12,6 +12,7 @@
         "task.h": "c",
         "gdt.h": "c",
         "fat32.h": "c",
-        "tss.h": "c"
+        "tss.h": "c",
+        "syscall.h": "c"
     },
 }

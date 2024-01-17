@@ -7,7 +7,9 @@
 #include "cpu.h"
 #include "fat32.h"
 
-#define INTERRUPT_FLAG 0x200
+#define EFLAGS_BASE         0x2
+#define EFLAGS_PARITY       0x4
+#define EFLAGS_INTERRUPT    0x200
 
 #define PSTATE_NEW 0
 #define PSTATE_READY 1
@@ -26,7 +28,7 @@ typedef struct Context{
     CPUSegments segments;
     CPURegister registers;
     uint32_t int_no, err_code;
-    
+
     uint32_t eip, cs, eflags, useresp, userss;
 } __attribute__((packed)) Context;
 
@@ -46,7 +48,7 @@ typedef struct PCB
     uint8_t pstate;                // process state
     uint8_t pid;                   // id
     uint8_t parent_pid;            // parent id
-    
+    uint8_t privilege;             // kernel or user level privilege
 
     // Extras
     struct PCB* next;               // next process for pipelining

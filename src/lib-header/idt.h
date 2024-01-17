@@ -6,6 +6,7 @@
 // IDT hard limit, see Intel x86 manual 3a - 6.10 Interrupt Descriptor Table
 #define IDT_MAX_ENTRY_COUNT    256
 #define ISR_STUB_TABLE_LIMIT   64
+#define ISR_STUB_KERNEL_LIMIT  48
 #define INTERRUPT_GATE_R_BIT_1 0b000
 #define INTERRUPT_GATE_R_BIT_2 0b110
 #define INTERRUPT_GATE_R_BIT_3 0b0
@@ -39,7 +40,7 @@ typedef struct IDTGate {
     uint8_t  _r_bit_3       : 1;
     uint8_t  _privilege     : 2;
     uint8_t  valid_bit      : 1;
-    uint16_t offset_high      : 16;
+    uint16_t offset_high    : 16;
 } __attribute__((packed)) IDTGate;
 
 /**
