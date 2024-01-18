@@ -36,7 +36,6 @@ void kernel_setup(void) {
     activate_irq(IRQ_SECOND_ATA);
 
     register_irq_handler(IRQ_KEYBOARD, keyboard_isr);
-    register_irq_handler(IRQ_TIMER, pit_isr);
 
     enable_system_calls();
 
@@ -58,12 +57,13 @@ void kernel_setup(void) {
     winmgr_initalilze();
 
     set_pit_freq(DEFAULT_FREQUENCY);
+    register_irq_handler(IRQ_TIMER, pit_isr);
     activate_irq(IRQ_TIMER);
 
     //TODO: Delete, this is to test using a single threaded environment
-    allocate_single_user_page_frame((void*) 0 );
-    load(shell);
-    kernel_execute_user_program((void*) 0 );
+    // allocate_single_user_page_frame((void*) 0 );
+    // load(shell);
+    // kernel_execute_user_program((void*) 0 );
 
     while (TRUE);
 }

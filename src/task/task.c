@@ -23,68 +23,68 @@ void initialize_tasking(){
     current_task = &tasks[0];
     current_task->pid = 0;
     *(current_task->name) = '0';
+    current_task->state = RUNNING;
 }
 
 // TODO: Manage, this is just the function
 uint8_t create_task(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type, uint32_t eflags){
 
     // Allocate resources with ceiling division
-    uint8_t resource_amount = (request.buffer_size + PAGE_FRAME_SIZE - 1) / PAGE_FRAME_SIZE;
-    uint32_t t_stack = allocate_resource(resource_amount, pid) - 4;
+    // Resource amount is added by 1 for both kernel and user stacks
+    uint8_t resource_amount = (request.buffer_size + PAGE_FRAME_SIZE - 1) / PAGE_FRAME_SIZE + 1;
+
+    // TODO: optimize, using a whole page for stack is really excessive
+    uint32_t t_stack = allocate_resource(resource_amount, pid);
     if (!t_stack) return 0;
 
+    // Initialize task
+    tasks[pid].pid = pid;
+    tasks[pid].parent = current_task;
+    tasks[pid].state = NEW;
+
+    // Last frame is used for stacks, half for kernel, half for user
+    uint32_t u_stack = t_stack - PAGE_FRAME_SIZE/2;
+    uint32_t k_stack = t_stack;
+
     // Load file into memory
-    request.buf = (void*)(t_stack + 4 - resource_amount * PAGE_FRAME_SIZE);
+    request.buf = (void*)(t_stack - resource_amount * PAGE_FRAME_SIZE);
 
     load(request);
 
-    // Set Context to be at the bottom of the given stack
-    uint8_t* t_esp = (uint8_t*) t_stack;
-    t_esp -= sizeof(Context);
-    Context* c_ptr = (Context*) t_esp;
-    memset(c_ptr, 0, sizeof(Context));
+    // Set TrapFrame to be at the bottom of the given kernel stack
+    uint8_t* k_esp = (uint8_t*) k_stack;
+    k_esp -= sizeof(TrapFrame);
+    TrapFrame* tf = (TrapFrame*) k_esp;
+    memset(tf, 0, sizeof(TrapFrame));
 
+    // Prepare new task environment
     uint32_t cs = stack_type == STACKTYPE_KERNEL ? GDT_KERNEL_CODE_SEGMENT_SELECTOR : (GDT_USER_CODE_SEGMENT_SELECTOR | PRIVILEGE_USER);
     uint32_t ds = stack_type == STACKTYPE_KERNEL ? GDT_KERNEL_DATA_SEGMENT_SELECTOR : (GDT_USER_DATA_SEGMENT_SELECTOR | PRIVILEGE_USER);
 
-    c_ptr->cs = cs;
-    c_ptr->segments.ds = ds;
+    tf->cs = cs;
+    tf->segments.ds = ds;
 
-    c_ptr->segments.gs = ds;
-    c_ptr->segments.fs = ds;
-    c_ptr->segments.es = ds;
+    tf->userss = ds;
+    tf->useresp = u_stack;
+    tf->eflags = eflags;
 
-    c_ptr->registers.edi = 0;
-    c_ptr->registers.esi = 0;
-    c_ptr->registers.ebp = 0;
-    c_ptr->registers.esp = 0;
-    c_ptr->registers.ebx = 0;
-    c_ptr->registers.edx = 0;
-    c_ptr->registers.ecx = 0;
-    c_ptr->registers.eax = 0;
-    c_ptr->int_no = 0;
-    c_ptr->err_code = 0;
+    // Note: entry is assumed to be always set at 0 when linking a program
+    tf->eip = (uint32_t) request.buf;
 
-    c_ptr->userss = ds;
-    c_ptr->useresp = t_stack;
-    c_ptr->eflags = eflags;
+    k_esp -= sizeof(Context);
+    Context* context = (Context*) k_esp;
+    context->edi = 0;
+    context->esi = 0;
+    context->ebx = 0;
+    context->ebp = 0;
+    context->eip = (uint32_t) restore_context;
 
-    //Note: entry is assumed to be always set at 0 when linking a program
-    c_ptr->eip = (uint32_t)request.buf;
 
-    t_esp -= sizeof(ContextReturn);
-    ContextReturn* exit = (ContextReturn*) t_esp;
-    exit->edi = 0;
-    exit->esi = 0;
-    exit->ebx = 0;
-    exit->ebp = 0;
-    exit->ret_eip = (uint32_t) restore_context;
-
-    tasks[pid].context.registers.ebp = t_stack - 4;
-    tasks[pid].esp = (uint32_t) t_esp;
-    tasks[pid].pid = pid;
-    tasks[pid].parent_pid = current_task->pid;
-    tasks[pid].privilege = stack_type;
+    // Save the data on our task list
+    tasks[pid].k_stack = k_stack;
+    tasks[pid].context = context;
+    tasks[pid].tf = tf;
+    tasks[pid].state = READY;
 
     num_task++;
 
@@ -96,9 +96,14 @@ void schedule(){
 
     PCB* new = &tasks[next_id];
     PCB* old = current_task;
+    if(new == old) return; // Will break if not switching due to asm code
+
     current_task = new;
 
-    tss.esp0 = new->context.registers.ebp;
+    tss.esp0 = new->k_stack;
 
-    switch_context(old, new);
+    old->state = READY;
+    new->state = RUNNING;
+
+    switch_context(&(old->context), new->context);
 }

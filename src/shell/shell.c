@@ -13,6 +13,10 @@ window_info winfo = {
 };
 
 int main(void) {
+    // Note: I have no idea why but a process has to start with a syscall
+    // Or else there wouldn't be any interrupt happening
+    syscall(SYSCALL_NULL, 0, 0, 0);
+
     window_init(&winfo);
 
     window_write(&winfo, 0, 0, 'X', 0xf, 0x0);
@@ -24,7 +28,11 @@ int main(void) {
     
     int8_t movx = 1;
     int8_t movy = 1;
+
+
+    __asm__ volatile("mov %0, %%eax" : /* <Empty> */ : "r"(0xDEADBEEF));
     while (TRUE){
+        __asm__ volatile("mov %0, %%eax" : /* <Empty> */ : "r"(0xDEADB00F));
 
         winfo.xloc += movx;
         if(winfo.xloc == SCREEN_WIDTH - window_size || winfo.xloc == 0){

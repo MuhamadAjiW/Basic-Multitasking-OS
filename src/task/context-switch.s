@@ -1,9 +1,10 @@
 global switch_context
 global restore_context
 
-;void switch_context(Task* old_task, Task* new_task)
+;void switch_context(Context** old_context, Context* new_context)
 switch_context:
-	mov eax, [esp + 4] ; move old_task to eax
+	mov eax, [esp + 4] ; move old_context to eax
+	mov edx, [esp + 8] ; move new_context to edx
 
 	; These registers are not saved by previous function calls
     push ebp
@@ -11,9 +12,8 @@ switch_context:
     push esi
     push edi
 
-	mov [eax + 4], esp ; move esp to old_task's tsp 
-	mov eax, [esp + 24] ; get new_task to eax
-	mov esp, [eax + 4] ; load new_task's esp
+	mov [eax], esp ; set old_context to current esp 
+	mov esp, edx ; load new_context as esp
 
 	; Restore registers
     pop edi
@@ -22,6 +22,7 @@ switch_context:
     pop ebp
 
 	ret
+	; fall through to end interrupt
 
 ;Basically restores state of all registers
 restore_context:
@@ -33,4 +34,5 @@ restore_context:
 	popad
 	add esp, 8
 
+	sti
 	iret
