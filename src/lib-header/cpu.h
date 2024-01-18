@@ -33,4 +33,12 @@ typedef struct CPUSegments {
     uint32_t ds;
 } __attribute__((packed)) CPUSegments;
 
+// TODO: Document
+typedef struct TrapFrame{
+    CPUSegments segments;
+    CPURegister registers;
+    uint32_t int_no, err_code;
+    uint32_t eip, cs, eflags, useresp, userss;
+} __attribute__((packed)) TrapFrame;
+
 #endif

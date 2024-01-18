@@ -7,15 +7,15 @@
 
 // Max memory in qemu by default is 128 MB (changable up to 4GB)
 // Each page being 4 MB, total memory available is 32
-#define RESOURCE_AMOUNT (32 - KERNEL_PAGE_COUNT - HEAP_PAGE_COUNT)
+#define RESOURCE_AMOUNT 32
 
 //TODO: Document
 typedef struct Resource{
     uint8_t  pid;
     bool     used;
-} Resource;
+} __attribute__((packed)) Resource;
 
-//returns top of stack/end of allocated resource, 0 if failed or not enough resources
+//returns address of paging table for the process
 uint32_t allocate_resource(uint8_t amount, uint8_t pid);
 
 //should be self explanatory

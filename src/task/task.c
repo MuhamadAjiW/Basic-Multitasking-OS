@@ -105,5 +105,11 @@ void schedule(){
     old->state = READY;
     new->state = RUNNING;
 
-    switch_context(&(old->context), new->context);
+    // TODO: Delete, this is for testing
+    if(next_id == 2){
+        switch_context(&(old->context), new->context);
+    }
+    else{
+        switch_context(&(old->context), new->context);
+    }
 }

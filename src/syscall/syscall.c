@@ -14,74 +14,34 @@ void register_syscall_response(uint8_t no, InterruptHandler response){
 
 /*syscall functions*/
 // Basic functionality
-void sys_idle(
-    __attribute__((unused)) CPUSegments seg,
-    __attribute__((unused)) CPURegister cpu,
-    __attribute__((unused)) uint32_t int_number,
-    __attribute__((unused)) InterruptStack info
-){
+void sys_idle(__attribute__((unused)) TrapFrame cpu){
     return;
 }
-void sys_get_timer_tick(
-    __attribute__((unused)) CPUSegments seg,
-    __attribute__((unused)) CPURegister cpu,
-    __attribute__((unused)) uint32_t int_number,
-    __attribute__((unused)) InterruptStack info
-){
-    *(uint32_t*)cpu.ebx = get_tick();
+void sys_get_timer_tick(TrapFrame cpu){
+    *(uint32_t*)cpu.registers.ebx = get_tick();
 }
 
 // Memory syscalls
-void sys_malloc(
-    __attribute__((unused)) CPUSegments seg,
-    __attribute__((unused)) CPURegister cpu,
-    __attribute__((unused)) uint32_t int_number,
-    __attribute__((unused)) InterruptStack info
-){
-    *(void**) cpu.edx = (void*) kmalloc(cpu.ebx);
+void sys_malloc(TrapFrame cpu){
+    *(void**) cpu.registers.edx = (void*) kmalloc(cpu.registers.ebx);
 }
-void sys_realloc(
-    __attribute__((unused)) CPUSegments seg,
-    __attribute__((unused)) CPURegister cpu,
-    __attribute__((unused)) uint32_t int_number,
-    __attribute__((unused)) InterruptStack info
-){
-    *(void**) cpu.edx = (void*) krealloc((void*) cpu.ebx, cpu.ecx);
+void sys_realloc(TrapFrame cpu){
+    *(void**) cpu.registers.edx = (void*) krealloc((void*) cpu.registers.ebx, cpu.registers.ecx);
 }
-void sys_free(
-    __attribute__((unused)) CPUSegments seg,
-    __attribute__((unused)) CPURegister cpu,
-    __attribute__((unused)) uint32_t int_number,
-    __attribute__((unused)) InterruptStack info
-){
-    kfree((void*)cpu.ebx);
+void sys_free(TrapFrame cpu){
+    kfree((void*)cpu.registers.ebx);
 }
 
 
 // Windows manager syscall
-void sys_windmgr_register(
-    __attribute__((unused)) CPUSegments seg,
-    __attribute__((unused)) CPURegister cpu,
-    __attribute__((unused)) uint32_t int_number,
-    __attribute__((unused)) InterruptStack info
-){
-    winmgr_register_winfo((window_info*) cpu.ebx);
+void sys_windmgr_register(TrapFrame cpu){
+    winmgr_register_winfo((window_info*) cpu.registers.ebx);
 }
-void sys_winmgr_update(
-    __attribute__((unused)) CPUSegments seg,
-    __attribute__((unused)) CPURegister cpu,
-    __attribute__((unused)) uint32_t int_number,
-    __attribute__((unused)) InterruptStack info
-){
-    winmgr_update_window((window_info*) cpu.ebx);
+void sys_winmgr_update(TrapFrame cpu){
+    winmgr_update_window((window_info*) cpu.registers.ebx);
 }
-void sys_winmgr_close(
-    __attribute__((unused)) CPUSegments seg,
-    __attribute__((unused)) CPURegister cpu,
-    __attribute__((unused)) uint32_t int_number,
-    __attribute__((unused)) InterruptStack info
-){
-    winmgr_close_window((uint16_t) cpu.ebx);
+void sys_winmgr_close(TrapFrame cpu){
+    winmgr_close_window((uint16_t) cpu.registers.ebx);
 }
 
 

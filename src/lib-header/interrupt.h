@@ -102,25 +102,13 @@ void pic_remap(void);
  * and will call proper ISR for respective interrupt / exception.
  * 
  * Again, this function is not for normal function call, all parameter will be automatically set when interrupt is called.
- * @param cpu        CPU register when interrupt is raised
- * @param int_number Interrupt number that trigger interrupt exception
- * @param info       Information about interrupt that pushed automatically by CPU
+ * @param cpu        CPU information when interrupt is raised
  */
-void main_interrupt_handler(
-    CPUSegments seg,
-    CPURegister cpu,
-    uint32_t int_number,
-    InterruptStack info
-);
+void main_interrupt_handler(TrapFrame cpu);
 
 
 //TODO: Document
-typedef void (*InterruptHandler)(
-    CPUSegments seg,
-    CPURegister cpu,
-    uint32_t int_number,
-    InterruptStack info
-);
+typedef void (*InterruptHandler)(TrapFrame cpu);
 void register_irq_handler(uint16_t int_no, InterruptHandler handler);
 void activate_interrupts();
 void activate_irq(uint8_t irq);

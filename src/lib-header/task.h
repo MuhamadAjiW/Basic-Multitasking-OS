@@ -24,13 +24,6 @@
 //TODO: Virtual memory clearance to own page table, tss and gdt reset not implemented yet
 enum ProcState { NEW, READY, RUNNING, WAITING, TERMINATED };
 
-typedef struct TrapFrame{
-    CPUSegments segments;
-    CPURegister registers;
-    uint32_t int_no, err_code;
-    uint32_t eip, cs, eflags, useresp, userss;
-} __attribute__((packed)) TrapFrame;
-
 //TODO: Document
 typedef struct Context {
     uint32_t edi, esi, ebx, ebp, eip;

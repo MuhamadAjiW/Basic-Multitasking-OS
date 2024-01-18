@@ -50,9 +50,16 @@ void kernel_setup(void) {
         .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
         .buffer_size           = 0x100000,
     };
+    FAT32DriverRequest clock = {
+        .buf                   = (void*) 0,
+        .name                  = "cl",
+        .ext                   = "\0\0\0",
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
+        .buffer_size           = 0x100000,
+    };
 
     create_task(shell, 1, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
-    // create_task(shell, 2, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+    create_task(clock, 2, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
 
     winmgr_initalilze();
 

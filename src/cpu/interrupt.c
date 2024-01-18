@@ -82,26 +82,21 @@ void pic_remap(void) {
     out(PIC2_DATA, a2);
 }
 
-void main_interrupt_handler(
-    __attribute__((unused)) CPUSegments seg,
-    __attribute__((unused)) CPURegister cpu,
-    uint32_t int_number,
-    __attribute__((unused)) InterruptStack info
-) {
-    if(int_number < 0x20){
+void main_interrupt_handler(TrapFrame cpu) {
+    if(cpu.int_no < 0x20){
         // Error, message is exception_msg[int_number]
         __asm__ volatile("hlt");
     }
     else{
-        uint8_t irq_num = int_number - IRQ_OFFSET;
+        uint8_t irq_num = cpu.int_no - IRQ_OFFSET;
         // IRQs or Syscalls
         InterruptHandler handler = {0};
-        if (int_number < 0x30)
+        if (cpu.int_no < 0x30)
             handler = irq_handlers[irq_num];
-        else if (int_number == 0x30)
-            handler = syscall_handlers[cpu.eax];
+        else if (cpu.int_no == 0x30)
+            handler = syscall_handlers[cpu.registers.eax];
         
-        if(handler) handler(seg, cpu, int_number, info);
+        if(handler) handler(cpu);
 
         // Refresh PIC
         pic_ack(irq_num);

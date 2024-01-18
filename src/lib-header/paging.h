@@ -66,7 +66,6 @@ struct PageDirectoryEntry {
  */
 struct PageDirectory {
     struct PageDirectoryEntry table[PAGE_ENTRY_COUNT];
-    // TODO : Implement
 } __attribute__((aligned(0x1000)));
 
 /**

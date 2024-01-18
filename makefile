@@ -29,8 +29,8 @@ clean:
 $(OUTPUT_FOLDER)/%.o: $(SOURCE_FOLDER)/%.c
 	@$(CC) $(CFLAGS) $< -o $@
 
-SRC := $(filter-out $(SOURCE_FOLDER)/shell/%, $(filter-out $(SOURCE_FOLDER)/chuuloop/%, $(shell find $(SOURCE_FOLDER) -name '*.c')))
-DIR := $(filter-out $(SOURCE_FOLDER), $(filter-out $(SOURCE_FOLDER)/shell, $(filter-out $(SOURCE_FOLDER)/chuuloop, $(patsubst $(SOURCE_FOLDER)/%, $(OUTPUT_FOLDER)/%, $(shell find $(SOURCE_FOLDER) -type d)))))
+SRC := $(filter-out $(SOURCE_FOLDER)/shell/%, $(filter-out $(SOURCE_FOLDER)/clock/%, $(shell find $(SOURCE_FOLDER) -name '*.c')))
+DIR := $(filter-out $(SOURCE_FOLDER), $(filter-out $(SOURCE_FOLDER)/shell, $(filter-out $(SOURCE_FOLDER)/clock, $(patsubst $(SOURCE_FOLDER)/%, $(OUTPUT_FOLDER)/%, $(shell find $(SOURCE_FOLDER) -type d)))))
 OBJ := $(patsubst $(SOURCE_FOLDER)/%.c, $(OUTPUT_FOLDER)/%.o, $(SRC))
 
 dir: 
@@ -39,12 +39,12 @@ dir:
 	done
 
 kernel: $(OBJ)
+	@echo Linking object files and generate elf32...
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/kernel_loader.s -o $(OUTPUT_FOLDER)/kernel_loader.o
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/cpu/intsetup.s -o $(OUTPUT_FOLDER)/intsetup.o
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/task/context-switch.s -o $(OUTPUT_FOLDER)/context-switch.o
 	@$(LIN) $(LFLAGS) $(OBJ) $(OUTPUT_FOLDER)/intsetup.o $(OUTPUT_FOLDER)/kernel_loader.o $(OUTPUT_FOLDER)/context-switch.o -o $(OUTPUT_FOLDER)/kernel
 	
-	@echo Linking object files and generate elf32...
 	@rm -rf ${DIR}
 	@rm -f *.o
 
@@ -95,27 +95,60 @@ dir-u:
 
 # ngecompile shell
 shell: dir-u $(OBJ_U)
+	@echo Compiling shell...
 	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/shell/shell-entry.s -o shell-entry.o
 
+	@echo Linking object shell object files and generate flat binary...
 	@$(LIN) -T $(SOURCE_FOLDER)/shell/shell-linker.ld -melf_i386 \
 		shell-entry.o $(OBJ_U) -o $(OUTPUT_FOLDER)/sh
-	@echo Linking object shell object files and generate flat binary...
 	
+	@echo Linking object shell object files and generate ELF32 for debugging...
 	@$(LIN) -T $(SOURCE_FOLDER)/shell/shell-linker.ld -melf_i386 --oformat=elf32-i386\
 		shell-entry.o $(OBJ_U) -o $(OUTPUT_FOLDER)/sh_elf
-	@echo Linking object shell object files and generate ELF32 for debugging...
 	@size --target=binary bin/sh
 	
 	@rm -rf ${DIR_U}
 	@rm -f *.o
 
 
-# masukin shell yang udah dicompile ke harddisk
-insert-shell: shell
+# #------------------------------
+#clock
+$(OUTPUT_FOLDER)/clock/%.o: $(SOURCE_FOLDER)/clock/%.c
+	@$(CC) $(CFLAGS) -fno-pie $< -o $@
+
+SRC_C := $(shell find $(SOURCE_FOLDER)/clock -name '*.c')
+DIR_C := $(filter-out src/clock, $(patsubst $(SOURCE_FOLDER)/clock/%, $(OUTPUT_FOLDER)/clock/%, $(shell find $(SOURCE_FOLDER)/clock -type d)))
+OBJ_C := $(patsubst $(SOURCE_FOLDER)/clock/%.c, $(OUTPUT_FOLDER)/clock/%.o, $(SRC_C))
+
+dir-c: 
+	@for dir in $(DIR_C); do \
+		if [ ! -d $$dir ]; then mkdir -p $$dir; fi \
+	done
+
+# ngecompile clock
+clock: dir-c $(OBJ_C)
+	@echo Compiling clock...
+	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/clock/shell-entry.s -o shell-entry.o
+
+	@echo Linking object shell object files and generate flat binary...
+	@$(LIN) -T $(SOURCE_FOLDER)/clock/shell-linker.ld -melf_i386 \
+		shell-entry.o $(OBJ_C) -o $(OUTPUT_FOLDER)/cl
+	
+	@echo Linking object clock object files and generate ELF32 for debugging...
+	@$(LIN) -T $(SOURCE_FOLDER)/clock/shell-linker.ld -melf_i386 --oformat=elf32-i386\
+		shell-entry.o $(OBJ_C) -o $(OUTPUT_FOLDER)/cl_elf
+	@size --target=binary bin/sh
+	
+	@rm -rf ${DIR_C}
+	@rm -f *.o
+
+# masukin program yang udah dicompile ke harddisk
+insert: shell clock
 #	segmen unix to dos bisa diskip
 # 	@echo Turning possibly dos files into unix files... && cd other && dos2unix stdfont && dos2unix stdbg && dos2unix stdbg2 && dos2unix stdanim && dos2unix text
 
 	@echo Inserting shell into system directory... && cd bin && ./inserter sh 66 drive.img
+	@echo Inserting clock into system directory... && cd bin && ./inserter cl 66 drive.img
 # 	@echo Inserting font into system directory... && cp other/stdfont bin/stdfont && cd bin && ./inserter stdfont 66 drive.img fnt
 # 	@echo Inserting background image into system directory... && cp other/stdbg bin/stdbg && cd bin && ./inserter stdbg 66 drive.img imp
 # 	@echo Inserting second background image into system directory... && cp other/stdbg2 bin/stdbg2 && cd bin && ./inserter stdbg2 66 drive.img imp
@@ -124,4 +157,4 @@ insert-shell: shell
 
 
 #build everything
-complete: disk iso inserter insert-shell
+complete: disk iso inserter insert

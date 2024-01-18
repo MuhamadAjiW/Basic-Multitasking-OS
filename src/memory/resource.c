@@ -2,7 +2,8 @@
 #include "../lib-header/memory_manager.h"
 #include "../lib-header/paging.h"
 
-//global amount of available resources, pages are located by its index
+// global amount of available resources, pages are located by its index
+// Used to track physical memory rather than virtual
 Resource available_resource[RESOURCE_AMOUNT];
 
 uint32_t allocate_resource(uint8_t amount, uint8_t pid){

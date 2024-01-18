@@ -1,5 +1,6 @@
 
 #include "../lib-header/memory_manager.h"
+#include "../lib-header/resource.h"
 #include "../lib-header/stdtype.h"
 #include "../lib-header/stdmem.h"
 #include "../lib-header/paging.h"
@@ -9,10 +10,17 @@ static uint32_t heap_start = 0;
 static uint32_t heap_end = 0;
 
 static uint32_t dynamic_pointers = 0;
+extern Resource available_resource[RESOURCE_AMOUNT];
 
 // heap is placed under kernel space
 // heap size is HEAP_PAGE_COUNT * PAGE_FRAME_SIZE
 void initialize_memory(){
+    // Assign pages used by the kernel
+    // for (uint16_t i = KERNEL_PMEMORY_START / PAGE_FRAME_SIZE; i < KERNEL_PAGE_COUNT; i++){
+    //     available_resource[i].used = 1;
+    //     available_resource[i].pid = 0;
+    // }
+
     struct PageDirectoryEntryFlag flags ={
         .present_bit       = 1,
         .user_supervisor   = 1,
@@ -20,11 +28,13 @@ void initialize_memory(){
         .use_pagesize_4_mb = 1
     };
     
-    for (int i = 0; i < HEAP_PAGE_COUNT; i++)    {
+    for (uint16_t i = 0; i < HEAP_PAGE_COUNT; i++)    {
         update_page_directory_entry(
             (void *)(KERNEL_PMEMORY_END + (i * PAGE_FRAME_SIZE)),
             (void *)(HEAP_VMEMORY_OFFSET + (i * PAGE_FRAME_SIZE)),
             flags);
+        // available_resource[KERNEL_PAGE_COUNT + i].used = 1;
+        // available_resource[KERNEL_PAGE_COUNT + i].pid = 0;
     }
 
     last_alloc = HEAP_VMEMORY_OFFSET; //start alignment
