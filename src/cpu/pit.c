@@ -12,7 +12,7 @@ void tick_counter(){
 // TODO: Rework pit to do schedule task instead
 void pit_isr(){
     tick_counter();
-    schedule();
+    // schedule();
 }
 
 void set_pit_freq(uint32_t freq){

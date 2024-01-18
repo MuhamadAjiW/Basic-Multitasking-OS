@@ -28,9 +28,8 @@
  * @param c         Character
  * @param fg        Foreground / Character color
  * @param bg        Background color
- * @param buffer    Buffer to write on
  */
-void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg, uint16_t* buffer);
+void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg);
 
 /**
  * Set cursor to specified location. Row and column starts from 0
@@ -49,8 +48,7 @@ void framebuffer_clear(void);
 
 // TODO: Document
 void framebuffer_display();
-void framebuffer_set(uint8_t row, uint8_t col, uint16_t info, uint16_t* buffer);
-void framebuffer_write_screen(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg);
+void framebuffer_set(uint8_t row, uint8_t col, uint16_t info);
 
 // TODO: Delete
 void framebuffer_keyboard(void);

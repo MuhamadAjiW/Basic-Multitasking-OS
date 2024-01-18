@@ -53,16 +53,17 @@ void kernel_setup(void) {
     };
 
     create_task(shell, 1, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
-    create_task(shell, 2, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+    // create_task(shell, 2, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
 
     winmgr_initalilze();
 
+    set_pit_freq(DEFAULT_FREQUENCY);
     activate_irq(IRQ_TIMER);
 
-    //TODO: Delete
-    // allocate_single_user_page_frame((void*) 0 );
-    // load(shell);
-    // kernel_execute_user_program((void*) 0 );
+    //TODO: Delete, this is to test using a single threaded environment
+    allocate_single_user_page_frame((void*) 0 );
+    load(shell);
+    kernel_execute_user_program((void*) 0 );
 
     while (TRUE);
 }

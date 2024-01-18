@@ -3,16 +3,21 @@
 #include "../lib-header/framebuffer.h"
 #include "../lib-header/window_manager.h"
 
-//TODO: Document
+// TODO: Document
+// Note: Would be interesting to make this a separate program if we have inter-process communication 
 window_manager winmgr = {0};
 extern uint16_t screen_buffer[];
-
 
 void winmgr_initalilze(){
     // The stack have to be initialized with -1 or 255 since 0 is used as an id
     for (uint8_t i = 0; i < MAX_WINDOW_NUM; i++){
         winmgr.stack.ids[i] = -1;
     }
+}
+void winmgr_set_window(window_info* winfo, uint8_t row, uint8_t col, uint16_t info, bool mainBuffer){    
+    volatile uint16_t * where = mainBuffer? winfo->mainBuffer : winfo->rearBuffer;
+    where +=  (row * winfo->xlen + col);
+    *where = info;
 }
 uint8_t winmgr_generate_window_id(){
     uint8_t given_id = 0;
@@ -27,11 +32,16 @@ uint8_t winmgr_generate_window_id(){
 }
 void winmgr_show_window(window_info* winfo){
     uint16_t j = 0;
-    while (winfo->yloc + j < SCREEN_HEIGHT && j < winfo->ylen){
+    uint16_t xloc = winfo->xloc;
+    uint16_t xlen = winfo->xlen;
+    uint16_t yloc = winfo->yloc;
+    uint16_t ylen = winfo->ylen;
+
+    while (yloc + j < SCREEN_HEIGHT && j < ylen){
         uint16_t i = 0;
-        while (winfo->xloc + i < SCREEN_WIDTH && i < winfo->xlen){
-            framebuffer_set(winfo->xloc + i, winfo->yloc + j, winfo->mainBuffer[(winfo->xlen * j) + i], screen_buffer);
-            framebuffer_set(winfo->xloc + i, winfo->yloc + j, screen_buffer[(winfo->xlen * j) + i], winfo->rearBuffer);
+        while (xloc + i < SCREEN_WIDTH && i < xlen){
+            winmgr_set_window(winfo, j, i, screen_buffer[(SCREEN_WIDTH * (yloc + j)) + (xloc + i)], FALSE);
+            framebuffer_set(yloc + j, xloc + i, winfo->mainBuffer[(xlen * j) + i]);
             i++;
         }
         j++;
@@ -42,7 +52,7 @@ void winmgr_show_window_flat(window_info winfo){
     while (winfo.yloc + j < SCREEN_HEIGHT && j < winfo.ylen){
         uint16_t i = 0;
         while (winfo.xloc + i < SCREEN_WIDTH && i < winfo.xlen){
-            framebuffer_set(winfo.xloc + i, winfo.yloc + j, winfo.mainBuffer[(winfo.xlen * j) + i], screen_buffer);
+            framebuffer_set(winfo.yloc + j, winfo.xloc + i, winfo.mainBuffer[(winfo.xlen * j) + i]);
             i++;
         }
         j++;
@@ -53,7 +63,7 @@ void winmgr_hide_window(window_info winfo){
     while (winfo.yloc + j < SCREEN_HEIGHT && j < winfo.ylen){
         uint16_t i = 0;
         while (winfo.xloc + i < SCREEN_WIDTH && i < winfo.xlen){
-            framebuffer_set(winfo.xloc + i, winfo.yloc + j, winfo.rearBuffer[(winfo.xlen * j) + i], screen_buffer);
+            framebuffer_set(winfo.yloc + j, winfo.xloc + i, winfo.rearBuffer[(winfo.xlen * j) + i]);
             i++;
         }
         j++;
@@ -70,13 +80,13 @@ void winmgr_stack_remove(uint16_t id){
     // TODO: Improve, rendering everything each time would be quite heavy
     // There might be a way to do this without re-rendering everything
 
-    uint8_t i = 0;
+    int8_t i = 0;
     while (i != MAX_WINDOW_NUM && winmgr.stack.ids[i]!= id){
         i++;
     }
     if (i == MAX_WINDOW_NUM) return; // id not found, window might be an unregistered 
 
-    for (uint8_t j = winmgr.stack.top - 1; j >= i; i--){
+    for (int8_t j = winmgr.stack.top - 1; j >= i; j--){
         winmgr_hide_window(winmgr.windows[winmgr.stack.ids[j]]);
     }
 
@@ -94,13 +104,6 @@ void winmgr_stack_add(uint16_t id){
     winmgr.stack.top++;
     winmgr_show_window(&winmgr.windows[id]);
 }
-void winmgr_stack_put_forward(uint16_t id){
-    winmgr_stack_remove(id);
-    winmgr_stack_add(id);
-}
-
-
-
 
 // Syscall functions
 void winmgr_register_winfo(window_info* winfo){
@@ -111,37 +114,45 @@ void winmgr_register_winfo(window_info* winfo){
     winmgr.windows[id].rearBuffer = winfo->rearBuffer;
     winmgr_update_winfo(*winfo, id);
     winmgr_stack_add(id);
+
+    framebuffer_display();
 }
 void winmgr_update_window(window_info* winfo){
-    if(winmgr.windows[winfo->id].mainBuffer == 0) return; //Unregistered window requested
+    uint8_t id = winfo->id;
+
+    if(winmgr.windows[id].mainBuffer == 0) return; //Unregistered window requested
 
     // TODO: Implement active window mechanism
     if(winfo->active){
-        winmgr_stack_put_forward(winfo->id);
+        winmgr_stack_remove(id);
+        winmgr_update_winfo(*winfo, id);
+        winmgr_stack_add(id);
 
-        for (uint8_t j = 0; j < MAX_WINDOW_NUM; j++){
-            if(winmgr.windows_exist[j] && j != winfo->id){
+        for (int8_t j = 0; j < MAX_WINDOW_NUM; j++){
+            if(winmgr.windows_exist[j] && j != id){
                 winmgr.windows_ref[j]->active = FALSE;
             }
         }
     }
     else{
-        uint8_t i = 0;
-        while (i != MAX_WINDOW_NUM && winmgr.stack.ids[i]!= winfo->id){
+        int8_t i = 0;
+        while (i != MAX_WINDOW_NUM && winmgr.stack.ids[i]!= id){
             i++;
         }
         if (i == MAX_WINDOW_NUM) return; // id not found, window might be an unregistered 
 
-        for (uint8_t j = winmgr.stack.top - 1; j > i; i--){
+        for (int8_t j = winmgr.stack.top - 1; j >= i; j--){
             winmgr_hide_window(winmgr.windows[winmgr.stack.ids[j]]);
         }
 
+        winmgr_update_winfo(*winfo, id);
         while (i < winmgr.stack.top){
             winmgr_show_window(&winmgr.windows[winmgr.stack.ids[i]]);
             i++;
         }
     }
 
+    framebuffer_display();
 }
 void winmgr_close_window(uint16_t id){
     if(winmgr.windows[id].mainBuffer == 0) return; //Unregistered window requested
@@ -149,5 +160,6 @@ void winmgr_close_window(uint16_t id){
     winmgr_stack_remove(id);
     winmgr.windows_exist[id] = 0;
 
+    framebuffer_display();
     // TODO: Implement active window mechanism
 }

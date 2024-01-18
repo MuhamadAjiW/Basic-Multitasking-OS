@@ -69,7 +69,7 @@ uint8_t create_task(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type
     c_ptr->useresp = t_stack;
     c_ptr->eflags = eflags;
 
-    //NOTE: entry is assumed to be always set at 0 when linking a program
+    //Note: entry is assumed to be always set at 0 when linking a program
     c_ptr->eip = (uint32_t)request.buf;
 
     t_esp -= sizeof(ContextReturn);
