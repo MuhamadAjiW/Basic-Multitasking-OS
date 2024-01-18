@@ -1,13 +1,13 @@
-#include "lib-header/task.h"
-#include "lib-header/interrupt.h"
-#include "lib-header/gdt.h"
-#include "lib-header/tss.h"
-#include "lib-header/stdmem.h"
-#include "lib-header/memory_manager.h"
-#include "lib-header/resource.h"
-#include "lib-header/paging.h"
+#include "../lib-header/task.h"
+#include "../lib-header/interrupt.h"
+#include "../lib-header/gdt.h"
+#include "../lib-header/tss.h"
+#include "../lib-header/stdmem.h"
+#include "../lib-header/memory_manager.h"
+#include "../lib-header/resource.h"
+#include "../lib-header/paging.h"
 
-#include "lib-header/fat32.h"
+#include "../lib-header/fat32.h"
 
 // TODO: Make tasks with dynamic memory, paging, variable authority, priority, blocking, etc
 uint8_t resources_allocated = 0;

@@ -1,4 +1,4 @@
-#include "lib-header/paging.h"
+#include "../lib-header/paging.h"
 
 struct PageDirectory _paging_kernel_page_directory = {
     .table = {

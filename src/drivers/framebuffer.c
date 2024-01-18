@@ -1,10 +1,10 @@
-#include "lib-header/framebuffer.h"
-#include "lib-header/stdtype.h"
-#include "lib-header/stdmem.h"
-#include "lib-header/portio.h"
+#include "../lib-header/framebuffer.h"
+#include "../lib-header/stdtype.h"
+#include "../lib-header/stdmem.h"
+#include "../lib-header/portio.h"
 
 // TODO: Temporary
-#include "lib-header/keyboard.h"
+#include "../lib-header/keyboard.h"
 extern KeyboardDriverState keyboard_state;
 
 // Double buffering to avoid screen tearing
@@ -19,6 +19,13 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c) {
 	out(CURSOR_PORT_DATA, (uint8_t) ((pos >> 8) & 0xFF));
 }
 
+void framebuffer_write_screen(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg){
+    uint16_t attrib = (bg << 4) | (fg & 0x0F);
+    volatile uint16_t * where;
+    where = (volatile uint16_t *) screen_buffer + (row * 80 + col);
+    *where = c | (attrib << 8);
+}
+
 void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg, uint16_t* buffer) {
     uint16_t attrib = (bg << 4) | (fg & 0x0F);
     volatile uint16_t * where;
@@ -29,13 +36,13 @@ void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg,
 void framebuffer_set(uint8_t row, uint8_t col, uint16_t info, uint16_t* buffer){
     volatile uint16_t * where;
     where = (volatile uint16_t *) buffer + (row * 80 + col);
-    where = info;
+    *where = info;
 }
 
 void framebuffer_clear(void) {
     for (uint8_t i = 0; i < 25; i++){
         for (uint8_t j = 0; j < 80; j++){
-            framebuffer_write(i, j, 0, 0x0, 0xf);
+            framebuffer_write_screen(i, j, 0, 0x0, 0xf);
         }
     }
     framebuffer_display();
@@ -50,7 +57,7 @@ char screen_keyboard_buffer[256];
 void framebuffer_keyboard(void){
     get_keyboard_buffer(screen_keyboard_buffer);
     if(screen_keyboard_buffer[0] != 0){
-        framebuffer_write(0, 0, screen_keyboard_buffer[0], 0, 0xf, screen_buffer);
+        framebuffer_write_screen(0, 0, screen_keyboard_buffer[0], 0, 0xf);
         framebuffer_display();
     }
 }

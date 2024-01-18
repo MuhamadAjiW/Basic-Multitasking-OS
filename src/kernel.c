@@ -15,6 +15,7 @@
 #include "lib-header/memory_manager.h"
 
 #include "lib-header/task.h"
+#include "lib-header/window_manager.h"
 
 void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);
@@ -53,6 +54,8 @@ void kernel_setup(void) {
 
     create_task(shell, 1, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
     create_task(shell, 2, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+
+    winmgr_initalilze();
 
     activate_irq(IRQ_TIMER);
 

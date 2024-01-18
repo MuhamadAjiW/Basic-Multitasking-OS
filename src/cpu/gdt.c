@@ -1,6 +1,6 @@
-#include "lib-header/stdtype.h"
-#include "lib-header/gdt.h"
-#include "lib-header/tss.h"
+#include "../lib-header/stdtype.h"
+#include "../lib-header/gdt.h"
+#include "../lib-header/tss.h"
 
 /**
  * global_descriptor_table, predefined GDT.

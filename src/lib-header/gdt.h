@@ -2,7 +2,7 @@
 #ifndef _GDT_H
 #define _GDT_H
 
-#include "lib-header/stdtype.h"
+#include "../lib-header/stdtype.h"
 
 #define GDT_MAX_ENTRY_COUNT 32
 

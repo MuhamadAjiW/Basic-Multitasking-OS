@@ -1,9 +1,9 @@
-#include "lib-header/fat32.h"
-#include "lib-header/stdtype.h"
-#include "lib-header/stdmem.h"
-#include "lib-header/disk.h"
-#include "lib-header/cmos.h"
-#include "lib-header/memory_manager.h"
+#include "../lib-header/fat32.h"
+#include "../lib-header/stdtype.h"
+#include "../lib-header/stdmem.h"
+#include "../lib-header/disk.h"
+#include "../lib-header/cmos.h"
+#include "../lib-header/memory_manager.h"
 
 static cmos_reader cmos = {0};
 DirectoryEntry emptyEntry = {0};

@@ -7,19 +7,6 @@
 #define MAX_WINDOW_NUM 64
 
 //TODO: Document
-typedef struct window_manager{
-    window_info windows[MAX_WINDOW_NUM];
-    window_info* windows_ref[MAX_WINDOW_NUM];
-    bool windows_exist[MAX_WINDOW_NUM];
-    window_stack stack;
-    uint8_t window_active;
-} window_manager;
-
-typedef struct window_stack{
-    uint8_t ids[MAX_WINDOW_NUM];
-    uint8_t top;
-} window_stack;
-
 typedef struct window_info{
     uint16_t* mainBuffer;
     uint16_t* rearBuffer;
@@ -30,6 +17,21 @@ typedef struct window_info{
     uint8_t   id;
     uint8_t   active;       // Activeness not implemented yet
 } window_info;
+
+typedef struct window_stack{
+    uint8_t ids[MAX_WINDOW_NUM];
+    uint8_t top;
+} window_stack;
+
+typedef struct window_manager{
+    window_info windows[MAX_WINDOW_NUM];
+    window_info* windows_ref[MAX_WINDOW_NUM];
+    bool windows_exist[MAX_WINDOW_NUM];
+    window_stack stack;
+    uint8_t window_active;
+} window_manager;
+
+
 
 //Blackbox local functions
 void winmgr_initalilze();

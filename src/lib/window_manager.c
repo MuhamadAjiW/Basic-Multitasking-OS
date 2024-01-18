@@ -59,17 +59,6 @@ void winmgr_hide_window(window_info winfo){
         j++;
     }
 }
-void winmgr_update_background(window_info winfo){
-    uint16_t j = 0;
-    while (winfo.yloc + j < SCREEN_HEIGHT && j < winfo.ylen){
-        uint16_t i = 0;
-        while (winfo.xloc + i < SCREEN_WIDTH && i < winfo.xlen){
-            framebuffer_set(winfo.xloc + i, winfo.yloc + j, screen_buffer, winfo.rearBuffer[(winfo.xlen * j) + i]);
-            i++;
-        }
-        j++;
-    }
-}
 void winmgr_update_winfo(window_info winfo, uint8_t id){
     winmgr.windows[id].xloc = winfo.xloc;
     winmgr.windows[id].xlen = winfo.xlen;

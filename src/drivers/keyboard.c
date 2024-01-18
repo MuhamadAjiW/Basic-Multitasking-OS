@@ -1,9 +1,9 @@
-#include "lib-header/keyboard.h"
-#include "lib-header/portio.h"
-#include "lib-header/framebuffer.h"
-#include "lib-header/stdmem.h"
-#include "lib-header/gdt.h"
-#include "lib-header/idt.h"
+#include "../lib-header/keyboard.h"
+#include "../lib-header/portio.h"
+#include "../lib-header/framebuffer.h"
+#include "../lib-header/stdmem.h"
+#include "../lib-header/gdt.h"
+#include "../lib-header/idt.h"
 
 KeyboardDriverState keyboard_state = {
     .keyboard_input_on = 0,

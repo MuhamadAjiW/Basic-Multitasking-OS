@@ -2,7 +2,7 @@
 #ifndef _FRAMEBUFFER_H
 #define _FRAMEBUFFER_H
 
-#include "lib-header/stdtype.h"
+#include "../lib-header/stdtype.h"
 
 #define MEMORY_FRAMEBUFFER (uint8_t *) 0xC00B8000
 #define CURSOR_PORT_CMD    0x03D4
@@ -50,6 +50,7 @@ void framebuffer_clear(void);
 // TODO: Document
 void framebuffer_display();
 void framebuffer_set(uint8_t row, uint8_t col, uint16_t info, uint16_t* buffer);
+void framebuffer_write_screen(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg);
 
 // TODO: Delete
 void framebuffer_keyboard(void);

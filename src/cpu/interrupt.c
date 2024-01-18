@@ -1,7 +1,7 @@
-#include "lib-header/interrupt.h"
-#include "lib-header/portio.h"
-#include "lib-header/idt.h"
-#include "lib-header/syscall.h"
+#include "../lib-header/interrupt.h"
+#include "../lib-header/portio.h"
+#include "../lib-header/idt.h"
+#include "../lib-header/syscall.h"
 
 InterruptHandler irq_handlers[IRQ_COUNT];
 InterruptHandler syscall_handlers[SYSCALL_COUNT];

@@ -1,7 +1,7 @@
-#include "lib-header/idt.h"
-#include "lib-header/interrupt.h"
-#include "lib-header/portio.h"
-#include "lib-header/task.h"
+#include "../lib-header/idt.h"
+#include "../lib-header/interrupt.h"
+#include "../lib-header/portio.h"
+#include "../lib-header/task.h"
 
 uint32_t tick = 0;
 

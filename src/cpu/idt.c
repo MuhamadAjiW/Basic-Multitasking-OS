@@ -1,5 +1,5 @@
-#include "lib-header/idt.h"
-#include "lib-header/gdt.h"
+#include "../lib-header/idt.h"
+#include "../lib-header/gdt.h"
 
 InterruptDescriptorTable interrupt_descriptor_table;
 IDTR _idt_idtr = {

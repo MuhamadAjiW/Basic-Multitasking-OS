@@ -15,6 +15,7 @@
         "tss.h": "c",
         "syscall.h": "c",
         "framebuffer.h": "c",
-        "window_manager.h": "c"
+        "window_manager.h": "c",
+        "disk.h": "c"
     },
 }
