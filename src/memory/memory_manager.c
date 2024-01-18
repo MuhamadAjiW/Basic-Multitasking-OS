@@ -129,7 +129,7 @@ void kfree(void* memory){
     allocator* alloc = (memory - sizeof(allocator));
     alloc->status = 0;
 
-    // TODO: Fix cleaner?
+    // TODO: Cleaner can still be improved
 
     void* cleaner = memory + alloc->size;
     allocator* roam = (allocator*) cleaner;

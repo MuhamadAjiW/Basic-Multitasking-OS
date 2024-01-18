@@ -9,7 +9,6 @@ void tick_counter(){
     tick++;
 }
 
-// TODO: Rework pit to do schedule task instead
 void pit_isr(){
     tick_counter();
     task_schedule();

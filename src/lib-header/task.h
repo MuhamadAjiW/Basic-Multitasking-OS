@@ -22,7 +22,6 @@
 #define STACKTYPE_KERNEL 0
 #define STACKTYPE_USER 3
 
-//TODO: Virtual memory clearance to own page table, tss and gdt reset not implemented yet
 enum ProcState { NEW, READY, RUNNING, WAITING, TERMINATED };
 
 //TODO: Document

@@ -69,11 +69,6 @@ void kernel_setup(void) {
     set_pit_freq(DEFAULT_FREQUENCY);
     register_irq_handler(IRQ_TIMER, pit_isr);
     activate_irq(IRQ_TIMER);
-    
-    //TODO: Delete, this is to test using a single threaded environment
-    // memory_allocate_single_user_page_frame((void*) 0 );
-    // load(shell);
-    // kernel_execute_user_program((void*) 0 );
 
     while (TRUE);
 }

@@ -38,7 +38,6 @@ void keyboard_isr() {
         keyboard_state.buffer_index = 0;
     else {
         char mapped_char = keyboard_scancode_1_to_ascii_map[scancode];
-        // TODO : Implement scancode processing
         keyboard_state.keyboard_buffer[keyboard_state.buffer_index] = mapped_char;
         keyboard_state.buffer_index++;
         framebuffer_keyboard();

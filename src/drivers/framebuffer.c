@@ -3,7 +3,7 @@
 #include "../lib-header/stdmem.h"
 #include "../lib-header/portio.h"
 
-// TODO: Temporary
+// TODO: Delete, this is temporary
 #include "../lib-header/keyboard.h"
 extern KeyboardDriverState keyboard_state;
 

@@ -78,7 +78,7 @@ void winmgr_update_winfo(window_info winfo, uint8_t id){
 }
 void winmgr_stack_remove(uint16_t id){
     // TODO: Improve, rendering everything each time would be quite heavy
-    // There might be a way to do this without re-rendering everything
+    // There might be a way to do this without re-rendering the whole stack
 
     int8_t i = 0;
     while (i != MAX_WINDOW_NUM && winmgr.stack.ids[i]!= id){

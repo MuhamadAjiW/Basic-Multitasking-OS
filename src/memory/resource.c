@@ -26,7 +26,7 @@ PageDirectory* resource_allocate(uint32_t amount, uint32_t pid, PageDirectory* p
     // If yes, allocate the pages
     paging_dir_copy(_paging_kernel_page_directory, page_dir);
 
-    // TODO: flag may be kernel for kernel processes
+    // TODO: add as parameter instead since flag may be kernel for kernel processes
     struct PageDirectoryEntryFlag flag ={
         .present_bit       = 1,
         .user_supervisor = 1,
