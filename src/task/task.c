@@ -46,6 +46,7 @@ uint8_t task_create(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type
     tasks[pid].resource_amount = resource_amount;
 
     paging_use_page_dir(tasks[pid].cr3);
+    paging_flush_tlb_range((void*) 0, (void*) (resource_amount * PAGE_FRAME_SIZE));
     
     // Last frame is used for stacks, half for kernel, half for user
     uint32_t t_stack = resource_amount * PAGE_FRAME_SIZE;
@@ -91,10 +92,10 @@ uint8_t task_create(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type
     tasks[pid].tf = tf;
     tasks[pid].state = READY;
 
+    paging_use_page_dir(current_task->cr3);
+    paging_flush_tlb_range((void*) 0, (void*) (resource_amount * PAGE_FRAME_SIZE));
+
     num_task++;
-
-
-    // paging_use_page_dir(current_task->cr3);
 
     return 1;
 }
@@ -114,7 +115,8 @@ void task_schedule(){
     old->state = READY;
     new->state = RUNNING;
 
-    // paging_use_page_dir(new->cr3);
-    // paging_flush_tlb_range((void*) 0, (void*) (PAGE_FRAME_SIZE * new->resource_amount));
+    paging_use_page_dir(new->cr3);
+    paging_flush_tlb_range((void*) 0, (void*) (new->resource_amount * PAGE_FRAME_SIZE));
+    
     switch_context(&(old->context), new->context);
 }

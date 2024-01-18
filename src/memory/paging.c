@@ -53,6 +53,14 @@ void paging_flush_tlb_single(void *virtual_addr) {
     __asm__ volatile("invlpg (%0)" : /* <Empty> */ : "b"(virtual_addr): "memory");
 }
 
+void paging_flush_tlb_kernel(){
+    paging_flush_tlb_range((void*)KERNEL_VMEMORY_OFFSET, (void*) (KERNEL_VMEMORY_OFFSET + KERNEL_PAGE_COUNT * PAGE_ENTRY_COUNT));
+}
+
+void paging_flush_tlb_heap(){
+    paging_flush_tlb_range((void*)HEAP_VMEMORY_OFFSET, (void*) (HEAP_VMEMORY_OFFSET + HEAP_PAGE_COUNT * PAGE_ENTRY_COUNT));
+}
+
 void paging_flush_tlb_range(void *start_addr, void *end_addr) {
     uint32_t start = (uint32_t)start_addr;
     uint32_t end = (uint32_t)end_addr;
