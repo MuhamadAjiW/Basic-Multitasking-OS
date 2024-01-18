@@ -1,4 +1,3 @@
-
 #ifndef _STDTYPE
 #define _STDTYPE
 

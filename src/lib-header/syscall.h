@@ -9,6 +9,9 @@
 
 // Macros for system call codes, should always be synchronized with the user side
 #define SYSCALL_NULL 0
+#define SYSCALL_WINMGR_REG 10
+#define SYSCALL_WINMGR_UPDATE 11
+#define SYSCALL_WINMGR_CLOSE 12
 
 /**
  * Assigns system response functions to system call number

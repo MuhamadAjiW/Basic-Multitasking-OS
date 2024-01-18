@@ -1,3 +1,4 @@
+
 #ifndef _FRAMEBUFFER_H
 #define _FRAMEBUFFER_H
 
@@ -6,6 +7,9 @@
 #define MEMORY_FRAMEBUFFER (uint8_t *) 0xC00B8000
 #define CURSOR_PORT_CMD    0x03D4
 #define CURSOR_PORT_DATA   0x03D5
+
+#define SCREEN_WIDTH       80
+#define SCREEN_HEIGHT      25
 
 /**
  * Terminal framebuffer
@@ -19,13 +23,14 @@
  * Set framebuffer character and color with corresponding parameter values.
  * More details: https://en.wikipedia.org/wiki/BIOS_color_attributes
  *
- * @param row Vertical location (index start 0)
- * @param col Horizontal location (index start 0)
- * @param c   Character
- * @param fg  Foreground / Character color
- * @param bg  Background color
+ * @param row       Vertical location (index start 0)
+ * @param col       Horizontal location (index start 0)
+ * @param c         Character
+ * @param fg        Foreground / Character color
+ * @param bg        Background color
+ * @param buffer    Buffer to write on
  */
-void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg);
+void framebuffer_write(uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg, uint16_t* buffer);
 
 /**
  * Set cursor to specified location. Row and column starts from 0
@@ -42,6 +47,9 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c);
  */
 void framebuffer_clear(void);
 
+// TODO: Document
+void framebuffer_display();
+void framebuffer_set(uint8_t row, uint8_t col, uint16_t info, uint16_t* buffer);
 
 // TODO: Delete
 void framebuffer_keyboard(void);

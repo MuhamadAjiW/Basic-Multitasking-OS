@@ -1,3 +1,4 @@
+
 #ifndef _RESOURCE_H
 #define _RESOURCE_H
 

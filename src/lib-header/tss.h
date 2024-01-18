@@ -2,6 +2,8 @@
 #ifndef _TSS_H
 #define _TSS_H
 
+#include "stdtype.h"
+
 /**
  * TSSEntry, Task State Segment. Used when jumping back to ring 0 / kernel
  */
