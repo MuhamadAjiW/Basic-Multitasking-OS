@@ -8,6 +8,7 @@
 
 #include "stdtype.h"
 #include "cpu.h"
+#include "paging.h"
 #include "fat32.h"
 
 #define EFLAGS_BASE         0x2
@@ -32,13 +33,14 @@ typedef struct Context {
 typedef struct PCB
 {
     uint32_t size;                  // process size
-    uint32_t cr3;                   // virtual address space
+    PageDirectory* cr3;             // virtual address space
     uint32_t k_stack;               // kernel stack address
-    enum ProcState state;
-    uint8_t pid;                    // id
+    enum ProcState state;           // state
+    uint32_t pid;                   // id
     struct PCB* parent;             // parent id
     TrapFrame* tf;                  // TrapFrame for current syscall
     Context* context;               // Context to switch to
+    uint32_t resource_amount;       // Amount of resources used
     char name[MAX_TASKS_PNAME];
 
 } PCB;
@@ -48,10 +50,10 @@ void switch_context(Context** old_task, Context* new_task);
 void restore_context();
 void isr_exit();
 
-void initialize_tasking();
+void task_initialize();
 
 // returns 0 if failed, 1 if successful
-uint8_t create_task(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type, uint32_t eflags);
-void schedule();
+uint8_t task_create(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type, uint32_t eflags);
+void task_schedule();
 
 #endif

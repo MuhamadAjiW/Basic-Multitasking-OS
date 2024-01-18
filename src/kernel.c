@@ -17,6 +17,9 @@
 #include "lib-header/task.h"
 #include "lib-header/window_manager.h"
 
+// TODO: Delete, this is for testing
+extern PCB tasks[];
+
 void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);
     pic_remap();
@@ -29,7 +32,7 @@ void kernel_setup(void) {
     gdt_install_tss();
     set_tss_register_kernel();
     set_tss_kernel_current_stack();
-    initialize_tasking();
+    task_initialize();
 
     activate_irq(IRQ_KEYBOARD);
     activate_irq(IRQ_PRIMARY_ATA);
@@ -39,7 +42,7 @@ void kernel_setup(void) {
 
     enable_system_calls();
 
-    initialize_memory();
+    memory_initialize();
 
     keyboard_state_activate();
 
@@ -50,25 +53,25 @@ void kernel_setup(void) {
         .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
         .buffer_size           = 0x100000,
     };
-    FAT32DriverRequest clock = {
-        .buf                   = (void*) 0,
-        .name                  = "cl",
-        .ext                   = "\0\0\0",
-        .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
-        .buffer_size           = 0x100000,
-    };
-
-    create_task(shell, 1, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
-    create_task(clock, 2, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+    task_create(shell, 1, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+    
+    // FAT32DriverRequest clock = {
+    //     .buf                   = (void*) 0,
+    //     .name                  = "cl",
+    //     .ext                   = "\0\0\0",
+    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
+    //     .buffer_size           = 0x100000,
+    // };
+    // task_create(clock, 2, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
 
     winmgr_initalilze();
 
     set_pit_freq(DEFAULT_FREQUENCY);
     register_irq_handler(IRQ_TIMER, pit_isr);
     activate_irq(IRQ_TIMER);
-
+    
     //TODO: Delete, this is to test using a single threaded environment
-    // allocate_single_user_page_frame((void*) 0 );
+    // memory_allocate_single_user_page_frame((void*) 0 );
     // load(shell);
     // kernel_execute_user_program((void*) 0 );
 

@@ -2,7 +2,7 @@ ENTRY(_start)
 OUTPUT_FORMAT("binary")
 
 SECTIONS {
-    . = 0x00800000;    /* Assuming OS will load this program at virtual address 0x00000000 */
+    . = 0x00000000;    /* Assuming OS will load this program at virtual address 0x00000000 */
     
     .text ALIGN(4):
     {
@@ -20,6 +20,6 @@ SECTIONS {
         *(.rodata*)
     }
     _linker_user_program_end = .;
-    /* ASSERT ((_linker_user_program_end <= 1 * 1024 * 1024), "Error: User program linking result is more than 1 MiB") */
+    ASSERT ((_linker_user_program_end <= 1 * 1024 * 1024), "Error: User program linking result is more than 1 MiB")
 }
 

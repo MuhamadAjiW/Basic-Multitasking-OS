@@ -10,16 +10,18 @@ static uint32_t heap_start = 0;
 static uint32_t heap_end = 0;
 
 static uint32_t dynamic_pointers = 0;
-extern Resource available_resource[RESOURCE_AMOUNT];
+extern Resource resource_table[RESOURCE_AMOUNT];
 
+// Note:
 // heap is placed under kernel space
 // heap size is HEAP_PAGE_COUNT * PAGE_FRAME_SIZE
-void initialize_memory(){
-    // Assign pages used by the kernel
-    // for (uint16_t i = KERNEL_PMEMORY_START / PAGE_FRAME_SIZE; i < KERNEL_PAGE_COUNT; i++){
-    //     available_resource[i].used = 1;
-    //     available_resource[i].pid = 0;
-    // }
+// Also don't forget that available_resources is used to track physical memory usage, not virtual
+void memory_initialize(){
+    // Assign pages used by the kernel, kernel is assumed to always start at 0
+    for (uint16_t i = 0; i < KERNEL_PAGE_COUNT; i++){
+        resource_table[i].used = 1;
+        resource_table[i].pid = 0;
+    }
 
     struct PageDirectoryEntryFlag flags ={
         .present_bit       = 1,
@@ -29,12 +31,12 @@ void initialize_memory(){
     };
     
     for (uint16_t i = 0; i < HEAP_PAGE_COUNT; i++)    {
-        update_page_directory_entry(
-            (void *)(KERNEL_PMEMORY_END + (i * PAGE_FRAME_SIZE)),
+        paging_dir_update(
+            (void *)((KERNEL_PAGE_COUNT + i) * PAGE_FRAME_SIZE),
             (void *)(HEAP_VMEMORY_OFFSET + (i * PAGE_FRAME_SIZE)),
-            flags);
-        // available_resource[KERNEL_PAGE_COUNT + i].used = 1;
-        // available_resource[KERNEL_PAGE_COUNT + i].pid = 0;
+            flags, &_paging_kernel_page_directory);
+        resource_table[KERNEL_PAGE_COUNT + i].used = 1;
+        resource_table[KERNEL_PAGE_COUNT + i].pid = 0;
     }
 
     last_alloc = HEAP_VMEMORY_OFFSET; //start alignment
@@ -43,7 +45,7 @@ void initialize_memory(){
     memset((char*) heap_start, 0, heap_end - heap_start);
 }
 
-void clean_memory(){
+void memory_clean(){
     memset((char*) heap_start, 0, last_alloc - heap_start);
     last_alloc = heap_start;
 }
@@ -143,5 +145,5 @@ void kfree(void* memory){
 
     dynamic_pointers--;
 
-    if(dynamic_pointers == 0) clean_memory();
+    if(dynamic_pointers == 0) memory_clean();
 }

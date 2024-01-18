@@ -22,7 +22,7 @@ extern struct PageDirectory _paging_kernel_page_directory;
  * @param dirty                 Indicate whether this entry has been written into. This flag should only be set by the CPU
  * @param use_pagesize_4_mb     Indicate whether this entry is using 4mb page size
  */
-struct PageDirectoryEntryFlag {
+typedef struct PageDirectoryEntryFlag {
     uint8_t present_bit        : 1;
     uint8_t write_bit          : 1;
     uint8_t user_supervisor    : 1;
@@ -31,7 +31,7 @@ struct PageDirectoryEntryFlag {
     uint8_t accessed           : 1;
     uint8_t dirty              : 1;
     uint8_t use_pagesize_4_mb  : 1;
-} __attribute__((packed));
+} __attribute__((packed)) PageDirectoryEntryFlag;
 
 /**
  * Page Directory Entry, for page size 4 MB.
@@ -45,15 +45,15 @@ struct PageDirectoryEntryFlag {
  * @param RSVD            Indicates whether a reserved bit was set in some page-structure entry
  * @param lower_address   31-22 bits of paged address
  */
-struct PageDirectoryEntry {
-    struct PageDirectoryEntryFlag flag;
+typedef struct PageDirectoryEntry {
+    PageDirectoryEntryFlag flag;
     uint16_t global_page    : 1;
     uint16_t AVL            : 3;
     uint16_t PAT            : 1;
     uint16_t higher_address : 8;
     uint16_t RSVD           : 1;
     uint16_t lower_address  : 10;
-} __attribute__((packed));
+} __attribute__((packed)) PageDirectoryEntry;
 
 /**
  * Page Directory, contain array of PageDirectoryEntry.
@@ -64,18 +64,9 @@ struct PageDirectoryEntry {
  * 
  * @param table Fixed-width array of PageDirectoryEntry with size PAGE_ENTRY_COUNT
  */
-struct PageDirectory {
+typedef struct PageDirectory {
     struct PageDirectoryEntry table[PAGE_ENTRY_COUNT];
-} __attribute__((aligned(0x1000)));
-
-/**
- * Containing page driver states
- * 
- * @param last_available_physical_addr Pointer to last empty physical addr (multiple of 4 MiB)
- */
-struct PageDriverState {
-    uint8_t *last_available_physical_addr;
-} __attribute__((packed));
+} __attribute__((aligned(0x1000))) PageDirectory;
 
 /**
  * update_page_directory,
@@ -84,24 +75,21 @@ struct PageDriverState {
  * @param physical_addr Physical address to map
  * @param virtual_addr  Virtual address to map
  * @param flag          Page entry flags
+ * @param page_dir      Page directory to update
  */
-void update_page_directory_entry(void *physical_addr, void *virtual_addr, struct PageDirectoryEntryFlag flag);
+void paging_dir_update(void *physical_addr, void *virtual_addr, PageDirectoryEntryFlag flag, PageDirectory* page_dir);
 
 /**
- * flush_single_tlb, 
+ * paging_flush_tlb_single, 
  * invalidate page that contain virtual address in parameter
  * 
  * @param virtual_addr Virtual address to flush
  */
-void flush_single_tlb(void *virtual_addr);
+void paging_flush_tlb_single(void *virtual_addr);
 
-/**
- * Allocate user memory into specified virtual memory address.
- * Multiple call on same virtual address will unmap previous physical address and change it into new one.
- * 
- * @param  virtual_addr Virtual address to be mapped
- * @return int8_t       0 success, -1 for failed allocation
- */
-int8_t allocate_single_user_page_frame(void *virtual_addr);
+//TODO: Document
+void paging_dir_copy(PageDirectory origin, PageDirectory* target);
+void paging_flush_tlb_range(void *start_addr, void *end_addr);
+void paging_use_page_dir(PageDirectory* page_dir); //Page dir must be physical address and aligned to 0x1000
 
 #endif

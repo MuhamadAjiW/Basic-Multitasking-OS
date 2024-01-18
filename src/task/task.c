@@ -9,46 +9,51 @@
 
 #include "../lib-header/fat32.h"
 
-// TODO: Make tasks with dynamic memory, paging, variable authority, priority, blocking, etc
-uint8_t resources_allocated = 0;
-
+// Note: Would be interesting to make tasks with dynamic
 PCB tasks[MAX_TASKS] = {0};
+PageDirectory tasks_page_dir[MAX_TASKS] = {0};
 int num_task = 0;
 PCB* current_task;
 
 extern TSSEntry tss;
 
-void initialize_tasking(){
+void task_initialize(){
     num_task = 1;
     current_task = &tasks[0];
     current_task->pid = 0;
     *(current_task->name) = '0';
+    current_task->cr3 = (PageDirectory*)((uint32_t) &tasks_page_dir[0] - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
+    paging_dir_copy(_paging_kernel_page_directory, &tasks_page_dir[0]);
     current_task->state = RUNNING;
 }
 
 // TODO: Manage, this is just the function
-uint8_t create_task(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type, uint32_t eflags){
-
-    // Allocate resources with ceiling division
-    // Resource amount is added by 1 for both kernel and user stacks
-    uint8_t resource_amount = (request.buffer_size + PAGE_FRAME_SIZE - 1) / PAGE_FRAME_SIZE + 1;
+uint8_t task_create(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type, uint32_t eflags){
 
     // TODO: optimize, using a whole page for stack is really excessive
-    uint32_t t_stack = allocate_resource(resource_amount, pid);
-    if (!t_stack) return 0;
+    // Allocate resources with ceiling division
+    // Resource amount is added by 1 for both kernel and user stacks
+    uint32_t resource_amount = (request.buffer_size + PAGE_FRAME_SIZE - 1) / PAGE_FRAME_SIZE + 1;
+
+    PageDirectory* page_dir = resource_allocate(resource_amount, pid, &tasks_page_dir[pid]);
+    if (!page_dir) return 0;
 
     // Initialize task
     tasks[pid].pid = pid;
     tasks[pid].parent = current_task;
     tasks[pid].state = NEW;
+    tasks[pid].cr3 = (PageDirectory*) ((uint32_t) page_dir - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
+    tasks[pid].resource_amount = resource_amount;
 
+    paging_use_page_dir(tasks[pid].cr3);
+    
     // Last frame is used for stacks, half for kernel, half for user
+    uint32_t t_stack = resource_amount * PAGE_FRAME_SIZE;
     uint32_t u_stack = t_stack - PAGE_FRAME_SIZE/2;
     uint32_t k_stack = t_stack;
 
     // Load file into memory
     request.buf = (void*)(t_stack - resource_amount * PAGE_FRAME_SIZE);
-
     load(request);
 
     // Set TrapFrame to be at the bottom of the given kernel stack
@@ -88,10 +93,14 @@ uint8_t create_task(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type
 
     num_task++;
 
+
+    // paging_use_page_dir(current_task->cr3);
+
     return 1;
 }
 
-void schedule(){
+void task_schedule(){
+    __asm__ volatile("cli");
     int next_id = (current_task->pid + 1) % num_task;
 
     PCB* new = &tasks[next_id];
@@ -105,11 +114,7 @@ void schedule(){
     old->state = READY;
     new->state = RUNNING;
 
-    // TODO: Delete, this is for testing
-    if(next_id == 2){
-        switch_context(&(old->context), new->context);
-    }
-    else{
-        switch_context(&(old->context), new->context);
-    }
+    // paging_use_page_dir(new->cr3);
+    // paging_flush_tlb_range((void*) 0, (void*) (PAGE_FRAME_SIZE * new->resource_amount));
+    switch_context(&(old->context), new->context);
 }

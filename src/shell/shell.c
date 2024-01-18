@@ -13,8 +13,10 @@ window_info winfo = {
 };
 
 int main(void) {
-    // Note: I have no idea why but a process has to start with a syscall
-    // Or else there wouldn't be any interrupt happening
+    // TODO: Fix
+    // I may have exited the init process improperly 
+    // therefore, a process has to start with a syscall
+    // else there wouldn't be any interrupt happening
     syscall(SYSCALL_NULL, 0, 0, 0);
 
     window_init(&winfo);

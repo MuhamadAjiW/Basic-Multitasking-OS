@@ -4,12 +4,13 @@
 
 #include "stdtype.h"
 
-#define KERNEL_PMEMORY_START     0x0
-#define KERNEL_PMEMORY_END       0x800000
-#define KERNEL_VMEMORY_OFFSET    0xc0000000
-#define HEAP_VMEMORY_OFFSET      0xb0000000
 #define HEAP_PAGE_COUNT          4
 #define KERNEL_PAGE_COUNT        2
+
+#define KERNEL_PMEMORY_OFFSET    0
+#define KERNEL_VMEMORY_OFFSET    0xc0000000
+#define HEAP_PMEMORY_OFFSET      KERNEL_PAGE_COUNT * PAGE_FRAME_SIZE
+#define HEAP_VMEMORY_OFFSET      0xb0000000
 
 /**
  *  Struct to segment heap linearly
@@ -25,14 +26,14 @@ typedef struct allocator{
  *  Page heap memory with appropriate flags and set heap with 0
  * 
  */
-void initialize_memory();
+void memory_initialize();
 
 /**
  *  Reset heap memory with 0
  *  Should only be done if no pointers are active
  * 
  */
-void clean_memory();
+void memory_clean();
 
 /**
  *  Allocate memory in heap

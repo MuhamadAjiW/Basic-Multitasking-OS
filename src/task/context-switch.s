@@ -22,7 +22,6 @@ switch_context:
     pop ebp
 
 	ret
-	; fall through to end interrupt
 
 ;Basically restores state of all registers
 restore_context:

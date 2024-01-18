@@ -16,6 +16,7 @@
         "syscall.h": "c",
         "framebuffer.h": "c",
         "window_manager.h": "c",
-        "disk.h": "c"
+        "disk.h": "c",
+        "resource.h": "c"
     },
 }

@@ -1,4 +1,7 @@
 #include "../lib-header/paging.h"
+#include "../lib-header/resource.h"
+
+extern Resource resource_table[RESOURCE_AMOUNT];
 
 struct PageDirectory _paging_kernel_page_directory = {
     .table = {
@@ -29,35 +32,36 @@ struct PageDirectory _paging_kernel_page_directory = {
     }
 };
 
-static struct PageDriverState page_driver_state = {
-    .last_available_physical_addr = (uint8_t*) (10 * PAGE_FRAME_SIZE),
-};
+void paging_dir_copy(PageDirectory origin, PageDirectory* target) {
+    for (uint32_t i = 0; i < PAGE_ENTRY_COUNT; i++){
+        target->table[i] = origin.table[i];
+    }
+}
 
-void update_page_directory_entry(void *physical_addr, void *virtual_addr, struct PageDirectoryEntryFlag flag) {
+void paging_dir_update(void *physical_addr, void *virtual_addr, struct PageDirectoryEntryFlag flag, PageDirectory* page_dir) {
+    if(resource_table[(uint32_t) physical_addr / PAGE_FRAME_SIZE].used) return;     // Physical address is already used
+
     uint32_t page_index = ((uint32_t) virtual_addr >> 22) & 0x3FF;
 
-    _paging_kernel_page_directory.table[page_index].flag          = flag;
-    _paging_kernel_page_directory.table[page_index].lower_address = ((uint32_t)physical_addr >> 22) & 0x3FF;
-    flush_single_tlb(virtual_addr);
+    page_dir->table[page_index].flag          = flag;
+    page_dir->table[page_index].lower_address = ((uint32_t)physical_addr >> 22) & 0x3FF;
 
-    page_driver_state.last_available_physical_addr += PAGE_FRAME_SIZE;
+    paging_flush_tlb_single(virtual_addr);
 }
 
-int8_t allocate_single_user_page_frame(void *virtual_addr) {
-    // Using default QEMU config (128 MiB max memory)
-    uint32_t last_physical_addr = (uint32_t) page_driver_state.last_available_physical_addr;
-
-    struct PageDirectoryEntryFlag flag ={
-        .present_bit       = 1,
-        .user_supervisor = 1,
-        .write_bit = 1,
-        .use_pagesize_4_mb = 1
-    };
-
-    update_page_directory_entry((void*)last_physical_addr, virtual_addr, flag);    
-    return -1;
+void paging_flush_tlb_single(void *virtual_addr) {
+    __asm__ volatile("invlpg (%0)" : /* <Empty> */ : "b"(virtual_addr): "memory");
 }
 
-void flush_single_tlb(void *virtual_addr) {
-    asm volatile("invlpg (%0)" : /* <Empty> */ : "b"(virtual_addr): "memory");
+void paging_flush_tlb_range(void *start_addr, void *end_addr) {
+    uint32_t start = (uint32_t)start_addr;
+    uint32_t end = (uint32_t)end_addr;
+
+    for (uint32_t addr = start; addr < end; addr += PAGE_FRAME_SIZE) {
+        asm volatile ("invlpg (%0)" : /* <Empty> */ : "b"(addr) : "memory");
+    }
+}
+
+void paging_use_page_dir(PageDirectory* page_dir) {
+    __asm__ volatile("mov %0, %%cr3" : /* <Empty> */ : "r"(page_dir): "memory");
 }
