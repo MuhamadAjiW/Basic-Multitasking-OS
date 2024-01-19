@@ -85,7 +85,7 @@ uint32_t resource_allocate_kernel(uint32_t pid, PageDirectory* page_dir){
 
 // TODO: Implement
 void resource_deallocate(uint32_t pid){
-    uint8_t i = RESOURCE_KERNEL_OFFSET;
+    uint32_t i = RESOURCE_KERNEL_OFFSET;
 
     while (i < RESOURCE_AMOUNT){
         if(resource_table[i].pid == pid) resource_table[i].used = 0;

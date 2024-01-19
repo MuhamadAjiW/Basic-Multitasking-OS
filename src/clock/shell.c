@@ -46,7 +46,7 @@ int main(void) {
     uint8_t y_direction = seed & 1;
 
     seed = randomizer(seed);
-    uint8_t speed = (seed % 75) + 25;
+    uint8_t speed = (seed % 90) + 10;
     
     window_init(&winfo);
 
