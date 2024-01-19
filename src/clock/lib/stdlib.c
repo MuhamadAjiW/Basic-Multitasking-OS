@@ -2,6 +2,7 @@
 #include "../lib-header/stdtype.h"
 #include "../lib-header/stdlib.h"
 #include "../lib-header/syscall.h"
+#include "../lib-header/cmos.h"
 
 void* malloc(uint32_t size){
     void* location;
@@ -17,4 +18,10 @@ void* realloc(void* ptr, uint32_t size){
 
 void free(void* memory){
     syscall(SYSCALL_FREE, (uint32_t) memory, 0, 0);
+}
+
+cmos_reader get_time(){
+    cmos_reader cmos;
+    syscall(SYSCALL_GET_TIME, (uint32_t) &cmos, 0, 0);
+    return cmos;
 }

@@ -28,14 +28,14 @@ typedef struct cmos_reader{
  * Set 24 hour flag in CMOS via porting
  * 
 */
-void initialize_cmos();
+void cmos_initialize();
 
 
 /**
  * Check busy port in CMOS
  * 
 */
-bool update_in_progress();
+bool cmos_check_update();
 
 
 /**
@@ -45,14 +45,14 @@ bool update_in_progress();
  * 
  * @return value of requested register
 */
-uint8_t get_reg(int reg);
+uint8_t cmos_get_reg(int reg);
 
 
 /**
  * Update static rtc values
  * 
 */
-void read_rtc();
+void cmos_read_rtc();
 
 
 /**
@@ -60,6 +60,6 @@ void read_rtc();
  * 
  * @return static rtc values
 */
-cmos_reader get_cmos_data();
+cmos_reader cmos_get_data();
 
 #endif

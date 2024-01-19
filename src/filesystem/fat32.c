@@ -102,7 +102,7 @@ void read_fat(FAT32FileAllocationTable* FAT_destination){
 }
 
 void create_entry(FAT32DriverRequest request, uint16_t cluster_number, FAT32FileAllocationTable* fat){
-    cmos = get_cmos_data();
+    cmos = cmos_get_data();
     DirectoryEntry add = {
         .filename = {0},
         .extension = {0},
@@ -187,7 +187,7 @@ void update_size(FAT32DriverRequest request, char category, FAT32FileAllocationT
     uint32_t entryCluster;
     uint16_t entryNumber;
 
-    cmos = get_cmos_data();
+    cmos = cmos_get_data();
     while (currentCluster != ROOT_CLUSTER_NUMBER){
         do{
             read_clusters((void*)reader, currentCluster, 1);

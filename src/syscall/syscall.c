@@ -3,6 +3,7 @@
 #include "../lib-header/interrupt.h"
 
 #include "../lib-header/pit.h"
+#include "../lib-header/cmos.h"
 #include "../lib-header/window_manager.h"
 #include "../lib-header/memory_manager.h"
 
@@ -19,6 +20,10 @@ void sys_idle(__attribute__((unused)) TrapFrame cpu){
 }
 void sys_get_timer_tick(TrapFrame cpu){
     *(uint32_t*)cpu.registers.ebx = get_tick();
+}
+void sys_get_time(TrapFrame cpu){
+    cmos_read_rtc();
+    *(cmos_reader*)cpu.registers.ebx = cmos_get_data();
 }
 
 // Memory syscalls
