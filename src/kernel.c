@@ -55,6 +55,13 @@ void kernel_setup(void) {
     };
     task_create(shell, 1, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
     
+
+    winmgr_initalilze();
+
+    set_pit_freq(DEFAULT_FREQUENCY);
+    register_irq_handler(IRQ_TIMER, pit_isr);
+    activate_irq(IRQ_TIMER);
+
     FAT32DriverRequest clock = {
         .buf                   = (void*) 0,
         .name                  = "cl",
@@ -63,12 +70,6 @@ void kernel_setup(void) {
         .buffer_size           = 0x100000,
     };
     task_create(clock, 2, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
-
-    winmgr_initalilze();
-
-    set_pit_freq(DEFAULT_FREQUENCY);
-    register_irq_handler(IRQ_TIMER, pit_isr);
-    activate_irq(IRQ_TIMER);
 
     while (TRUE);
 }

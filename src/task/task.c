@@ -30,6 +30,7 @@ void task_initialize(){
 
 // TODO: Manage, this is just the function
 uint8_t task_create(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type, uint32_t eflags){
+    __asm__ volatile ("cli");   // Stop interrupts when creating a task
 
     // TODO: optimize, using a whole page for stack is really excessive
     // Allocate resources with ceiling division with at least 1MB of user stack and always 1 extra page for kernel stack
@@ -109,11 +110,11 @@ uint8_t task_create(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type
 
     num_task++;
 
+    __asm__ volatile ("sti");   // reenable interrupts
     return 1;
 }
 
 void task_schedule(){
-    __asm__ volatile("cli");
     int next_id = (current_task->pid + 1) % num_task;
 
     PCB* new = &tasks[next_id];
