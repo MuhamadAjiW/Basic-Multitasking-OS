@@ -50,7 +50,7 @@ void framebuffer_clear(void);
 void framebuffer_display();
 void framebuffer_set(uint8_t row, uint8_t col, uint16_t info);
 
-// TODO: Delete
+// TODO: Delete, this is temporary
 void framebuffer_keyboard(void);
 
 #endif

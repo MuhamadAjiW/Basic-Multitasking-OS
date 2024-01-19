@@ -11,22 +11,10 @@ struct PageDirectory _paging_kernel_page_directory = {
             .lower_address          = 0,
             .flag.use_pagesize_4_mb = 1,
         },
-        [1] = {
-            .flag.present_bit       = 1,
-            .flag.write_bit         = 1,
-            .lower_address          = 1,
-            .flag.use_pagesize_4_mb = 1,
-        },
         [0x300] = {
             .flag.present_bit       = 1,
             .flag.write_bit         = 1,
             .lower_address          = 0,
-            .flag.use_pagesize_4_mb = 1,
-        },
-        [0x301] = {
-            .flag.present_bit       = 1,
-            .flag.write_bit         = 1,
-            .lower_address          = 1,
             .flag.use_pagesize_4_mb = 1,
         },
     }
@@ -36,6 +24,11 @@ void paging_dir_copy(PageDirectory origin, PageDirectory* target) {
     for (uint32_t i = 0; i < PAGE_ENTRY_COUNT; i++){
         target->table[i] = origin.table[i];
     }
+}
+
+void paging_dir_copy_single(PageDirectory origin, PageDirectory* target, void* virtual_address) {
+    uint32_t index = (uint32_t) virtual_address / PAGE_FRAME_SIZE;
+    target->table[index] = origin.table[index];
 }
 
 void paging_dir_update(void *physical_addr, void *virtual_addr, struct PageDirectoryEntryFlag flag, PageDirectory* page_dir) {
@@ -51,14 +44,6 @@ void paging_dir_update(void *physical_addr, void *virtual_addr, struct PageDirec
 
 void paging_flush_tlb_single(void *virtual_addr) {
     __asm__ volatile("invlpg (%0)" : /* <Empty> */ : "b"(virtual_addr): "memory");
-}
-
-void paging_flush_tlb_kernel(){
-    paging_flush_tlb_range((void*)KERNEL_VMEMORY_OFFSET, (void*) (KERNEL_VMEMORY_OFFSET + KERNEL_PAGE_COUNT * PAGE_ENTRY_COUNT));
-}
-
-void paging_flush_tlb_heap(){
-    paging_flush_tlb_range((void*)HEAP_VMEMORY_OFFSET, (void*) (HEAP_VMEMORY_OFFSET + HEAP_PAGE_COUNT * PAGE_ENTRY_COUNT));
 }
 
 void paging_flush_tlb_range(void *start_addr, void *end_addr) {

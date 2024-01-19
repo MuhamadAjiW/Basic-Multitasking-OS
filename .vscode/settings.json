@@ -17,6 +17,7 @@
         "framebuffer.h": "c",
         "window_manager.h": "c",
         "disk.h": "c",
-        "resource.h": "c"
+        "resource.h": "c",
+        "paging.h": "c"
     },
 }

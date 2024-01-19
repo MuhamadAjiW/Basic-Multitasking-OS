@@ -14,14 +14,18 @@
 #define RESOURCE_KERNEL_OFFSET (KERNEL_PAGE_COUNT + HEAP_PAGE_COUNT)
 
 //TODO: Document
+enum ResourceType { KERNEL, HEAP, USER };
 typedef struct Resource{
-    uint32_t        pid;
-    bool            used;
-    PageDirectory*  page_dir;
+    uint32_t            pid;
+    bool                used;
+    enum ResourceType   type;
 } __attribute__((packed)) Resource;
 
-//returns address of paging table for the process
-PageDirectory* resource_allocate(uint32_t amount, uint32_t pid, PageDirectory* page_dir);
+bool resource_check(uint32_t amount);
+
+//Returns bottom of the stack given
+uint32_t resource_allocate(uint32_t amount, uint32_t pid, PageDirectory* page_dir);
+uint32_t resource_allocate_kernel(uint32_t pid, PageDirectory* page_dir);
 
 //should be self explanatory
 void resource_deallocate(uint32_t pid);

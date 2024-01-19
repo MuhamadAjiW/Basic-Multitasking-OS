@@ -5,12 +5,13 @@
 #include "stdtype.h"
 
 #define HEAP_PAGE_COUNT          4
-#define KERNEL_PAGE_COUNT        2
+#define KERNEL_PAGE_COUNT        1
 
 #define KERNEL_PMEMORY_OFFSET    0
 #define KERNEL_VMEMORY_OFFSET    0xc0000000
 #define HEAP_PMEMORY_OFFSET      KERNEL_PAGE_COUNT * PAGE_FRAME_SIZE
 #define HEAP_VMEMORY_OFFSET      0xb0000000
+#define END_OF_MEMORY            0xffffffff
 
 /**
  *  Struct to segment heap linearly

@@ -89,8 +89,7 @@ void paging_flush_tlb_single(void *virtual_addr);
 
 //TODO: Document
 void paging_dir_copy(PageDirectory origin, PageDirectory* target);
-void paging_flush_tlb_kernel();
-void paging_flush_tlb_heap();
+void paging_dir_copy_single(PageDirectory origin, PageDirectory* target, void* virtual_address);
 void paging_flush_tlb_range(void *start_addr, void *end_addr);
 void paging_use_page_dir(PageDirectory* page_dir); //Page dir must be physical address and aligned to 0x1000
 

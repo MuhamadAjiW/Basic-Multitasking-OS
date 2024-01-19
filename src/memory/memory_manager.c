@@ -21,6 +21,7 @@ void memory_initialize(){
     for (uint16_t i = 0; i < KERNEL_PAGE_COUNT; i++){
         resource_table[i].used = 1;
         resource_table[i].pid = 0;
+        resource_table[i].type = KERNEL;
     }
 
     struct PageDirectoryEntryFlag flags ={
@@ -35,8 +36,11 @@ void memory_initialize(){
             (void *)((KERNEL_PAGE_COUNT + i) * PAGE_FRAME_SIZE),
             (void *)(HEAP_VMEMORY_OFFSET + (i * PAGE_FRAME_SIZE)),
             flags, &_paging_kernel_page_directory);
-        resource_table[KERNEL_PAGE_COUNT + i].used = 1;
-        resource_table[KERNEL_PAGE_COUNT + i].pid = 0;
+        
+        uint32_t resource_index = KERNEL_PAGE_COUNT + i;
+        resource_table[resource_index].used = 1;
+        resource_table[resource_index].pid = 0;
+        resource_table[resource_index].type = HEAP;
     }
 
     last_alloc = HEAP_VMEMORY_OFFSET; //start alignment

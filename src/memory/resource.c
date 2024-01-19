@@ -6,7 +6,7 @@
 // Used to track physical memory rather than virtual
 Resource resource_table[RESOURCE_AMOUNT];
 
-PageDirectory* resource_allocate(uint32_t amount, uint32_t pid, PageDirectory* page_dir){
+bool resource_check(uint32_t amount){
     uint32_t i = RESOURCE_KERNEL_OFFSET;
     uint32_t available = 0;
     
@@ -21,12 +21,12 @@ PageDirectory* resource_allocate(uint32_t amount, uint32_t pid, PageDirectory* p
     }
 
     // If not, return 0
-    if (available < amount) return 0;
-    
-    // If yes, allocate the pages
-    paging_dir_copy(_paging_kernel_page_directory, page_dir);
+    return (available >= amount);
+}
 
-    // TODO: add as parameter instead since flag may be kernel for kernel processes
+uint32_t resource_allocate(uint32_t amount, uint32_t pid, PageDirectory* page_dir){
+    // Always check with resource_check
+
     struct PageDirectoryEntryFlag flag ={
         .present_bit       = 1,
         .user_supervisor = 1,
@@ -34,21 +34,56 @@ PageDirectory* resource_allocate(uint32_t amount, uint32_t pid, PageDirectory* p
         .use_pagesize_4_mb = 1
     };
 
-    i = RESOURCE_KERNEL_OFFSET;
+    // User stack are always allocated from 0
+    uint32_t i = RESOURCE_KERNEL_OFFSET;
     for (uint32_t j = 0; j < amount; j++){
         while (i < RESOURCE_AMOUNT && resource_table[i].used) i++;
         
         uint32_t physical_addr = i * PAGE_FRAME_SIZE;
-        paging_dir_update((void*) physical_addr, (void*) ((j) * PAGE_FRAME_SIZE), flag, page_dir);    
+        uint32_t virtual_addr = j * PAGE_FRAME_SIZE;
+
+        paging_dir_update((void*) physical_addr, (void*) virtual_addr, flag, page_dir);    
 
         resource_table[i].used = 1;
         resource_table[i].pid = pid;
-        resource_table[i].page_dir = page_dir;
+        resource_table[i].pid = USER;
     }
 
-    return (PageDirectory*) page_dir;
+    return amount * PAGE_FRAME_SIZE;
 }
 
+// TODO: Improve, for now resource can only allocate one page
+uint32_t resource_allocate_kernel(uint32_t pid, PageDirectory* page_dir){
+    // Always check with resource_check
+    
+    struct PageDirectoryEntryFlag flag ={
+        .present_bit       = 1,
+        .write_bit = 1,
+        .use_pagesize_4_mb = 1
+    };
+
+    // Kernel stack is allocated differently than user since it always has to be different from the current running processes
+    // If it's a kernel stack, then it's mapped to above 0xC0000000
+    // Won't collide with heap or process 0 since i starts from RESOURCE_KERNEL_OFFSET
+    // Also won't collide with other processes since it's practically offset-ed physical address
+    uint32_t i = RESOURCE_KERNEL_OFFSET;
+
+    while (i < RESOURCE_AMOUNT && resource_table[i].used) i++;
+    
+    uint32_t physical_addr = i * PAGE_FRAME_SIZE;
+    uint32_t virtual_addr = KERNEL_VMEMORY_OFFSET + physical_addr;
+
+    paging_dir_update((void*) physical_addr, (void*) virtual_addr, flag, page_dir);
+
+    resource_table[i].used = 1;
+    resource_table[i].pid = pid;
+    resource_table[i].type = KERNEL;
+
+    return virtual_addr + PAGE_FRAME_SIZE;
+}
+
+
+// TODO: Implement
 void resource_deallocate(uint32_t pid){
     uint8_t i = RESOURCE_KERNEL_OFFSET;
 

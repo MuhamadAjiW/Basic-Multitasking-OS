@@ -21,6 +21,7 @@ void task_initialize(){
     num_task = 1;
     current_task = &tasks[0];
     current_task->pid = 0;
+    current_task->k_stack = KERNEL_VMEMORY_OFFSET + PAGE_FRAME_SIZE;
     *(current_task->name) = '0';
     current_task->cr3 = (PageDirectory*)((uint32_t) &tasks_page_dir[0] - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
     paging_dir_copy(_paging_kernel_page_directory, &tasks_page_dir[0]);
@@ -31,12 +32,19 @@ void task_initialize(){
 uint8_t task_create(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type, uint32_t eflags){
 
     // TODO: optimize, using a whole page for stack is really excessive
-    // Allocate resources with ceiling division
-    // Resource amount is added by 1 for both kernel and user stacks
-    uint32_t resource_amount = (request.buffer_size + PAGE_FRAME_SIZE - 1) / PAGE_FRAME_SIZE + 1;
+    // Allocate resources with ceiling division with at least 1MB of user stack and always 1 extra page for kernel stack
+    uint32_t resource_amount = ((0x100000 + request.buffer_size + PAGE_FRAME_SIZE - 1) / PAGE_FRAME_SIZE) + 1;
+    
+    // Check resource availability
+    if (!resource_check(resource_amount)) return 0;
 
-    PageDirectory* page_dir = resource_allocate(resource_amount, pid, &tasks_page_dir[pid]);
-    if (!page_dir) return 0;
+
+    // Initialize with kernel's paging directory
+    PageDirectory* page_dir = &tasks_page_dir[pid];
+    paging_dir_copy(_paging_kernel_page_directory, page_dir);
+
+    uint32_t u_stack = resource_allocate(resource_amount - 1, pid, page_dir);
+    uint32_t k_stack = resource_allocate_kernel(pid, page_dir);
 
     // Initialize task
     tasks[pid].pid = pid;
@@ -46,15 +54,15 @@ uint8_t task_create(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type
     tasks[pid].resource_amount = resource_amount;
 
     paging_use_page_dir(tasks[pid].cr3);
-    paging_flush_tlb_range((void*) 0, (void*) (resource_amount * PAGE_FRAME_SIZE));
-    
-    // Last frame is used for stacks, half for kernel, half for user
-    uint32_t t_stack = resource_amount * PAGE_FRAME_SIZE;
-    uint32_t u_stack = t_stack - PAGE_FRAME_SIZE/2;
-    uint32_t k_stack = t_stack;
 
-    // Load file into memory
-    request.buf = (void*)(t_stack - resource_amount * PAGE_FRAME_SIZE);
+    // Flush user stack pages
+    paging_flush_tlb_range((void*) 0, (void*) ((resource_amount - 1) * PAGE_FRAME_SIZE));
+    // Flush kernel stack pages
+    paging_flush_tlb_single((void*)k_stack);
+
+
+    // Load file into memory at 0
+    request.buf = (void*) 0;
     load(request);
 
     // Set TrapFrame to be at the bottom of the given kernel stack
@@ -93,7 +101,11 @@ uint8_t task_create(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type
     tasks[pid].state = READY;
 
     paging_use_page_dir(current_task->cr3);
-    paging_flush_tlb_range((void*) 0, (void*) (resource_amount * PAGE_FRAME_SIZE));
+
+    // Flush user stack pages
+    paging_flush_tlb_range((void*) 0, (void*) ((resource_amount - 1) * PAGE_FRAME_SIZE));
+    // Flush kernel stack pages
+    paging_flush_tlb_single((void*)k_stack);    
 
     num_task++;
 
@@ -115,8 +127,20 @@ void task_schedule(){
     old->state = READY;
     new->state = RUNNING;
 
-    paging_use_page_dir(new->cr3);
-    paging_flush_tlb_range((void*) 0, (void*) (new->resource_amount * PAGE_FRAME_SIZE));
     
+    // We need to get old process's kernel stack before switching page tables
+    // Doesn't need to clear it when a task is done
+    // It doesn't matter since we are copying and reloading them each time
+    paging_dir_copy_single(tasks_page_dir[old->pid], &tasks_page_dir[new->pid], (void*) old->k_stack - PAGE_FRAME_SIZE);
+    paging_flush_tlb_single((void*) old->k_stack);
+
+    // Also flush user stack
+    paging_flush_tlb_range((void*) 0, (void*) (new->resource_amount * PAGE_FRAME_SIZE));
+
+    // Switching page tables
+    paging_use_page_dir(new->cr3);
+
+
+
     switch_context(&(old->context), new->context);
 }
