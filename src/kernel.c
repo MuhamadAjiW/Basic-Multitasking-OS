@@ -75,5 +75,8 @@ void kernel_setup(void) {
     }
     
 
-    while (TRUE);
+    // the kernel acts as a garbage collector afterwards
+    while (TRUE){
+        task_clean_scan();
+    }
 }

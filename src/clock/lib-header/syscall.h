@@ -17,6 +17,8 @@
 #define SYSCALL_WINMGR_UPDATE 21
 #define SYSCALL_WINMGR_CLOSE 22
 
+#define SYSCALL_TASK_EXIT 23
+
 /**
  * Sends syscall to the kernel
  * @attention   make sure to add a response in the kernel side if not already
@@ -27,5 +29,7 @@ void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx);
 
 // TODO: Document
 void delay(uint32_t tick);
+void close_window(uint32_t id);
+void exit();
 
 #endif

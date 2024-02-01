@@ -6,6 +6,7 @@
 #include "../lib-header/cmos.h"
 #include "../lib-header/window_manager.h"
 #include "../lib-header/memory_manager.h"
+#include "../lib-header/task.h"
 
 extern InterruptHandler syscall_handlers[];
 
@@ -49,7 +50,10 @@ void sys_winmgr_close(TrapFrame cpu){
     winmgr_close_window((uint16_t) cpu.registers.ebx);
 }
 
-
+// Tasking syscall
+void sys_task_exit(__attribute__((unused)) TrapFrame cpu){
+    task_terminate_current();
+}
 
 void enable_system_calls(){
     register_syscall_response(SYSCALL_NULL, sys_idle);
@@ -62,4 +66,6 @@ void enable_system_calls(){
     register_syscall_response(SYSCALL_WINMGR_REG, sys_windmgr_register);
     register_syscall_response(SYSCALL_WINMGR_UPDATE, sys_winmgr_update);
     register_syscall_response(SYSCALL_WINMGR_CLOSE, sys_winmgr_close);
+
+    register_syscall_response(SYSCALL_TASK_EXIT, sys_task_exit);
 }

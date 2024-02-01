@@ -26,8 +26,6 @@ bool resource_check(uint32_t amount);
 //Returns bottom of the stack given
 uint32_t resource_allocate(uint32_t amount, uint32_t pid, PageDirectory* page_dir);
 uint32_t resource_allocate_kernel(uint32_t pid, PageDirectory* page_dir);
-
-//should be self explanatory
-void resource_deallocate(uint32_t pid);
+void resource_deallocate(uint32_t pid, uint32_t resource_count);
 
 #endif

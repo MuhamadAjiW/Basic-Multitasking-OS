@@ -12,7 +12,7 @@
 // Note: Would be interesting to make tasks with dynamic
 PCB tasks[MAX_TASKS] = {0};
 PageDirectory tasks_page_dir[MAX_TASKS] = {0};
-int num_task = 0;
+uint32_t num_task = 0;
 PCB* current_task;
 
 extern TSSEntry tss;
@@ -114,8 +114,45 @@ uint8_t task_create(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type
     return 1;
 }
 
+void task_terminate_current(){
+    current_task->state = TERMINATED;
+}
+
+void task_terminate(uint32_t pid){
+    tasks[pid].state = TERMINATED;  // Only marking it as terminated, cleaning up is done later on the background
+}
+
+// Naive garbage collector implementation
+// Basically looping endlessly looking for terminated tasks and cleaning it up afterwards
+void task_clean_scan(){
+    for (uint32_t i = 0; i < num_task; i++){
+        if(tasks[i].state == TERMINATED){
+            task_clean(i);
+        }
+    }
+}
+
+// Cleaning up one task
+void task_clean(uint32_t pid){
+    resource_deallocate(pid, tasks[pid].resource_amount);
+
+    __asm__ volatile ("cli");   // Stop interrupts on this part
+    for (uint32_t i = pid; i < num_task - 1; i++){
+        tasks[i] = tasks[i + 1];
+        tasks[i].pid = i;
+        tasks_page_dir[i] = tasks_page_dir[i + 1];
+    }
+    __asm__ volatile ("sti");   // reenable interrupts
+}
+
+
 void task_schedule(){
-    int next_id = (current_task->pid + 1) % num_task;
+    int next_id;
+    
+    do{
+        next_id = (current_task->pid + 1) % num_task;
+    } while (tasks[next_id].state == TERMINATED);
+    
 
     PCB* new = &tasks[next_id];
     PCB* old = current_task;
@@ -140,8 +177,6 @@ void task_schedule(){
 
     // Switching page tables
     paging_use_page_dir(new->cr3);
-
-
 
     switch_context(&(old->context), new->context);
 }

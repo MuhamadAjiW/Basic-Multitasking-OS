@@ -60,10 +60,10 @@ int main(void) {
     int8_t movx = x_direction? 1 : -1;
     int8_t movy = y_direction? 1 : -1;
 
+    uint32_t running_time = 0;
+    uint32_t time_limit = seed % 100;
 
-    __asm__ volatile("mov %0, %%eax" : /* <Empty> */ : "r"(0xDEADBEEF));
-    while (TRUE){
-        __asm__ volatile("mov %0, %%eax" : /* <Empty> */ : "r"(0xDEADB00F));
+    while (++running_time < time_limit){
 
         winfo.xloc += movx;
         if(winfo.xloc == SCREEN_WIDTH - window_size || winfo.xloc == 0){
@@ -79,6 +79,9 @@ int main(void) {
 
         delay(speed);
     }
+
+    close_window(winfo.id);
+    exit();
 
     return 0;
 }

@@ -20,6 +20,8 @@
 #define SYSCALL_WINMGR_UPDATE 21
 #define SYSCALL_WINMGR_CLOSE 22
 
+#define SYSCALL_TASK_EXIT 23
+
 /**
  * Assigns system response functions to system call number
  * 
