@@ -55,7 +55,7 @@ void isr_exit();
 void task_initialize();
 
 // returns 0 if failed, 1 if successful
-uint8_t task_create(FAT32DriverRequest request, uint32_t pid, uint8_t stack_type, uint32_t eflags);
+uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags);
 void task_terminate_current();
 void task_terminate(uint32_t pid);
 void task_clean_scan();

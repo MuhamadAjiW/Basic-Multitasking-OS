@@ -5,6 +5,8 @@
 
 // TODO: Delete, this is temporary
 #include "../lib-header/keyboard.h"
+#include "../lib-header/fat32.h"
+#include "../lib-header/task.h"
 extern KeyboardDriverState keyboard_state;
 
 // Double buffering to avoid screen tearing
@@ -52,5 +54,15 @@ void framebuffer_keyboard(void){
     if(screen_keyboard_buffer[0] != 0){
         framebuffer_write(0, 0, screen_keyboard_buffer[0], 0, 0xf);
         framebuffer_display();
+
+        // FAT32DriverRequest clock = {
+        //     .buf                   = (void*) 0,
+        //     .name                  = "cl",
+        //     .ext                   = "\0\0\0",
+        //     .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
+        //     .buffer_size           = 0x100000,
+        // };
+
+        // task_create(clock, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
     }
 }

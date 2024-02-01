@@ -71,12 +71,12 @@ void kernel_setup(void) {
     };
 
     for (int i = 1; i < 40; i++)    {
-        task_create(clock, i, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+        task_create(clock, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
     }
     
 
     // the kernel acts as a garbage collector afterwards
     while (TRUE){
-        task_clean_scan();
+        // task_clean_scan();
     }
 }
