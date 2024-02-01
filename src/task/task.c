@@ -31,6 +31,7 @@ void task_initialize(){
 // TODO: Manage, this is just the function
 uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags){
     __asm__ volatile ("cli");   // Stop interrupts when creating a task
+    if(num_task == MAX_TASKS) return 0;
 
     // TODO: optimize, using a whole page for stack is really excessive
     // Allocate resources with ceiling division with at least 1MB of user stack and always 1 extra page for kernel stack
@@ -46,6 +47,9 @@ uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t efl
     PageDirectory* page_dir = &tasks_page_dir[pid];
     paging_dir_copy(_paging_kernel_page_directory, page_dir);
 
+    // Also copy the current kernel stack in case the caller is not the kernel
+    paging_dir_copy_single(tasks_page_dir[current_task->pid], page_dir, (void*) current_task->k_stack - PAGE_FRAME_SIZE);
+
     uint32_t u_stack = resource_allocate(resource_amount - 1, pid, page_dir);
     uint32_t k_stack = resource_allocate_kernel(pid, page_dir);
 
@@ -56,13 +60,12 @@ uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t efl
     tasks[pid].cr3 = (PageDirectory*) ((uint32_t) page_dir - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
     tasks[pid].resource_amount = resource_amount;
 
+    paging_use_page_dir(tasks[pid].cr3);
+
     // Flush user stack pages
     paging_flush_tlb_range((void*) 0, (void*) ((resource_amount - 1) * PAGE_FRAME_SIZE));
     // Flush kernel stack pages
     paging_flush_tlb_single((void*)k_stack);
-    
-    paging_use_page_dir(tasks[pid].cr3);
-
 
 
     // Load file into memory at 0
