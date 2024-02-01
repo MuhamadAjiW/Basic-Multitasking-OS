@@ -22,7 +22,7 @@
 #define STACKTYPE_KERNEL 0
 #define STACKTYPE_USER 3
 
-enum ProcState { NEW, READY, RUNNING, WAITING, TERMINATED };
+enum ProcState { NULL_TASK, NEW, READY, RUNNING, WAITING, TERMINATED };
 
 //TODO: Document
 typedef struct Context {
@@ -41,9 +41,13 @@ typedef struct PCB
     TrapFrame* tf;                  // TrapFrame for current syscall
     Context* context;               // Context to switch to
     
-    // Unused
+    // Extras for process management purposes
     uint32_t resource_amount;       // Amount of resources used
     char name[MAX_TASKS_PNAME];
+    
+    // Linked list purposes
+    uint32_t previous_pid;
+    uint32_t next_pid;
 
 } PCB;
 // Not packed because of alignment
@@ -54,7 +58,7 @@ void isr_exit();
 
 void task_initialize();
 
-// returns 0 if failed, 1 if successful
+uint32_t task_generate_pid();
 uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags);
 void task_terminate_current();
 void task_terminate(uint32_t pid);

@@ -46,7 +46,7 @@ uint32_t resource_allocate(uint32_t amount, uint32_t pid, PageDirectory* page_di
 
         resource_table[i].used = 1;
         resource_table[i].pid = pid;
-        resource_table[i].pid = USER;
+        resource_table[i].type = USER;
     }
 
     return amount * PAGE_FRAME_SIZE;

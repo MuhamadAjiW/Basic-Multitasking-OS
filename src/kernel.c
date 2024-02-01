@@ -70,13 +70,14 @@ void kernel_setup(void) {
         .buffer_size           = 0x100000,
     };
 
-    for (int i = 1; i < 40; i++)    {
+    for (int i = 0; i < 64; i++)    {
         task_create(clock, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
     }
+
     
 
     // the kernel acts as a garbage collector afterwards
     while (TRUE){
-        // task_clean_scan();
+        task_clean_scan();
     }
 }

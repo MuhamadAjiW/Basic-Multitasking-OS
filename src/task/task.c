@@ -9,42 +9,73 @@
 
 #include "../lib-header/fat32.h"
 
+extern TSSEntry tss;
+
 // Note: Would be interesting to make tasks with dynamic
+
+// Tasks is managed like a linked list for performance reasons with indices as pointers because static memory (check PCB structure)
+// Algorithm for tasking is round robin
+// Most of this gets slow because of static memory, very recommended to create a dedicated kernel heap for tasking
+// Task 0 is always the kernel
 PCB tasks[MAX_TASKS] = {0};
+uint8_t tasks_active[MAX_TASKS] = {0};
 PageDirectory tasks_page_dir[MAX_TASKS] = {0};
 uint32_t num_task = 0;
 PCB* current_task;
-
-extern TSSEntry tss;
+uint32_t last_task_pid;
 
 void task_initialize(){
-    num_task = 1;
     current_task = &tasks[0];
     current_task->pid = 0;
     current_task->k_stack = KERNEL_VMEMORY_OFFSET + PAGE_FRAME_SIZE;
     *(current_task->name) = '0';
     current_task->cr3 = (PageDirectory*)((uint32_t) &tasks_page_dir[0] - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
-    paging_dir_copy(_paging_kernel_page_directory, &tasks_page_dir[0]);
     current_task->state = RUNNING;
+    current_task->parent = current_task;
+
+    current_task->resource_amount = KERNEL_PAGE_COUNT;
+    current_task->previous_pid = 0;
+    current_task->next_pid = 0;
+
+    paging_dir_copy(_paging_kernel_page_directory, &tasks_page_dir[0]);
+    
+    tasks_active[0] = 1;
+    num_task = 1;
+    last_task_pid = 0;
 }
 
-// TODO: Manage, this is just the function
+uint32_t task_generate_pid(){
+    uint32_t i = 1;
+    while (tasks_active[i]){
+        i++;
+    }
+
+    return i;
+}
+
 uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags){
     __asm__ volatile ("cli");   // Stop interrupts when creating a task
-    if(num_task == MAX_TASKS) return 0;
+
+    if(num_task == MAX_TASKS) {
+        __asm__ volatile ("sti");   // reenable interrupts
+        return 0;
+    }
 
     // TODO: optimize, using a whole page for stack is really excessive
     // Allocate resources with ceiling division with at least 1MB of user stack and always 1 extra page for kernel stack
     uint32_t resource_amount = ((0x100000 + request.buffer_size + PAGE_FRAME_SIZE - 1) / PAGE_FRAME_SIZE) + 1;
     
     // Check resource availability
-    if (!resource_check(resource_amount)) return 0;
+    if (!resource_check(resource_amount)){
+        __asm__ volatile ("sti");   // reenable interrupts
+        return 0;
+    }
     
-    // pid is set as the last task
-    uint32_t pid = num_task;
+    uint32_t pid = task_generate_pid();
 
     // Initialize with kernel's paging directory
     PageDirectory* page_dir = &tasks_page_dir[pid];
+
     paging_dir_copy(_paging_kernel_page_directory, page_dir);
 
     // Also copy the current kernel stack in case the caller is not the kernel
@@ -59,7 +90,15 @@ uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t efl
     tasks[pid].state = NEW;
     tasks[pid].cr3 = (PageDirectory*) ((uint32_t) page_dir - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
     tasks[pid].resource_amount = resource_amount;
+    // Assign task as the last entry on the linked list
+    tasks[pid].previous_pid = last_task_pid;
+    tasks[pid].next_pid = 0;
+    tasks[0].previous_pid = pid;
+    tasks[last_task_pid].next_pid = pid;
+    last_task_pid = pid;
+    tasks_active[pid] = 1;
 
+    // Prepare the entry for new task
     paging_use_page_dir(tasks[pid].cr3);
 
     // Flush user stack pages
@@ -129,7 +168,7 @@ void task_terminate(uint32_t pid){
 }
 
 // Naive garbage collector implementation
-// Basically looping endlessly looking for terminated tasks and cleaning it up afterwards
+// Basically looping endlessly looking for terminated tasks and cleaning it up
 void task_clean_scan(){
     for (uint32_t i = 0; i < num_task; i++){
         if(tasks[i].state == TERMINATED){
@@ -140,28 +179,31 @@ void task_clean_scan(){
 
 // Cleaning up one task
 void task_clean(uint32_t pid){
+    __asm__ volatile ("cli");   // Stop interrupts
+    
     resource_deallocate(pid, tasks[pid].resource_amount);
 
-    __asm__ volatile ("cli");   // Stop interrupts on this part
+    PCB task = tasks[pid];
+
+    tasks[task.next_pid].previous_pid = tasks[pid].previous_pid;
+    tasks[task.previous_pid].next_pid = tasks[pid].next_pid;
+    tasks[pid].state = 0;
+    tasks_active[pid] = 0;
+
     num_task--;
-    for (uint32_t i = pid; i < num_task - 1; i++){
-        tasks[i] = tasks[i + 1];
-        tasks[i].pid = i;
-        tasks_page_dir[i] = tasks_page_dir[i + 1];
-    }
+
     __asm__ volatile ("sti");   // reenable interrupts
 }
 
 
 void task_schedule(){
-    int next_id;
-    
-    do{
-        next_id = (current_task->pid + 1) % num_task;
-    } while (tasks[next_id].state == TERMINATED);
-    
+    int next_pid = current_task->next_pid;
 
-    PCB* new = &tasks[next_id];
+    while (tasks[next_pid].state == TERMINATED){
+        next_pid = tasks[next_pid].next_pid;
+    }    
+
+    PCB* new = &tasks[next_pid];
     PCB* old = current_task;
     if(new == old) return; // Will break if not switching due to asm code
 
@@ -169,7 +211,7 @@ void task_schedule(){
 
     tss.esp0 = new->k_stack;
 
-    old->state = READY;
+    if(old->state == RUNNING) old->state = READY;
     new->state = RUNNING;
 
     
@@ -177,13 +219,13 @@ void task_schedule(){
     // Doesn't need to clear it when a task is done
     // It doesn't matter since we are copying and reloading them each time
     paging_dir_copy_single(tasks_page_dir[old->pid], &tasks_page_dir[new->pid], (void*) old->k_stack - PAGE_FRAME_SIZE);
-    paging_flush_tlb_single((void*) old->k_stack);
-
-    // Also flush user stack
-    paging_flush_tlb_range((void*) 0, (void*) (new->resource_amount * PAGE_FRAME_SIZE));
-
+    
     // Switching page tables
     paging_use_page_dir(new->cr3);
+
+    // flush pages
+    paging_flush_tlb_single((void*) old->k_stack);
+    paging_flush_tlb_range((void*) 0, (void*) (new->resource_amount * PAGE_FRAME_SIZE));
 
     switch_context(&(old->context), new->context);
 }
