@@ -9,6 +9,7 @@
 
 #include "lib-header/shell.h"
 #include "lib-header/commands.h"
+#include "lib-header/commands-util.h"
 
 // const uint8_t window_size = 2;
 
@@ -300,7 +301,21 @@ void shell_evaluate(){
         else if(strcmp(sh_parser.content[0], "dir") == 0){
             dir(sh.dir.cluster_number);
         }
-        
+        else if(strcmp(sh_parser.content[0], "cd") == 0){
+            // current_dir = cd(shellparser.content[1], current_dir);
+            if (sh_parser.word_count == 1){
+                sh.dir.cluster_number = ROOT_CLUSTER_NUMBER;
+                memcpy(sh.dir.path, "/root", 6);
+            }
+            else if (is_directorypath_valid(sh_parser.content[1], sh.dir.cluster_number)){
+                cd(sh_parser.content[1], &sh.dir);
+            } else {
+                print("\ncd: no such directory: ");
+                print(sh_parser.content[1]);
+                print("\n");
+            }
+        }
+
         // TODO: exec, tasklist, kill
         else if(strcmp(sh_parser.content[0], "exec") == 0){
 

@@ -109,7 +109,7 @@ void dir(uint32_t currentCluster){
 //     uint32_t current_cluster = currentCluster;
 
 //     parser_t pathparser = {0};
-//     parse(&pathparser, dirname, '/');
+//     parser_parse(&pathparser, dirname, '/');
 //     if (strcmp(pathparser.content[0], "root") == 0){
 //         current_cluster = 2;
 //         counter = 1;
@@ -353,89 +353,89 @@ void dir(uint32_t currentCluster){
 //     sout_clear(&sout);
 // }
 
-// void cd(char* pathname, directory_info* current_dir){
-//     current_dir->cluster_number = path_to_cluster(pathname, current_dir->cluster_number);
+void cd(char* pathname, directory_info* current_dir){
+    current_dir->cluster_number = path_to_cluster(pathname, current_dir->cluster_number);
     
-//     uint32_t startleng = 0;
-//     uint32_t maxleng = INPUT_BUFFER_SIZE;
-//     char* appended = (char*) malloc (maxleng);
+    uint32_t startleng = 0;
+    uint32_t maxleng = INPUT_BUFFER_SIZE;
+    char* appended = (char*) malloc (maxleng);
 
-//     parser_t pathparser = {0};
-//     parse(&pathparser, pathname, '/');
-//     if (strcmp(pathparser.content[0], "root") == 0){
-//         startleng = 5;
-//         memcpy(appended, "/root", 6);
+    parser_t pathparser = {0};
+    parser_parse(&pathparser, pathname, '/');
+    if (strcmp(pathparser.content[0], "root") == 0){
+        startleng = 5;
+        memcpy(appended, "/root", 6);
 
-//         for(uint32_t j = 1; j < pathparser.word_count; j++){
-//             if (strcmp(pathparser.content[j], "..") == 0){
-//                 while (current_dir->path[startleng] != '/' && startleng > 5){
-//                     startleng--;
-//                 }
-//                 appended[startleng] = 0;
-//                 startleng--;
-//             }
-//             else{
-//                 appended[startleng] = '/';
-//                 startleng++;
+        for(uint32_t j = 1; j < pathparser.word_count; j++){
+            if (strcmp(pathparser.content[j], "..") == 0){
+                while (current_dir->path[startleng] != '/' && startleng > 5){
+                    startleng--;
+                }
+                appended[startleng] = 0;
+                startleng--;
+            }
+            else{
+                appended[startleng] = '/';
+                startleng++;
 
-//                 if (startleng > maxleng){    
-//                     maxleng += INPUT_BUFFER_SIZE;
-//                     appended = (char*) realloc (appended, maxleng);
-//                 }
+                if (startleng > maxleng){    
+                    maxleng += INPUT_BUFFER_SIZE;
+                    appended = (char*) realloc (appended, maxleng);
+                }
 
-//                 for(int i = 0; i < strlen(pathparser.content[j]); i++){
-//                     appended[startleng] = pathparser.content[j][i];
-//                     startleng++;
+                for(int i = 0; i < strlen(pathparser.content[j]); i++){
+                    appended[startleng] = pathparser.content[j][i];
+                    startleng++;
                     
-//                     if (startleng > maxleng){    
-//                         maxleng += INPUT_BUFFER_SIZE;
-//                         appended = (char*) realloc (appended, maxleng);
-//                     }
-//                 }
-//                 appended[startleng] = 0;
-//             }
-//         }
-//     }
+                    if (startleng > maxleng){    
+                        maxleng += INPUT_BUFFER_SIZE;
+                        appended = (char*) realloc (appended, maxleng);
+                    }
+                }
+                appended[startleng] = 0;
+            }
+        }
+    }
 
-//     else{
-//         startleng = strlen(current_dir->path);
-//         strcpy(appended, current_dir->path);
-//         for(uint32_t j = 0; j < pathparser.word_count; j++){
-//             if (strcmp(pathparser.content[j], "..") == 0){
-//                 while (current_dir->path[startleng] != '/' && startleng > 5){
-//                     startleng--;
-//                 }
-//                 current_dir->path[startleng] = 0;
-//                 appended[startleng] = 0;
-//             }
-//             else{
-//                 appended[startleng] = '/';
-//                 startleng++;
+    else{
+        startleng = strlen(current_dir->path);
+        strcpy(appended, current_dir->path);
+        for(uint32_t j = 0; j < pathparser.word_count; j++){
+            if (strcmp(pathparser.content[j], "..") == 0){
+                while (current_dir->path[startleng] != '/' && startleng > 5){
+                    startleng--;
+                }
+                current_dir->path[startleng] = 0;
+                appended[startleng] = 0;
+            }
+            else{
+                appended[startleng] = '/';
+                startleng++;
                 
-//                 if (startleng > maxleng){    
-//                     maxleng += INPUT_BUFFER_SIZE;
-//                     appended = (char*) realloc (appended, maxleng);
-//                 }
+                if (startleng > maxleng){    
+                    maxleng += INPUT_BUFFER_SIZE;
+                    appended = (char*) realloc (appended, maxleng);
+                }
 
-//                 for(int i = 0; i < strlen(pathparser.content[j]); i++){
-//                     appended[startleng] = pathparser.content[j][i];
-//                     startleng++;
+                for(int i = 0; i < strlen(pathparser.content[j]); i++){
+                    appended[startleng] = pathparser.content[j][i];
+                    startleng++;
                     
-//                     if (startleng > maxleng){    
-//                         maxleng += INPUT_BUFFER_SIZE;
-//                         appended = (char*) realloc (appended, maxleng);
-//                     }
-//                 }
-//                 appended[startleng] = 0;
-//             }
-//         }
-//     }
+                    if (startleng > maxleng){    
+                        maxleng += INPUT_BUFFER_SIZE;
+                        appended = (char*) realloc (appended, maxleng);
+                    }
+                }
+                appended[startleng] = 0;
+            }
+        }
+    }
 
-//     free(current_dir->path);
-//     current_dir->path = appended;
+    free(current_dir->path);
+    current_dir->path = appended;
     
-//     parser_clear(&pathparser);
-// }
+    parser_clear(&pathparser);
+}
 
 // void rm(uint32_t currentCluster) {
 //     int length = shellparser.word_count;
