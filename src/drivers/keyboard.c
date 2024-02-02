@@ -69,15 +69,13 @@ void keyboard_process_input(uint8_t input){
             case 182: keyboard_state.shift = 0; break;
 
             // Allowed other keys
-            case BACKSPACE_CHAR:
-            case TAB_CHAR:
-            case LARROW_CHAR:
-            case RARROW_CHAR:
-            case UARROW_CHAR:
-            case DARROW_CHAR:
-            case ESC_CHAR:
-                keyboard_state.buffer = input;
-                break;
+            case 14: keyboard_state.buffer = BACKSPACE_CHAR; break;
+            case 15: keyboard_state.buffer = TAB_CHAR; break;
+            case 75: keyboard_state.buffer = LARROW_CHAR; break;
+            case 77: keyboard_state.buffer = RARROW_CHAR; break;
+            case 72: keyboard_state.buffer = UARROW_CHAR; break;
+            case 80: keyboard_state.buffer = DARROW_CHAR; break;
+            case 1: keyboard_state.buffer = ESC_CHAR; break;
 
             default:
                 if(input < 64){

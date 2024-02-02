@@ -9,13 +9,13 @@
 #define EXTENDED_SCANCODE_BYTE 0xE0
 
 #define NULL_CHAR 0
-#define BACKSPACE_CHAR 14
-#define TAB_CHAR 15
-#define LARROW_CHAR 75
-#define RARROW_CHAR 77
-#define UARROW_CHAR 72
-#define DARROW_CHAR 80
-#define ESC_CHAR 1
+#define TAB_CHAR 1
+#define LARROW_CHAR 2
+#define RARROW_CHAR 3
+#define UARROW_CHAR 4
+#define DARROW_CHAR 5
+#define ESC_CHAR 6
+#define BACKSPACE_CHAR 7
 
 /**
  * keyboard_scancode_1_to_ascii_map[256], Convert scancode values that correspond to ASCII printables

@@ -6,6 +6,19 @@
 // Double buffering to avoid screen tearing
 uint16_t screen_buffer[2000];
 
+void framebuffer_enable_cursor(){
+	out(CURSOR_PORT_CMD, 0x0A);
+	out(CURSOR_PORT_DATA, (in(CURSOR_PORT_DATA) & 0xC0) | 0xE);
+ 
+	out(CURSOR_PORT_CMD, 0x0B);
+	out(CURSOR_PORT_DATA, (in(CURSOR_PORT_DATA) & 0xE0) | 0xF);
+}
+
+void framebuffer_disable_cursor(){
+	out(CURSOR_PORT_CMD, 0x0A);
+	out(CURSOR_PORT_DATA, 0x20);
+}
+
 void framebuffer_set_cursor(uint8_t r, uint8_t c) {
 	uint16_t pos = r * 80 + c;
  

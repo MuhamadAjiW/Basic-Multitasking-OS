@@ -48,6 +48,8 @@ void framebuffer_clear(void);
 
 // TODO: Document
 void framebuffer_display();
+void framebuffer_enable_cursor();
+void framebuffer_disable_cursor();
 void framebuffer_set(uint8_t row, uint8_t col, uint16_t info);
 
 #endif
