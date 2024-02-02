@@ -10,7 +10,7 @@
  * @param str buffer to store null terminated string
  * 
 */
-void int_toString(int x, char str[]);
+void int_to_string(int x, char str[]);
 
 /**
  * Count the length of a null terminated string

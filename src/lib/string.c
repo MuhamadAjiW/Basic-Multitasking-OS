@@ -2,7 +2,7 @@
 #include "../lib-header/memory_manager.h"
 #include "../lib-header/stdtype.h"
 
-void int_toString(int x, char str[]){
+void int_to_string(int x, char str[]){
     int i = 0;
     int negative = 0;
 
