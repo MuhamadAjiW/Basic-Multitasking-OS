@@ -55,14 +55,14 @@ void framebuffer_keyboard(void){
         framebuffer_write(0, 0, screen_keyboard_buffer[0], 0, 0xf);
         framebuffer_display();
 
-        FAT32DriverRequest clock = {
+        FAT32DriverRequest bouncy = {
             .buf                   = (void*) 0,
-            .name                  = "cl",
+            .name                  = "bounce",
             .ext                   = "\0\0\0",
             .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
             .buffer_size           = 0x100000,
         };
 
-        task_create(clock, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+        task_create(bouncy, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
     }
 }

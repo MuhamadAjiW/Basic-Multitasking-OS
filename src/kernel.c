@@ -64,15 +64,15 @@ void kernel_setup(void) {
 
     FAT32DriverRequest clock = {
         .buf                   = (void*) 0,
-        .name                  = "cl",
+        .name                  = "sysclock",
         .ext                   = "\0\0\0",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
         .buffer_size           = 0x100000,
     };
 
-    for (int i = 0; i < 64; i++)    {
-        task_create(clock, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
-    }
+    task_create(clock, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+    // for (int i = 0; i < 64; i++)    {
+    // }
 
     
 

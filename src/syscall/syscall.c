@@ -58,6 +58,7 @@ void sys_task_exit(__attribute__((unused)) TrapFrame cpu){
 void enable_system_calls(){
     register_syscall_response(SYSCALL_NULL, sys_idle);
     register_syscall_response(SYSCALL_GET_TICK, sys_get_timer_tick);
+    register_syscall_response(SYSCALL_GET_TIME, sys_get_time);
 
     register_syscall_response(SYSCALL_MALLOC, sys_malloc);
     register_syscall_response(SYSCALL_REALLOC, sys_realloc);

@@ -18,6 +18,8 @@
         "window_manager.h": "c",
         "disk.h": "c",
         "resource.h": "c",
-        "paging.h": "c"
+        "paging.h": "c",
+        "cmos.h": "c",
+        "string.h": "c"
     },
 }

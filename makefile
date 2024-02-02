@@ -29,8 +29,8 @@ clean:
 $(OUTPUT_FOLDER)/%.o: $(SOURCE_FOLDER)/%.c
 	@$(CC) $(CFLAGS) $< -o $@
 
-SRC := $(filter-out $(SOURCE_FOLDER)/shell/%, $(filter-out $(SOURCE_FOLDER)/clock/%, $(shell find $(SOURCE_FOLDER) -name '*.c')))
-DIR := $(filter-out $(SOURCE_FOLDER), $(filter-out $(SOURCE_FOLDER)/shell, $(filter-out $(SOURCE_FOLDER)/clock, $(patsubst $(SOURCE_FOLDER)/%, $(OUTPUT_FOLDER)/%, $(shell find $(SOURCE_FOLDER) -type d)))))
+SRC := $(filter-out $(SOURCE_FOLDER)/bouncy/%, $(filter-out $(SOURCE_FOLDER)/shell/%, $(filter-out $(SOURCE_FOLDER)/clock/%, $(shell find $(SOURCE_FOLDER) -name '*.c'))))
+DIR := $(filter-out $(SOURCE_FOLDER), $(filter-out $(SOURCE_FOLDER)/bouncy/%, $(filter-out $(SOURCE_FOLDER)/shell, $(filter-out $(SOURCE_FOLDER)/clock, $(patsubst $(SOURCE_FOLDER)/%, $(OUTPUT_FOLDER)/%, $(shell find $(SOURCE_FOLDER) -type d))))))
 OBJ := $(patsubst $(SOURCE_FOLDER)/%.c, $(OUTPUT_FOLDER)/%.o, $(SRC))
 
 dir: 
@@ -79,6 +79,8 @@ inserter:
 		-o $(OUTPUT_FOLDER)/inserter
 
 
+# TODO: Make autocompile for these
+# USER PROGRAMS
 # #------------------------------
 #shell
 $(OUTPUT_FOLDER)/shell/%.o: $(SOURCE_FOLDER)/shell/%.c
@@ -132,23 +134,55 @@ clock: dir-c $(OBJ_C)
 
 	@echo Linking object shell object files and generate flat binary...
 	@$(LIN) -T $(SOURCE_FOLDER)/clock/shell-linker.ld -melf_i386 \
-		shell-entry.o $(OBJ_C) -o $(OUTPUT_FOLDER)/cl
+		shell-entry.o $(OBJ_C) -o $(OUTPUT_FOLDER)/sysclock
 	
 	@echo Linking object clock object files and generate ELF32 for debugging...
 	@$(LIN) -T $(SOURCE_FOLDER)/clock/shell-linker.ld -melf_i386 --oformat=elf32-i386\
-		shell-entry.o $(OBJ_C) -o $(OUTPUT_FOLDER)/cl_elf
-	@size --target=binary bin/sh
+		shell-entry.o $(OBJ_C) -o $(OUTPUT_FOLDER)/sysclock_elf
+	@size --target=binary bin/sysclock
 	
 	@rm -rf ${DIR_C}
 	@rm -f *.o
 
+# #------------------------------
+#bouncy
+$(OUTPUT_FOLDER)/bouncy/%.o: $(SOURCE_FOLDER)/bouncy/%.c
+	@$(CC) $(CFLAGS) -fno-pie $< -o $@
+
+SRC_B := $(shell find $(SOURCE_FOLDER)/bouncy -name '*.c')
+DIR_B := $(filter-out src/bouncy, $(patsubst $(SOURCE_FOLDER)/bouncy/%, $(OUTPUT_FOLDER)/bouncy/%, $(shell find $(SOURCE_FOLDER)/bouncy -type d)))
+OBJ_B := $(patsubst $(SOURCE_FOLDER)/bouncy/%.c, $(OUTPUT_FOLDER)/bouncy/%.o, $(SRC_B))
+
+dir-b: 
+	@for dir in $(DIR_B); do \
+		if [ ! -d $$dir ]; then mkdir -p $$dir; fi \
+	done
+
+# ngecompile bouncy
+bouncy: dir-b $(OBJ_B)
+	@echo Compiling bouncy...
+	@$(ASM) $(AFLAGS) $(SOURCE_FOLDER)/bouncy/shell-entry.s -o shell-entry.o
+
+	@echo Linking object shell object files and generate flat binary...
+	@$(LIN) -T $(SOURCE_FOLDER)/bouncy/shell-linker.ld -melf_i386 \
+		shell-entry.o $(OBJ_B) -o $(OUTPUT_FOLDER)/bounce
+	
+	@echo Linking object bouncy object files and generate ELF32 for debugging...
+	@$(LIN) -T $(SOURCE_FOLDER)/bouncy/shell-linker.ld -melf_i386 --oformat=elf32-i386\
+		shell-entry.o $(OBJ_B) -o $(OUTPUT_FOLDER)/bounce_elf
+	@size --target=binary bin/bounce
+	
+	@rm -rf ${DIR_B}
+	@rm -f *.o
+
 # masukin program yang udah dicompile ke harddisk
-insert: shell clock
+insert: shell clock bouncy
 #	segmen unix to dos bisa diskip
 # 	@echo Turning possibly dos files into unix files... && cd other && dos2unix stdfont && dos2unix stdbg && dos2unix stdbg2 && dos2unix stdanim && dos2unix text
 
 	@echo Inserting shell into system directory... && cd bin && ./inserter sh 66 drive.img
-	@echo Inserting clock into system directory... && cd bin && ./inserter cl 66 drive.img
+	@echo Inserting clock into system directory... && cd bin && ./inserter sysclock 66 drive.img
+	@echo Inserting bouncy into system directory... && cd bin && ./inserter bounce 66 drive.img
 # 	@echo Inserting font into system directory... && cp other/stdfont bin/stdfont && cd bin && ./inserter stdfont 66 drive.img fnt
 # 	@echo Inserting background image into system directory... && cp other/stdbg bin/stdbg && cd bin && ./inserter stdbg 66 drive.img imp
 # 	@echo Inserting second background image into system directory... && cp other/stdbg2 bin/stdbg2 && cd bin && ./inserter stdbg2 66 drive.img imp

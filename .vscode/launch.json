@@ -31,10 +31,18 @@
                     "text": "symbol-file kernel",
                     "description": "Get kernel symbols"
                 },
+                // {
+                //     "text": "add-symbol-file sh_elf",
+                //     "description": "Get shell symbols"
+                // },
                 {
-                    "text": "add-symbol-file sh_elf",
+                    "text": "add-symbol-file sysclock_elf",
                     "description": "Get shell symbols"
                 },
+                // {
+                //     "text": "add-symbol-file bounce_elf",
+                //     "description": "Get shell symbols"
+                // },
                 {
                     "text": "set output-radix 16",
                     "description": "Use hexadecimal output"
