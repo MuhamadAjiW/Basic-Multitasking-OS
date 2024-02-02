@@ -20,6 +20,8 @@
         "resource.h": "c",
         "paging.h": "c",
         "cmos.h": "c",
-        "string.h": "c"
+        "string.h": "c",
+        "shell.h": "c",
+        "stdlib.h": "c"
     },
 }

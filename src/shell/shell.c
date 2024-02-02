@@ -2,13 +2,16 @@
 #include "lib-header/syscall.h"
 #include "lib-header/stdio.h"
 #include "lib-header/stdlib.h"
+#include "lib-header/string.h"
 #include "lib-header/stdmem.h"
+#include "lib-header/parser.h"
 #include "lib-header/window_manager.h"
 
 #include "lib-header/shell.h"
 
 // const uint8_t window_size = 2;
 
+parser_t parser = {0};
 shell_app sh = {
     .default_font_color = 0x0,
     .default_background_color = 0xe,
@@ -227,13 +230,55 @@ void reader_move(int8_t direction){
     sh.reader.current_idx += direction;
 }
 
-// void reader_backspace(){
 
-// }
-
-// // Shell functionalities
+// Shell functionalities
 void shell_clear(){
-    
+    uint32_t limit = sh.grid.xlen * sh.grid.ylen;
+    for(uint32_t i = 0; i < limit; i++){
+        sh.grid.char_map[i] = 0;
+        sh.grid.char_color_map[i] = 0;
+    }
+    app_draw_background();
+
+    if(sh.cursor_on){
+        cursor_set(0, 0);
+    }
+
+    window_update(&(sh.winfo));
+}
+
+void shell_backspace(){
+    uint8_t success = 0;
+
+    if(!(sh.cursor_y == sh.cursor_y_limit && sh.cursor_x == sh.cursor_x_limit)){
+        uint16_t end = sh.grid.xlen * sh.grid.ylen;
+        uint16_t loc = sh.cursor_y * sh.grid.xlen + sh.cursor_x;
+        for(int i = loc - 1; i < end; i++){
+            sh.grid.char_map[i] = sh.grid.char_map[i + 1];
+            sh.grid.char_color_map[i] = sh.grid.char_color_map[i + 1];
+        }
+        sh.grid.char_map[end - 1] = 0;
+        sh.grid.char_color_map[end - 1] = 0;
+        success = 1;
+    }
+    else{
+        success = 0;
+    }
+
+    if(success){
+        cursor_move(-1);
+        grid_write();
+
+        for(uint32_t i = sh.reader.current_idx-1; i < sh.reader.max_idx-1; i++){
+            sh.reader.buffer_addr[i] = sh.reader.buffer_addr[i+1];
+        }
+        if(sh.reader.current_idx > 0){
+            sh.reader.current_idx--;
+        }
+        if(sh.reader.max_idx > 0){
+            sh.reader.max_idx--;
+        }
+    }
 }
 
 void shell_newline(){
@@ -244,7 +289,27 @@ void shell_newline(){
 }
 
 void shell_evaluate(){
+    parser_parse(&parser, sh.reader.buffer_addr, ' ');
 
+    if (parser.word_count > 0){
+        if(strcmp(parser.content[0], "clear") == 0){
+            if(parser.word_count > 1) print("\nclear: Invalid argument");
+            else shell_clear();
+        }
+        
+        // TODO: exec, tasklist, kill
+        else if(strcmp(parser.content[0], "exec") == 0){
+
+        }
+        else if(strcmp(parser.content[0], "tasklist") == 0){
+
+        }
+        else if(strcmp(parser.content[0], "kill") == 0){
+
+        }
+    }
+
+    parser_clear(&parser);
 }
 
 int main(void) {
@@ -281,13 +346,13 @@ int main(void) {
                 }
                 break;
             
-            // case BACKSPACE_CHAR:
-            //     backspace();
-            //     break;
+            case BACKSPACE_CHAR:
+                shell_backspace();
+                break;
 
             case '\n':
                 shell_evaluate();
-                shell_clear();
+                reader_clear();
                 shell_newline();
                 break;
             

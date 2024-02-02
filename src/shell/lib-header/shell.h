@@ -79,11 +79,11 @@ void reader_initialize();
 void reader_clear();
 void reader_insert(char c);
 void reader_move(int8_t direction);
-void reader_backspace();
 
 
 //----Shell functionalities
 void shell_clear();
+void shell_backspace();
 void shell_newline();
 void shell_evaluate();
 
