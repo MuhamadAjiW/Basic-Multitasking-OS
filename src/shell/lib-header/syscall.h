@@ -22,6 +22,14 @@
 
 #define SYSCALL_TASK_EXIT 23
 
+#define SYSCALL_READ_FILE 30
+#define SYSCALL_READ_DIR 31
+#define SYSCALL_SELF_DIR_INFO 32
+#define SYSCALL_WRITE_FILE 33
+#define SYSCALL_DELETE_FILE 34
+#define SYSCALL_CLOSE_FILE 35
+#define SYSCALL_CLOSE_DIR 36
+
 /**
  * Sends syscall to the kernel
  * @attention   make sure to add a response in the kernel side if not already
@@ -29,8 +37,5 @@
  *              the rest may be filled with function arguments
 */
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx);
-
-// TODO: Document
-void delay(uint32_t tick);
 
 #endif

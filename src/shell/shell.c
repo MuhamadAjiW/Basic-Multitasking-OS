@@ -8,10 +8,11 @@
 #include "lib-header/window_manager.h"
 
 #include "lib-header/shell.h"
+#include "lib-header/commands.h"
 
 // const uint8_t window_size = 2;
 
-parser_t parser = {0};
+parser_t sh_parser = {0};
 shell_app sh = {
     .default_font_color = 0x0,
     .default_background_color = 0xe,
@@ -289,27 +290,30 @@ void shell_newline(){
 }
 
 void shell_evaluate(){
-    parser_parse(&parser, sh.reader.buffer_addr, ' ');
+    parser_parse(&sh_parser, sh.reader.buffer_addr, ' ');
 
-    if (parser.word_count > 0){
-        if(strcmp(parser.content[0], "clear") == 0){
-            if(parser.word_count > 1) print("\nclear: Invalid argument");
+    if (sh_parser.word_count > 0){
+        if(strcmp(sh_parser.content[0], "clear") == 0){
+            if(sh_parser.word_count > 1) print("\nclear: Invalid argument");
             else shell_clear();
+        }
+        else if(strcmp(sh_parser.content[0], "dir") == 0){
+            dir(sh.dir.cluster_number);
         }
         
         // TODO: exec, tasklist, kill
-        else if(strcmp(parser.content[0], "exec") == 0){
+        else if(strcmp(sh_parser.content[0], "exec") == 0){
 
         }
-        else if(strcmp(parser.content[0], "tasklist") == 0){
+        else if(strcmp(sh_parser.content[0], "tasklist") == 0){
 
         }
-        else if(strcmp(parser.content[0], "kill") == 0){
+        else if(strcmp(sh_parser.content[0], "kill") == 0){
 
         }
     }
 
-    parser_clear(&parser);
+    parser_clear(&sh_parser);
 }
 
 int main(void) {

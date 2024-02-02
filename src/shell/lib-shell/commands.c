@@ -1,106 +1,106 @@
 
-// #include "../lib-header/commands.h"
-// #include "../lib-header/stdmem.h"
-// #include "../lib-header/stdio.h"
-// #include "../lib-header/string.h"
-// #include "../lib-header/time.h"
-// #include "../lib-header/stdlib.h"
-// #include "../lib-header/stdmem.h"
-// #include "../lib-header/syscall.h"
-// #include "../lib-header/commands-util.h"
-// #include "../lib-header/iostream.h"
+#include "../lib-header/commands.h"
+#include "../lib-header/stdmem.h"
+#include "../lib-header/stdio.h"
+#include "../lib-header/string.h"
+#include "../lib-header/time.h"
+#include "../lib-header/stdlib.h"
+#include "../lib-header/stdmem.h"
+#include "../lib-header/syscall.h"
+#include "../lib-header/commands-util.h"
+#include "../lib-header/iostream.h"
 
-// #include "../lib-header/parser.h"
-// #include "../lib-header/shell.h"
-// #include "../lib-header/commands-util.h"
+#include "../lib-header/parser.h"
+#include "../lib-header/shell.h"
+#include "../lib-header/commands-util.h"
 
-// extern shell_app shell;
-// extern parser_t shellparser;
+extern shell_app shell;
+extern parser_t sh_parser;
 
-// void delay(uint32_t ms){
-//     uint32_t currentTick = 0;
-//     uint32_t cachedTick = 0;
-//     syscall(SYSCALL_GET_TICK, (uint32_t) &currentTick, 0, 0);
-//     cachedTick = currentTick + ms;
+void delay(uint32_t ms){
+    uint32_t currentTick = 0;
+    uint32_t cachedTick = 0;
+    syscall(SYSCALL_GET_TICK, (uint32_t) &currentTick, 0, 0);
+    cachedTick = currentTick + ms;
 
-//     while (currentTick < cachedTick){
-//         syscall(SYSCALL_GET_TICK, (uint32_t) &currentTick, 0, 0);
-//     }
-// }
+    while (currentTick < cachedTick){
+        syscall(SYSCALL_GET_TICK, (uint32_t) &currentTick, 0, 0);
+    }
+}
 
-// void dir(uint32_t currentCluster){
-//     FAT32DirectoryReader directory_reader;
+void dir(uint32_t currentCluster){
+    FAT32DirectoryReader directory_reader;
 
-//     directory_reader = get_dir_info(currentCluster);
-//     char char_buffer[9];
-//     uint32_t counter = 1;
-//     DirectoryEntry read_entry;
+    directory_reader = get_dir_info(currentCluster);
+    char char_buffer[9];
+    uint32_t counter = 1;
+    DirectoryEntry read_entry;
 
-//     string_t string = str_new("\n    No   Name        Ext    Size      Creation time");
-//     for(uint32_t i = 0; i < directory_reader.cluster_count; i++){
-//         for(uint16_t j = 0; j < ENTRY_COUNT; j++){
-//             read_entry = directory_reader.content[i].entry[j];
+    string_t string = str_new("\n    No   Name        Ext    Size      Creation time");
+    for(uint32_t i = 0; i < directory_reader.cluster_count; i++){
+        for(uint16_t j = 0; j < ENTRY_COUNT; j++){
+            read_entry = directory_reader.content[i].entry[j];
             
-//             if(!is_entry_empty(read_entry)){
-//                 str_add(&string, "\n    ");
-//                 int_toString(counter, char_buffer);
-//                 str_add(&string, char_buffer);
-//                 str_addc(&string, '.');
-//                 for(int i = strlen(char_buffer); i < 4; i++){
-//                     str_addc(&string, ' ');
-//                 }
+            if(!is_entry_empty(read_entry)){
+                str_add(&string, "\n    ");
+                int_to_string(counter, char_buffer);
+                str_add(&string, char_buffer);
+                str_addc(&string, '.');
+                for(int i = strlen(char_buffer); i < 4; i++){
+                    str_addc(&string, ' ');
+                }
 
-//                 for(int j = 0; j < 8; j++){
-//                     if(read_entry.filename[j] == 0) str_addc(&string, ' ');
-//                     else str_addc(&string, read_entry.filename[j]);
-//                 }
+                for(int j = 0; j < 8; j++){
+                    if(read_entry.filename[j] == 0) str_addc(&string, ' ');
+                    else str_addc(&string, read_entry.filename[j]);
+                }
 
-//                 str_add(&string, "    ");
-//                 for(int j = 0; j < 3; j++){
-//                     if(read_entry.extension[j] == 0) str_addc(&string, ' ');
-//                     else str_addc(&string, read_entry.extension[j]);
-//                 }
+                str_add(&string, "    ");
+                for(int j = 0; j < 3; j++){
+                    if(read_entry.extension[j] == 0) str_addc(&string, ' ');
+                    else str_addc(&string, read_entry.extension[j]);
+                }
                 
-//                 str_add(&string, "    ");
-//                 int_toString(read_entry.size, char_buffer);
-//                 str_add(&string, char_buffer);
+                str_add(&string, "    ");
+                int_to_string(read_entry.size, char_buffer);
+                str_add(&string, char_buffer);
 
-//                 for(int i = strlen(char_buffer); i < 10; i++){
-//                     str_addc(&string, ' ');
-//                 }
+                for(int i = strlen(char_buffer); i < 10; i++){
+                    str_addc(&string, ' ');
+                }
 
-//                 int_toString(read_entry.creation_time_hours, char_buffer);
-//                 str_add(&string, char_buffer);
-//                 str_addc(&string, ':');
-//                 int_toString(read_entry.creation_time_minutes, char_buffer);
-//                 str_add(&string, char_buffer);
-//                 str_addc(&string, ':');
-//                 int_toString(read_entry.creation_time_seconds, char_buffer);
-//                 str_add(&string, char_buffer);
+                int_to_string(read_entry.creation_time_hours, char_buffer);
+                str_add(&string, char_buffer);
+                str_addc(&string, ':');
+                int_to_string(read_entry.creation_time_minutes, char_buffer);
+                str_add(&string, char_buffer);
+                str_addc(&string, ':');
+                int_to_string(read_entry.creation_time_seconds, char_buffer);
+                str_add(&string, char_buffer);
 
-//                 str_add(&string, "    ");
-//                 int_toString(read_entry.creation_time_day, char_buffer);
-//                 str_add(&string, char_buffer);
-//                 str_addc(&string, '/');
-//                 int_toString(read_entry.creation_time_month, char_buffer);
-//                 str_add(&string, char_buffer);
-//                 str_addc(&string, '/');
-//                 time current_time = get_time();
-//                 int_toString((read_entry.creation_time_year) + current_time.century * 100, char_buffer);
-//                 str_add(&string, char_buffer);
+                str_add(&string, "    ");
+                int_to_string(read_entry.creation_time_day, char_buffer);
+                str_add(&string, char_buffer);
+                str_addc(&string, '/');
+                int_to_string(read_entry.creation_time_month, char_buffer);
+                str_add(&string, char_buffer);
+                str_addc(&string, '/');
+                time current_time = get_time();
+                int_to_string((read_entry.creation_time_year) + current_time.century * 100, char_buffer);
+                str_add(&string, char_buffer);
 
-//                 counter++;
-//             }
-//         }
-//     }
-//     sout_t sout = sout_newstr(string);
+                counter++;
+            }
+        }
+    }
+    sout_t sout = sout_newstr(string);
     
-//     sout_printall_ws(&sout);
+    sout_printall_ws(&sout);
 
-//     sout_clear(&sout);
-//     str_delete(&string);
-//     closef_dir(directory_reader);
-// }
+    sout_clear(&sout);
+    str_delete(&string);
+    closef_dir(directory_reader);
+}
 
 // void mkdir(char *dirname, uint32_t currentCluster){
 //     uint8_t counter = 0;

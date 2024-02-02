@@ -25,6 +25,14 @@
 
 #define SYSCALL_TASK_EXIT 23
 
+#define SYSCALL_READ_FILE 30
+#define SYSCALL_READ_DIR 31
+#define SYSCALL_SELF_DIR_INFO 32
+#define SYSCALL_WRITE_FILE 33
+#define SYSCALL_DELETE_FILE 34
+#define SYSCALL_CLOSE_FILE 35
+#define SYSCALL_CLOSE_DIR 36
+
 /**
  * Assigns system response functions to system call number
  * 
