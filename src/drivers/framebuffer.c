@@ -3,12 +3,6 @@
 #include "../lib-header/stdmem.h"
 #include "../lib-header/portio.h"
 
-// TODO: Delete, this is temporary
-#include "../lib-header/keyboard.h"
-#include "../lib-header/fat32.h"
-#include "../lib-header/task.h"
-extern KeyboardDriverState keyboard_state;
-
 // Double buffering to avoid screen tearing
 uint16_t screen_buffer[2000];
 
@@ -45,24 +39,4 @@ void framebuffer_clear(void) {
 
 void framebuffer_display(){
     memcpy((void*) MEMORY_FRAMEBUFFER, screen_buffer, 4000);
-}
-
-// TODO: Delete, this is temporary
-char screen_keyboard_buffer[256];
-void framebuffer_keyboard(void){
-    get_keyboard_buffer(screen_keyboard_buffer);
-    if(screen_keyboard_buffer[0] != 0){
-        framebuffer_write(0, 0, screen_keyboard_buffer[0], 0, 0xf);
-        framebuffer_display();
-
-        FAT32DriverRequest bouncy = {
-            .buf                   = (void*) 0,
-            .name                  = "bounce",
-            .ext                   = "\0\0\0",
-            .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
-            .buffer_size           = 0x100000,
-        };
-
-        task_create(bouncy, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
-    }
 }

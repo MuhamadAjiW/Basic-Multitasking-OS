@@ -2,6 +2,7 @@
 #include "../lib-header/stdtype.h"
 #include "../lib-header/interrupt.h"
 
+#include "../lib-header/keyboard.h"
 #include "../lib-header/pit.h"
 #include "../lib-header/cmos.h"
 #include "../lib-header/window_manager.h"
@@ -25,6 +26,9 @@ void sys_get_timer_tick(TrapFrame cpu){
 void sys_get_time(TrapFrame cpu){
     cmos_read_rtc();
     *(cmos_reader*)cpu.registers.ebx = cmos_get_data();
+}
+void sys_get_keyboard_last_key(TrapFrame cpu){
+    keyboard_flush_buffer((char*) cpu.registers.ebx);
 }
 
 // Memory syscalls

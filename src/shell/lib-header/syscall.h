@@ -7,6 +7,8 @@
 // Macros for system call codes, should always be synchronized with the kernel side
 #define SYSCALL_NULL 0
 #define SYSCALL_GET_TICK 1
+#define SYSCALL_GET_TIME 2
+#define SYSCALL_GET_KEYBOARD_LAST_KEY 3
 
 #define SYSCALL_MALLOC 10
 #define SYSCALL_REALLOC 11
@@ -15,6 +17,8 @@
 #define SYSCALL_WINMGR_REG 20
 #define SYSCALL_WINMGR_UPDATE 21
 #define SYSCALL_WINMGR_CLOSE 22
+
+#define SYSCALL_TASK_EXIT 23
 
 /**
  * Sends syscall to the kernel

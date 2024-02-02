@@ -64,8 +64,6 @@ int main(void) {
     uint32_t time_limit = (seed % 256) + 50;
 
     while (++running_time < time_limit){
-    // while (TRUE){
-
         winfo.xloc += movx;
         if(winfo.xloc == SCREEN_WIDTH - window_size || winfo.xloc == 0){
             movx = (-1) * movx;

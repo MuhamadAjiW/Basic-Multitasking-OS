@@ -1,16 +1,91 @@
 #include "lib-header/stdtype.h"
 #include "lib-header/syscall.h"
+#include "lib-header/shell.h"
 #include "lib-header/window_manager.h"
 
-const uint8_t window_size = 2;
+// const uint8_t window_size = 2;
 
-window_info winfo = {
-    .mainBuffer = (uint16_t*) 1,
-    .xloc = 5,
-    .yloc = 5,
-    .xlen = window_size,
-    .ylen = window_size
-};
+// shell_app app = {
+//     .default_font_color = 0,
+//     .cursor_x = 0,
+//     .cursor_y = 0,
+//     .cursor_x_limit = 0,
+//     .cursor_y_limit = 0,
+//     .cursor_on = 1,
+
+//     .winfo = {
+//         .mainBuffer = (uint16_t*) 1,
+//         .xloc = 0,
+//         .yloc = 0,
+//         .xlen = SCREEN_WIDTH,
+//         .ylen = SCREEN_HEIGHT
+//     },
+
+//     .reader = {
+//         .buffer_addr = (char*) 1,
+//         .buffer_size = INPUT_BUFFER_SIZE,
+//         .max_idx = 0,
+//         .current_idx = 0
+//     }
+// };
+
+// // App
+// void app_initalize(){
+
+// }
+
+
+// // Cursor
+// void cursor_on(){
+
+// }
+
+// void cursor_off(){
+
+// }
+
+// void cursor_limit(uint8_t x, uint8_t y){
+//     app.cursor_x_limit = x;
+//     app.cursor_y_limit = y;
+// }
+
+// uint8_t cursor_set(uint8_t x, uint8_t y){
+//     return 0;
+// }
+
+// int32_t cursor_move(int8_t direction){
+//     return 0;
+// }
+
+// // Reader
+// void reader_initialize(){
+
+// }
+
+// void reader_clear(){
+
+// }
+
+// void reader_append(){
+
+// }
+
+// void reader_move(){
+
+// }
+
+// void reader_backspace(){
+
+// }
+
+// // Shell functionalities
+// void shell_clear(){
+    
+// }
+
+// void shell_evaluate(){
+
+// }
 
 int main(void) {
     // TODO: Fix
@@ -18,38 +93,15 @@ int main(void) {
     // therefore, a process has to start with a syscall
     // else there wouldn't be any interrupt happening
     syscall(SYSCALL_NULL, 0, 0, 0);
-
-    window_init(&winfo);
-
-    window_write(&winfo, 0, 0, 'X', 0xf, 0x0);
-    window_write(&winfo, 0, 1, 'Y', 0xf, 0x0);
-    window_write(&winfo, 1, 0, 'Y', 0xf, 0x0);
-    window_write(&winfo, 1, 1, 'X', 0xf, 0x0);
-
-    window_register(&winfo);
     
-    int8_t movx = 1;
-    int8_t movy = 1;
-
-
-    __asm__ volatile("mov %0, %%eax" : /* <Empty> */ : "r"(0xDEADBEEF));
+    // window_init(&(app.winfo));
+    // window_register(&(app.winfo));
+    
     while (TRUE){
-        __asm__ volatile("mov %0, %%eax" : /* <Empty> */ : "r"(0xDEADB00F));
-
-        winfo.xloc += movx;
-        if(winfo.xloc == SCREEN_WIDTH - window_size || winfo.xloc == 0){
-            movx = (-1) * movx;
-        }
-
-        winfo.yloc += movy;
-        if(winfo.yloc == SCREEN_HEIGHT - window_size || winfo.yloc == 0){
-            movy = (-1) * movy;
-        }
-
-        window_update(&winfo);
-
-        delay(50);
+    
     }
 
     return 0;
 }
+
+

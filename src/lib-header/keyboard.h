@@ -5,15 +5,17 @@
 #include "interrupt.h"
 #include "stdtype.h"
 
-#define EXT_SCANCODE_UP        0x48
-#define EXT_SCANCODE_DOWN      0x50
-#define EXT_SCANCODE_LEFT      0x4B
-#define EXT_SCANCODE_RIGHT     0x4D
-
 #define KEYBOARD_DATA_PORT     0x60
 #define EXTENDED_SCANCODE_BYTE 0xE0
 
-#define KEYBOARD_BUFFER_SIZE   256
+#define NULL_CHAR 0
+#define BACKSPACE_CHAR 14
+#define TAB_CHAR 15
+#define LARROW_CHAR 75
+#define RARROW_CHAR 77
+#define UARROW_CHAR 72
+#define DARROW_CHAR 80
+#define ESC_CHAR 1
 
 /**
  * keyboard_scancode_1_to_ascii_map[256], Convert scancode values that correspond to ASCII printables
@@ -26,16 +28,16 @@ extern const char keyboard_scancode_1_to_ascii_map[256];
 /**
  * KeyboardDriverState - Contain all driver states
  * 
- * @param read_extended_mode Optional, can be used for signaling next read is extended scancode (ex. arrow keys)
- * @param keyboard_input_on  Indicate whether keyboard ISR is activated or not
- * @param buffer_index       Used for keyboard_buffer index
- * @param keyboard_buffer    Storing keyboard input values in ASCII
+ * @param buffer             Saves the last key pressed on the keyboard
+ * @param caps               Indicate whether capslock is active
+ * @param shigt              Indicate whether shift is active
+ * @param on                 Indicate whether keyboard ISR is activated or not
  */
 typedef struct KeyboardDriverState {
-    bool    read_extended_mode;
-    bool    keyboard_input_on;
-    uint8_t buffer_index;
-    char    keyboard_buffer[KEYBOARD_BUFFER_SIZE];
+    char    buffer;
+    uint8_t caps;
+    uint8_t shift;
+    bool    on;
 } __attribute((packed)) KeyboardDriverState;
 
 
@@ -50,11 +52,11 @@ void keyboard_state_activate(void);
 // Deactivate keyboard ISR / stop listening keyboard interrupt
 void keyboard_state_deactivate(void);
 
-// Get keyboard buffer values - @param buf Pointer to char buffer, recommended size at least KEYBOARD_BUFFER_SIZE
-void get_keyboard_buffer(char *buf);
+// Get keyboard buffer values - @param buf Pointer to char buffer
+void keyboard_flush_buffer(char *buf);
 
 // Check whether keyboard ISR is active or not - @return Equal with keyboard_input_on value
-bool is_keyboard_blocking(void);
+bool keyboard_is_blocking(void);
 
 
 /* -- Keyboard Interrupt Service Routine -- */
@@ -67,9 +69,15 @@ bool is_keyboard_blocking(void);
  * Stop processing when enter key (line feed) is pressed.
  * 
  * Note that, with keyboard interrupt & ISR, keyboard reading is non-blocking.
- * This can be made into blocking input with `while (is_keyboard_blocking());` 
+ * This can be made into blocking input with `while (keyboard_is_blocking());` 
  * after calling `keyboard_state_activate();`
  */
 void keyboard_isr();
+
+
+// TODO: Document
+void keyboard_flush_buffer(char *buf);
+void keyboard_process_input(uint8_t input);
+
 
 #endif
