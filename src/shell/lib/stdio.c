@@ -173,15 +173,3 @@ uint8_t deletef(FAT32DriverRequest request){
     syscall(SYSCALL_DELETE_FILE, (uint32_t) &request, (uint32_t) &status, 0);
     return status;
 }
-
-// DirectoryTable asdirectory(uint32_t* reader){
-//     DirectoryTable table;
-//     syscall(SYSCALL_AS_DIRECTORY, (uint32_t) reader, (uint32_t) &table, 0);
-//     return table;
-// }
-
-// uint8_t isdirectory(uint32_t cluster){
-//     uint8_t isTrue;
-//     syscall(SYSCALL_IS_DIRECTORY, (uint32_t) cluster, (uint32_t) &isTrue, 0);
-//     return isTrue;
-// }

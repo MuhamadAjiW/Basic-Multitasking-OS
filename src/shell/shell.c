@@ -302,7 +302,7 @@ void shell_evaluate(){
             dir(sh.dir.cluster_number);
         }
         else if(strcmp(sh_parser.content[0], "cd") == 0){
-            // current_dir = cd(shellparser.content[1], current_dir);
+            // current_dir = cd(sh_parser.content[1], current_dir);
             if (sh_parser.word_count == 1){
                 sh.dir.cluster_number = ROOT_CLUSTER_NUMBER;
                 memcpy(sh.dir.path, "/root", 6);
@@ -315,6 +315,53 @@ void shell_evaluate(){
                 print("\n");
             }
         }
+        else if(strcmp(sh_parser.content[0], "mkdir") == 0){
+            if(sh_parser.word_count != 2){
+                print("\nmkdir: Invalid command\n");
+            }
+            else{
+                mkdir(sh_parser.content[1], sh.dir.cluster_number);
+            }
+        }
+        else if (strcmp(sh_parser.content[0], "whereis") == 0) {
+            whereis(sh.dir.cluster_number, sh_parser.content[1], sh.dir.path);
+        }
+        else if(strcmp(sh_parser.content[0], "ls") == 0){
+            if (sh_parser.word_count == 1){
+                ls(sh.dir.cluster_number);
+            }
+            else if (is_directorypath_valid(sh_parser.content[1], sh.dir.cluster_number)){
+                ls(path_to_cluster(sh_parser.content[1], sh.dir.cluster_number));
+            } else {
+                print("\nls: ");
+                print(sh_parser.content[1]);
+                print(": No such file or directory\n");
+            }  
+        }
+        else if (strcmp(sh_parser.content[0], "rm") == 0) {
+            rm(sh.dir.cluster_number);
+        }
+        else if (strcmp(sh_parser.content[0], "cp") == 0) {
+            cp(sh.dir.cluster_number);
+        }
+        else if (strcmp(sh_parser.content[0], "mv") == 0) {
+            mv(sh.dir.cluster_number);
+        }
+        else if(strcmp(sh_parser.content[0], "cat") == 0){
+            if (sh_parser.word_count == 1){
+                // masuk state mini program
+            } else if (is_filepath_valid(sh_parser.content[1], sh.dir.cluster_number)){
+                cat(sh.dir.cluster_number);
+            } else if (is_directorypath_valid(sh_parser.content[1], sh.dir.cluster_number)){
+                print("\ncat: ");
+                print(sh_parser.content[1]);
+                print(": Is a directory\n");
+            } else {
+                print("\ncat: ");
+                print(sh_parser.content[1]);
+                print(": No such file\n");
+            }
+        }
 
         // TODO: exec, tasklist, kill
         else if(strcmp(sh_parser.content[0], "exec") == 0){
@@ -325,6 +372,11 @@ void shell_evaluate(){
         }
         else if(strcmp(sh_parser.content[0], "kill") == 0){
 
+        }
+        else{
+            print("\nNo Command found: ");
+            print(sh.reader.buffer_addr);
+            print("\n");
         }
     }
 
