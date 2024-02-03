@@ -9,6 +9,7 @@
 #include "../lib-header/syscall.h"
 #include "../lib-header/commands-util.h"
 #include "../lib-header/iostream.h"
+#include "../lib-header/task.h"
 
 #include "../lib-header/parser.h"
 #include "../lib-header/shell.h"
@@ -884,4 +885,48 @@ void exec(char* path, uint32_t currentCluster){
     else{
         print("\nexec: Invalid file or filepath");
     }
+}
+
+void ps(){
+    task_list list = {0};
+    syscall(SYSCALL_TASK_INFO, (uint32_t) &list, 0, 0);
+    
+    string_t string = str_new("\n    No   Name        PID    PPID");
+    char char_buffer[9];
+
+    for (uint32_t i = 0; i < list.num_task; i++){
+        str_add(&string, "\n    ");
+        int_to_string(i + 1, char_buffer);
+        str_add(&string, char_buffer);
+        str_addc(&string, '.');
+        for(int i = strlen(char_buffer); i < 4; i++){
+            str_addc(&string, ' ');
+        }
+
+        for(int j = 0; j < 8; j++){
+            if(list.info[i].name[j] == 0) str_addc(&string, ' ');
+            else str_addc(&string, list.info[i].name[j]);
+        }
+
+        str_add(&string, "    ");
+        int_to_string(list.info[i].pid, char_buffer);
+        str_add(&string, char_buffer);
+
+        for(int i = strlen(char_buffer); i < 7; i++){
+            str_addc(&string, ' ');
+        }
+
+        int_to_string(list.info[i].ppid, char_buffer);
+        str_add(&string, char_buffer);
+    }
+    sout_t sout = sout_newstr(string);
+    
+    sout_printall_ws(&sout);
+
+    sout_clear(&sout);
+    str_delete(&string);
+}
+
+void kill(__attribute__((unused)) uint32_t pid){
+
 }

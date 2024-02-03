@@ -61,7 +61,7 @@ int main(void) {
     int8_t movy = y_direction? 1 : -1;
 
     uint32_t running_time = 0;
-    uint32_t time_limit = (seed % 256) + 50;
+    uint32_t time_limit = (seed % 512) + 200;
 
     while (++running_time < time_limit){
         winfo.xloc += movx;

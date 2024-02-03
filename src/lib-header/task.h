@@ -50,6 +50,23 @@ typedef struct PCB
     uint32_t next_pid;
 
 } PCB;
+
+// To pass to shell
+typedef struct task_info
+{
+    uint32_t pid;                   // id
+    uint32_t ppid;                  // parent id    
+    uint32_t resource_amount;       // Amount of resources used
+    char name[MAX_TASKS_PNAME];
+} task_info;
+
+typedef struct task_list
+{
+    task_info info[MAX_TASKS_PNAME];
+    uint32_t num_task;
+
+} task_list;
+
 // Not packed because of alignment
 
 void switch_context(Context** old_task, Context* new_task);
@@ -57,7 +74,8 @@ void restore_context();
 void isr_exit();
 
 void task_initialize();
-
+void task_get_info(task_info* tinfo, PCB task);
+void task_generate_list(task_list* list);
 uint32_t task_generate_pid();
 uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags);
 void task_terminate_current();

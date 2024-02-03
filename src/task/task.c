@@ -52,6 +52,43 @@ void task_initialize(){
     last_task_pid = 0;
 }
 
+void task_get_info(task_info* tinfo, PCB task){
+    tinfo->name[0] = task.name[0];
+    tinfo->name[1] = task.name[1];
+    tinfo->name[2] = task.name[2];
+    tinfo->name[3] = task.name[3];
+    tinfo->name[4] = task.name[4];
+    tinfo->name[5] = task.name[5];
+    tinfo->name[6] = task.name[6];
+    tinfo->name[7] = task.name[7];
+    tinfo->resource_amount = task.resource_amount;
+    tinfo->pid = task.pid;
+    tinfo->ppid = task.parent->pid;
+}
+
+void task_generate_list(task_list* list){
+    uint32_t idx = 0;
+    uint32_t next_pid = 0;
+
+    // kernel is always task 0
+    task_get_info(&(list->info[idx]), tasks[0]);
+    
+    idx++;
+
+    __asm__ volatile ("cli");   // Stop interrupts for these parts below
+    list->num_task = num_task;
+
+    next_pid = tasks[0].next_pid;
+    while (next_pid != 0){
+        task_get_info(&(list->info[idx]), tasks[next_pid]);
+        idx++;
+
+        next_pid = tasks[next_pid].next_pid;
+    }
+    
+    __asm__ volatile ("sti");   // reenable interrupts
+}
+
 uint32_t task_generate_pid(){
     uint32_t i = 1;
     while (tasks_active[i]){

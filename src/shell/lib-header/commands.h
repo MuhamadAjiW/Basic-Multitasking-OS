@@ -49,5 +49,7 @@ void mkdir(char *dirname, uint32_t currentCluster);
 
 void whereis(uint16_t current_cluster, char* filename, char* path);
 void exec(char* path, uint32_t currentCluster);
+void ps();
+void kill(__attribute__((unused)) uint32_t pid);
 
 #endif

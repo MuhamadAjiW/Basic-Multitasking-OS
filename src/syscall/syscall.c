@@ -73,7 +73,7 @@ void sys_task_exit(__attribute__((unused)) TrapFrame cpu){
     task_terminate_current();
 }
 void sys_task_info(__attribute__((unused)) TrapFrame cpu){
-
+    task_generate_list((task_list*) cpu.registers.ebx);
 }
 
 // Filesystem syscall

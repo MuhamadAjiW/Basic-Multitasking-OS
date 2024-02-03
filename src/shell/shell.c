@@ -28,7 +28,7 @@ shell_app sh = {
         .xloc = 0,
         .yloc = 0,
         .xlen = SCREEN_WIDTH,
-        .ylen = SCREEN_HEIGHT / 2
+        .ylen = SCREEN_HEIGHT - 1
     },
 
     .reader = {
@@ -297,8 +297,8 @@ void shell_evaluate(){
 
     if (sh_parser.word_count > 0){
         if(strcmp(sh_parser.content[0], "clear") == 0){
-            if(sh_parser.word_count > 1) print("\nclear: Invalid argument");
-            else shell_clear();
+            if(sh_parser.word_count == 1) shell_clear();
+            else print("\nclear: Invalid argument");
         }
         else if(strcmp(sh_parser.content[0], "dir") == 0){
             dir(sh.dir.cluster_number);
@@ -365,14 +365,18 @@ void shell_evaluate(){
             }
         }
 
-        // TODO: exec, tasklist, kill
+        // TODO: exec, ps, kill
         else if(strcmp(sh_parser.content[0], "exec") == 0){
             if(sh_parser.word_count == 2){
                 exec(sh_parser.content[1], sh.dir.cluster_number);
             }
+            else{
+                // TODO: make multi exec
+            }
         }
-        else if(strcmp(sh_parser.content[0], "tasklist") == 0){
-
+        else if(strcmp(sh_parser.content[0], "ps") == 0){
+            if(sh_parser.word_count == 1) ps();
+            else print("\nps: Invalid argument");
         }
         else if(strcmp(sh_parser.content[0], "kill") == 0){
 
