@@ -2,6 +2,7 @@
 #include "../lib-header/memory_manager.h"
 #include "../lib-header/paging.h"
 
+// TODO: Review
 // global amount of available resources, pages are located by its index
 // Used to track physical memory rather than virtual
 Resource resource_table[RESOURCE_AMOUNT];

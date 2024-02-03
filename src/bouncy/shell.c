@@ -20,10 +20,6 @@ uint32_t randomizer(uint32_t seed) {
 }
 
 int main(void) {
-    // TODO: Fix
-    // I may have exited the init process improperly 
-    // therefore, a process has to start with a syscall
-    // else there wouldn't be any interrupt happening
     uint32_t seed;
     syscall(SYSCALL_GET_TICK, (uint32_t) &seed, 0, 0);
 

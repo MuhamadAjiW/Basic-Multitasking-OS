@@ -11,8 +11,9 @@
 
 extern TSSEntry tss;
 
-// Note: Would be interesting to make tasks with dynamic
+// TODO: Review
 
+// Note: Would be interesting to make tasks with dynamic
 // Tasks is managed like a linked list for performance reasons with indices as pointers because static memory (check PCB structure)
 // Algorithm for tasking is round robin
 // Most of this gets slow because of static memory, very recommended to create a dedicated kernel heap for tasking

@@ -444,10 +444,6 @@ void shell_evaluate(){
 }
 
 int main(void) {
-    // TODO: Fix
-    // I may have exited the init process improperly 
-    // therefore, a process has to start with a syscall
-    // else there wouldn't be any interrupt happening
     syscall(SYSCALL_NULL, 0, 0, 0);
 
     app_initialize();
