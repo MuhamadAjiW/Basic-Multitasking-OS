@@ -57,12 +57,14 @@ typedef struct task_info
     uint32_t pid;                   // id
     uint32_t ppid;                  // parent id    
     uint32_t resource_amount;       // Amount of resources used
+    enum ProcState state;           // state
     char name[MAX_TASKS_PNAME];
+    
 } task_info;
 
 typedef struct task_list
 {
-    task_info info[MAX_TASKS_PNAME];
+    task_info info[MAX_TASKS];
     uint32_t num_task;
 
 } task_list;

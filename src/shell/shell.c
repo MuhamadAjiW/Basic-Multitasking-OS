@@ -367,11 +367,50 @@ void shell_evaluate(){
 
         // TODO: exec, ps, kill
         else if(strcmp(sh_parser.content[0], "exec") == 0){
-            if(sh_parser.word_count == 2){
-                exec(sh_parser.content[1], sh.dir.cluster_number);
-            }
-            else{
-                // TODO: make multi exec
+            int execution_num = 1;
+            switch (sh_parser.word_count){
+            case 3:
+                if(!int_parse_string_valid(sh_parser.content[2])){
+                    print("\nexec: ");
+                    print(sh_parser.content[3]);
+                    print(": Invalid execution amount\n");
+                    break;
+                }
+                
+                execution_num = int_parse_string(sh_parser.content[2]);
+                if(execution_num < 1){
+                    print("\nexec: ");
+                    print(sh_parser.content[3]);
+                    print(": Invalid execution amount\n");
+                    break;
+                }
+                /* fall through */
+
+            case 2:
+                if(is_filepath_valid(sh_parser.content[1], sh.dir.cluster_number)){
+                    FAT32DriverRequest req = path_to_file_request(sh_parser.content[1], sh.dir.cluster_number);
+                    if( req.ext[0] == 'p' &&
+                        req.ext[1] == 'r' &&
+                        req.ext[2] == 'g'
+                    ){
+                        for (int i = 0; i < execution_num; i++){
+                            exec(&req);
+                        }
+                    }
+                    else{
+                        print("\nexec: Invalid file type");
+                    }
+                }
+                else{
+                    print("\nexec: ");
+                    print(sh_parser.content[1]);
+                    print(": No such file\n");
+                }
+                break;
+            
+            default:
+                print("\nexec: Invalid argument");
+                break;
             }
         }
         else if(strcmp(sh_parser.content[0], "ps") == 0){

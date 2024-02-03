@@ -34,6 +34,48 @@ void int_to_string(int x, char str[]){
     return;
 }
 
+uint8_t int_parse_string_valid(char str[]){
+    int i = 0;
+
+    if (str[i] == '-') {
+        i++;
+    } else if (str[i] == '+') {
+        i++;
+    }
+
+    while (str[i] != '\0') {
+        if (!(str[i] >= '0' && str[i] <= '9')) {
+            return 0;
+        }
+        i++;
+    }
+
+    return 1;
+}
+
+// Always check with valid beforehand
+int int_parse_string(char str[]){
+    int result = 0;
+    int sign = 1;
+    int i = 0;
+
+    if (str[i] == '-') {
+        sign = -1;
+        i++;
+    } else if (str[i] == '+') {
+        i++;
+    }
+
+    while (str[i] != '\0') {
+        result = result * 10 + (str[i] - '0');
+        i++;
+    }
+
+    result *= sign;
+
+    return result;
+}
+
 int strlen(char str[]){
     int counter = 0;
     while(str[counter] != 0){

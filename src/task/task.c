@@ -64,6 +64,7 @@ void task_get_info(task_info* tinfo, PCB task){
     tinfo->resource_amount = task.resource_amount;
     tinfo->pid = task.pid;
     tinfo->ppid = task.parent->pid;
+    tinfo->state = task.state;
 }
 
 void task_generate_list(task_list* list){

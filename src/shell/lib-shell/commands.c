@@ -869,29 +869,15 @@ void cat(uint32_t currentCluster) {
     closef(result);
 } 
 
-void exec(char* path, uint32_t currentCluster){
-    if(is_filepath_valid(path, currentCluster)){
-        FAT32DriverRequest req = path_to_file_request(path, currentCluster);
-        if( req.ext[0] == 'p' &&
-            req.ext[1] == 'r' &&
-            req.ext[2] == 'g'
-        ){
-            syscall(SYSCALL_TASK_START, (uint32_t) &req, 0, 0);
-        }
-        else{
-            print("\nexec: Invalid file type");
-        }
-    }
-    else{
-        print("\nexec: Invalid file or filepath");
-    }
+void exec(FAT32DriverRequest* req){
+    syscall(SYSCALL_TASK_START, (uint32_t) req, 0, 0);
 }
 
 void ps(){
     task_list list = {0};
     syscall(SYSCALL_TASK_INFO, (uint32_t) &list, 0, 0);
     
-    string_t string = str_new("\n    No   Name        PID    PPID");
+    string_t string = str_new("\n    No   Name      PID  PPID  RES   STATE");
     char char_buffer[9];
 
     for (uint32_t i = 0; i < list.num_task; i++){
@@ -907,17 +893,40 @@ void ps(){
             if(list.info[i].name[j] == 0) str_addc(&string, ' ');
             else str_addc(&string, list.info[i].name[j]);
         }
-
-        str_add(&string, "    ");
+        str_add(&string, "  ");
+        
         int_to_string(list.info[i].pid, char_buffer);
         str_add(&string, char_buffer);
-
-        for(int i = strlen(char_buffer); i < 7; i++){
+        for(int i = strlen(char_buffer); i < 5; i++){
             str_addc(&string, ' ');
         }
 
         int_to_string(list.info[i].ppid, char_buffer);
         str_add(&string, char_buffer);
+        for(int i = strlen(char_buffer); i < 6; i++){
+            str_addc(&string, ' ');
+        }
+
+        int_to_string(list.info[i].resource_amount, char_buffer);
+        str_add(&string, char_buffer);
+        for(int i = strlen(char_buffer); i < 6; i++){
+            str_addc(&string, ' ');
+        }
+
+        switch (list.info[i].state){
+        case NULL_TASK: str_add(&string, "NULL"); break;
+        case NEW: str_add(&string, "NEW"); break;
+        case WAITING: str_add(&string, "WAITING"); break;
+        case TERMINATED: str_add(&string, "TERMINATED"); break;
+
+        // TODO: Review
+        // Ready and running is treated as the same for the user to create illusion of parallelization
+        case READY: /* fall through */
+        case RUNNING: str_add(&string, "RUNNING"); break;
+        
+        default:
+            break;
+        }
     }
     sout_t sout = sout_newstr(string);
     

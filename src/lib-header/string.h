@@ -49,6 +49,9 @@ typedef struct string_t{
     uint32_t len;
 } string_t;
 
+uint8_t int_parse_string_valid(char str[]);
+int int_parse_string(char str[]);
+
 string_t str_new(char* initial);
 string_t str_newcopy(string_t source);
 string_t str_splice_rear(string_t mainstring, uint32_t loc);
