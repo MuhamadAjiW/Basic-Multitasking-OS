@@ -79,7 +79,6 @@ int main(void) {
         delay(speed);
     }
 
-    close_window(winfo.id);
     exit();
 
     return 0;

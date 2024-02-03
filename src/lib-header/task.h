@@ -1,6 +1,3 @@
-//work in progress (obviously)
-
-// Note: Such a bloody nightmare creating task and context switching
 // Had to take a source: https://course.ccs.neu.edu/cs3650/unix-xv6/HTML/
 
 #ifndef _TASK_H
@@ -59,7 +56,7 @@ typedef struct task_info
     uint32_t resource_amount;       // Amount of resources used
     enum ProcState state;           // state
     char name[MAX_TASKS_PNAME];
-    
+
 } task_info;
 
 typedef struct task_list

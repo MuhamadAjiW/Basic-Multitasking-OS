@@ -4,9 +4,9 @@
 #include "../lib-header/tss.h"
 #include "../lib-header/stdmem.h"
 #include "../lib-header/memory_manager.h"
+#include "../lib-header/window_manager.h"
 #include "../lib-header/resource.h"
 #include "../lib-header/paging.h"
-
 #include "../lib-header/fat32.h"
 
 extern TSSEntry tss;
@@ -232,6 +232,7 @@ void task_clean(uint32_t pid){
     __asm__ volatile ("cli");   // Stop interrupts
     
     resource_deallocate(pid, tasks[pid].resource_amount);
+    winmgr_clean_window(pid);
 
     PCB task = tasks[pid];
 

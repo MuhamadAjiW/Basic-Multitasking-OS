@@ -936,6 +936,6 @@ void ps(){
     str_delete(&string);
 }
 
-void kill(__attribute__((unused)) uint32_t pid){
-
+void kill(uint32_t pid){
+    syscall(SYSCALL_TASK_STOP, pid, 0, 0);
 }

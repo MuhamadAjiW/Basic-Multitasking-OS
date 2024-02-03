@@ -365,7 +365,7 @@ void shell_evaluate(){
             }
         }
 
-        // TODO: exec, ps, kill
+        // TODO: Review
         else if(strcmp(sh_parser.content[0], "exec") == 0){
             int execution_num = 1;
             switch (sh_parser.word_count){
@@ -418,7 +418,20 @@ void shell_evaluate(){
             else print("\nps: Invalid argument");
         }
         else if(strcmp(sh_parser.content[0], "kill") == 0){
-
+            if(sh_parser.word_count == 2){
+                if(int_parse_string_valid(sh_parser.content[1])){
+                    uint32_t pid = int_parse_string(sh_parser.content[1]);
+                    if(pid == 0){
+                        print("\nkill: Terminating the kernel is not allowed");
+                    } else{
+                        kill(pid);
+                    }
+                } else{
+                    print("\nkill: Invalid argument");
+                }
+            } else{
+                print("\nkill: Invalid argument");
+            }
         }
         else{
             print("\nNo Command found: ");

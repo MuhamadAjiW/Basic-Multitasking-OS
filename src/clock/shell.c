@@ -51,7 +51,6 @@ int main(void) {
         
     }
     
-    close_window(winfo.id);
     exit();
 
     return 0;

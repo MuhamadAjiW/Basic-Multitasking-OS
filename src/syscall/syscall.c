@@ -67,7 +67,7 @@ void sys_task_start(__attribute__((unused)) TrapFrame cpu){
     task_create(*(FAT32DriverRequest*) cpu.registers.ebx, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
 }
 void sys_task_stop(__attribute__((unused)) TrapFrame cpu){
-
+    task_terminate(cpu.registers.ebx);
 }
 void sys_task_exit(__attribute__((unused)) TrapFrame cpu){
     task_terminate_current();

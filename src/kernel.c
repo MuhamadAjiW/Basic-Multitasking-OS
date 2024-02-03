@@ -17,9 +17,6 @@
 #include "lib-header/task.h"
 #include "lib-header/window_manager.h"
 
-// TODO: Delete, this is for testing
-extern PCB tasks[];
-
 void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);
     pic_remap();
@@ -27,23 +24,20 @@ void kernel_setup(void) {
     framebuffer_clear();
     framebuffer_set_cursor(0, 0);
 
-    activate_interrupts();
+    memory_initialize();
     
     gdt_install_tss();
     set_tss_register_kernel();
     set_tss_kernel_current_stack();
     task_initialize();
 
+    activate_interrupts();
+    enable_system_calls();
     activate_irq(IRQ_KEYBOARD);
     activate_irq(IRQ_PRIMARY_ATA);
     activate_irq(IRQ_SECOND_ATA);
 
     register_irq_handler(IRQ_KEYBOARD, keyboard_isr);
-
-    enable_system_calls();
-
-    memory_initialize();
-
     keyboard_state_activate();
 
     winmgr_initalilze();
@@ -51,7 +45,6 @@ void kernel_setup(void) {
     set_pit_freq(DEFAULT_FREQUENCY);
     register_irq_handler(IRQ_TIMER, pit_isr);
     activate_irq(IRQ_TIMER);
-
 
     FAT32DriverRequest shell = {
         .buf                   = (void*) 0,

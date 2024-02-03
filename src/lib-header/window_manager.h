@@ -15,6 +15,7 @@ typedef struct window_info{
     uint16_t  yloc;
     uint16_t  ylen;
     uint8_t   id;
+    uint8_t   pid;
     uint8_t   active;       // Activeness not implemented yet
 } window_info;
 
@@ -49,6 +50,6 @@ void winmgr_stack_add(uint16_t id);
 void winmgr_register_winfo(window_info* winfo);
 void winmgr_update_window(window_info* winfo);
 void winmgr_close_window(uint16_t id);
-
+void winmgr_clean_window(uint16_t pid);
 
 #endif

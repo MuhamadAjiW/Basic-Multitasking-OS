@@ -2,11 +2,13 @@
 #include "../lib-header/stdtype.h"
 #include "../lib-header/framebuffer.h"
 #include "../lib-header/window_manager.h"
+#include "../lib-header/task.h"
 
 // TODO: Document
 // Note: Would be interesting to make this a separate program if we have inter-process communication 
 window_manager winmgr = {0};
 extern uint16_t screen_buffer[];
+extern PCB* current_task;
 
 void winmgr_initalilze(){
     // The stack have to be initialized with -1 or 255 since 0 is used as an id
@@ -112,6 +114,8 @@ void winmgr_register_winfo(window_info* winfo){
     winmgr.windows_ref[id] = winfo;
     winmgr.windows[id].mainBuffer = winfo->mainBuffer;
     winmgr.windows[id].rearBuffer = winfo->rearBuffer;
+    winmgr.windows[id].pid = current_task->pid;
+    winmgr.windows[id].id = id;
     winmgr_update_winfo(*winfo, id);
     winmgr_stack_add(id);
 
@@ -162,4 +166,13 @@ void winmgr_close_window(uint16_t id){
 
     framebuffer_display();
     // TODO: Implement active window mechanism
+}
+
+void winmgr_clean_window(uint16_t pid){
+    for (uint32_t i = 0; i < winmgr.stack.top; i++){
+        uint32_t id = winmgr.stack.ids[i];
+        if(winmgr.windows[id].pid == pid) {
+            winmgr_close_window(id);
+        }
+    }
 }
