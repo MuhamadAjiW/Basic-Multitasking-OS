@@ -215,7 +215,9 @@ void task_terminate_current(){
 }
 
 void task_terminate(uint32_t pid){
-    tasks[pid].state = TERMINATED;  // Only marking it as terminated, cleaning up is done later on the background
+    if(tasks[pid].state != NULL_TASK){
+        tasks[pid].state = TERMINATED;  // Only marking it as terminated, cleaning up is done later on the background
+    }
 }
 
 // Naive garbage collector implementation
@@ -239,7 +241,7 @@ void task_clean(uint32_t pid){
 
     tasks[task.next_pid].previous_pid = tasks[pid].previous_pid;
     tasks[task.previous_pid].next_pid = tasks[pid].next_pid;
-    tasks[pid].state = 0;
+    tasks[pid].state = NULL_TASK;
     tasks_active[pid] = 0;
 
     if(pid == last_task_pid){
