@@ -48,6 +48,6 @@ void copy1File(FAT32DriverRequest src, FAT32DriverRequest dest);
 void mkdir(char *dirname, uint32_t currentCluster);
 
 void whereis(uint16_t current_cluster, char* filename, char* path);
-void execute_file(char* path, uint32_t currentCluster);
+void exec(char* path, uint32_t currentCluster);
 
 #endif

@@ -28,7 +28,15 @@ void task_initialize(){
     current_task = &tasks[0];
     current_task->pid = 0;
     current_task->k_stack = KERNEL_VMEMORY_OFFSET + PAGE_FRAME_SIZE;
-    *(current_task->name) = '0';
+    
+    current_task->name[0] = 'k';
+    current_task->name[1] = 'e';
+    current_task->name[2] = 'r';
+    current_task->name[3] = 'n';
+    current_task->name[4] = 'e';
+    current_task->name[5] = 'l';
+    current_task->name[6] = 0;
+
     current_task->cr3 = (PageDirectory*)((uint32_t) &tasks_page_dir[0] - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
     current_task->state = RUNNING;
     current_task->parent = current_task;
@@ -90,6 +98,11 @@ uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t efl
     tasks[pid].state = NEW;
     tasks[pid].cr3 = (PageDirectory*) ((uint32_t) page_dir - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
     tasks[pid].resource_amount = resource_amount;
+
+    for (uint8_t i = 0; i < 8; i++){
+        tasks[pid].name[i] = request.name[i];
+    }
+    
     // Assign task as the last entry on the linked list
     tasks[pid].previous_pid = last_task_pid;
     tasks[pid].next_pid = 0;
@@ -105,7 +118,6 @@ uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t efl
     paging_flush_tlb_range((void*) 0, (void*) ((resource_amount - 1) * PAGE_FRAME_SIZE));
     // Flush kernel stack pages
     paging_flush_tlb_single((void*)k_stack);
-
 
     // Load file into memory at 0
     request.buf = (void*) 0;
@@ -189,6 +201,9 @@ void task_clean(uint32_t pid){
     tasks[task.previous_pid].next_pid = tasks[pid].next_pid;
     tasks[pid].state = 0;
     tasks_active[pid] = 0;
+    if(pid == last_task_pid){
+        last_task_pid = task.previous_pid;
+    }
 
     num_task--;
 

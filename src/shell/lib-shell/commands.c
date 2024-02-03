@@ -868,7 +868,20 @@ void cat(uint32_t currentCluster) {
     closef(result);
 } 
 
-// void execute_file(char* path, uint32_t currentCluster){
-//     FAT32DriverRequest req = path_to_dir_request(path, currentCluster);
-//     syscall(SYSCALL_TASK_START, (uint32_t) &req, 0, 0);
-// }
+void exec(char* path, uint32_t currentCluster){
+    if(is_filepath_valid(path, currentCluster)){
+        FAT32DriverRequest req = path_to_file_request(path, currentCluster);
+        if( req.ext[0] == 'p' &&
+            req.ext[1] == 'r' &&
+            req.ext[2] == 'g'
+        ){
+            syscall(SYSCALL_TASK_START, (uint32_t) &req, 0, 0);
+        }
+        else{
+            print("\nexec: Invalid file type");
+        }
+    }
+    else{
+        print("\nexec: Invalid file or filepath");
+    }
+}

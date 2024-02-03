@@ -63,8 +63,17 @@ void sys_winmgr_close(TrapFrame cpu){
 }
 
 // Tasking syscall
+void sys_task_start(__attribute__((unused)) TrapFrame cpu){
+    task_create(*(FAT32DriverRequest*) cpu.registers.ebx, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+}
+void sys_task_stop(__attribute__((unused)) TrapFrame cpu){
+
+}
 void sys_task_exit(__attribute__((unused)) TrapFrame cpu){
     task_terminate_current();
+}
+void sys_task_info(__attribute__((unused)) TrapFrame cpu){
+
 }
 
 // Filesystem syscall
@@ -110,7 +119,10 @@ void enable_system_calls(){
     register_syscall_response(SYSCALL_WINMGR_UPDATE, sys_winmgr_update);
     register_syscall_response(SYSCALL_WINMGR_CLOSE, sys_winmgr_close);
 
+    register_syscall_response(SYSCALL_TASK_START, sys_task_start);
+    register_syscall_response(SYSCALL_TASK_STOP, sys_task_stop);
     register_syscall_response(SYSCALL_TASK_EXIT, sys_task_exit);
+    register_syscall_response(SYSCALL_TASK_INFO, sys_task_info);
 
     register_syscall_response(SYSCALL_READ_FILE, sys_read);
     register_syscall_response(SYSCALL_READ_DIR, sys_read_directory);

@@ -17,7 +17,7 @@
 
 
 #define MAX_TASKS 64
-#define MAX_TASKS_PNAME 16
+#define MAX_TASKS_PNAME 8
 
 #define STACKTYPE_KERNEL 0
 #define STACKTYPE_USER 3

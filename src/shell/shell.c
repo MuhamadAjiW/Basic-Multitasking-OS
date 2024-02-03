@@ -28,7 +28,7 @@ shell_app sh = {
         .xloc = 0,
         .yloc = 0,
         .xlen = SCREEN_WIDTH,
-        .ylen = SCREEN_HEIGHT - 1
+        .ylen = SCREEN_HEIGHT / 2
     },
 
     .reader = {
@@ -291,6 +291,8 @@ void shell_newline(){
 }
 
 void shell_evaluate(){
+    sh.reader.buffer_addr[sh.reader.max_idx] = 0;
+
     parser_parse(&sh_parser, sh.reader.buffer_addr, ' ');
 
     if (sh_parser.word_count > 0){
@@ -365,7 +367,9 @@ void shell_evaluate(){
 
         // TODO: exec, tasklist, kill
         else if(strcmp(sh_parser.content[0], "exec") == 0){
-
+            if(sh_parser.word_count == 2){
+                exec(sh_parser.content[1], sh.dir.cluster_number);
+            }
         }
         else if(strcmp(sh_parser.content[0], "tasklist") == 0){
 

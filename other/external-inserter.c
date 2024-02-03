@@ -75,9 +75,9 @@ int main(int argc, char *argv[]) {
         .ext         = "\0\0\0",
         .buffer_size = filesize,
     };
+    sscanf(argv[1], "%8s", request.name);
     if(argv[4] != NULL) sscanf(argv[4], "%3s",  request.ext);
     sscanf(argv[2], "%u",  &request.parent_cluster_number);
-    sscanf(argv[1], "%8s", request.name);
     int retcode = write(request);
     if (retcode == 0)
         puts("Write success");

@@ -65,7 +65,7 @@ void kernel_setup(void) {
     FAT32DriverRequest clock = {
         .buf                   = (void*) 0,
         .name                  = "sysclock",
-        .ext                   = "\0\0\0",
+        .ext                   = "prg",
         .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
         .buffer_size           = 0x100000,
     };

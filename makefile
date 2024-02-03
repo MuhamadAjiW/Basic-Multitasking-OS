@@ -181,8 +181,8 @@ insert: shell clock bouncy
 # 	@echo Turning possibly dos files into unix files... && cd other && dos2unix stdfont && dos2unix stdbg && dos2unix stdbg2 && dos2unix stdanim && dos2unix text
 
 	@echo Inserting shell into system directory... && cd bin && ./inserter sh 66 drive.img
-	@echo Inserting clock into system directory... && cd bin && ./inserter sysclock 66 drive.img
-	@echo Inserting bouncy into system directory... && cd bin && ./inserter bounce 66 drive.img
+	@echo Inserting clock into system directory... && cd bin && ./inserter sysclock 66 drive.img prg
+	@echo Inserting bouncy into system directory... && cd bin && ./inserter bounce 66 drive.img prg
 # 	@echo Inserting font into system directory... && cp other/stdfont bin/stdfont && cd bin && ./inserter stdfont 66 drive.img fnt
 # 	@echo Inserting background image into system directory... && cp other/stdbg bin/stdbg && cd bin && ./inserter stdbg 66 drive.img imp
 # 	@echo Inserting second background image into system directory... && cp other/stdbg2 bin/stdbg2 && cd bin && ./inserter stdbg2 66 drive.img imp
