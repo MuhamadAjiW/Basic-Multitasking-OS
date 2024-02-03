@@ -220,7 +220,7 @@ void task_terminate(uint32_t pid){
 // Naive garbage collector implementation
 // Basically looping endlessly looking for terminated tasks and cleaning it up
 void task_clean_scan(){
-    for (uint32_t i = 0; i < num_task; i++){
+    for (uint32_t i = 0; i < MAX_TASKS; i++){
         if(tasks[i].state == TERMINATED){
             task_clean(i);
         }
@@ -239,6 +239,7 @@ void task_clean(uint32_t pid){
     tasks[task.previous_pid].next_pid = tasks[pid].next_pid;
     tasks[pid].state = 0;
     tasks_active[pid] = 0;
+
     if(pid == last_task_pid){
         last_task_pid = task.previous_pid;
     }
