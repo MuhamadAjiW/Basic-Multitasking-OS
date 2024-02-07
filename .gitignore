@@ -6,6 +6,7 @@ bin/
 other/*.txt
 other/*.png
 other/*.jpg
+other/file_converter/output/*.bin
 obsolete/
 
 !.gitignore

@@ -120,11 +120,11 @@ public class GifConverter {
                 }
                 // fos.write('\n');
             }
+            fos.write('\n');
 
             // nulis palette
             fos.write(colorcount);
-            // fos.write('\n');
-            // fos.write('\n');
+            fos.write('\n');
 
             for(int y = colorcount - 1; y >= 0; y--){
                 // if ((255 - y) % 4 == 0){
