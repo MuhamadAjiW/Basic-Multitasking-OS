@@ -8,8 +8,8 @@
 
 //TODO: Document
 typedef struct window_info{
-    uint16_t* mainBuffer;
-    uint16_t* rearBuffer;
+    uint8_t* main_buffer;
+    uint8_t* rear_buffer;
     uint16_t  xloc;
     uint16_t  xlen;
     uint16_t  yloc;
@@ -36,7 +36,7 @@ typedef struct window_manager{
 
 //Blackbox local functions
 void winmgr_initalilze();
-void winmgr_set_window(window_info* winfo, uint8_t row, uint8_t col, uint16_t info, bool mainBuffer);
+void winmgr_set_window(window_info* winfo, uint8_t row, uint8_t col, uint16_t info, bool main_buffer);
 uint8_t winmgr_generate_window_id();
 void winmgr_show_window(window_info* winfo);
 void winmgr_hide_window(window_info winfo);

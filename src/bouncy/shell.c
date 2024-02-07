@@ -7,7 +7,7 @@
 const uint8_t window_size = 2;
 
 window_info winfo = {
-    .mainBuffer = (uint16_t*) 1,
+    .main_buffer = (uint16_t*) 1,
     .xloc = 1,
     .yloc = 1,
     .xlen = window_size,
@@ -46,10 +46,10 @@ int main(void) {
     
     window_init(&winfo);
 
-    window_write(&winfo, 0, 0, 'X', 0xf, bgcolor);
-    window_write(&winfo, 0, 1, 'Y', 0xf, bgcolor);
-    window_write(&winfo, 1, 0, 'Y', 0xf, bgcolor);
-    window_write(&winfo, 1, 1, 'X', 0xf, bgcolor);
+    window_draw_pixel(&winfo, 0, 0, 'X', 0xf, bgcolor);
+    window_draw_pixel(&winfo, 0, 1, 'Y', 0xf, bgcolor);
+    window_draw_pixel(&winfo, 1, 0, 'Y', 0xf, bgcolor);
+    window_draw_pixel(&winfo, 1, 1, 'X', 0xf, bgcolor);
 
     window_register(&winfo);
     

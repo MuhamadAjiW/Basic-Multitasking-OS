@@ -12,6 +12,7 @@
 extern TSSEntry tss;
 
 // TODO: Review
+// TODO: test same kernel stack
 
 // Note: Would be interesting to make tasks with dynamic
 // Tasks is managed like a linked list for performance reasons with indices as pointers because static memory (check PCB structure)

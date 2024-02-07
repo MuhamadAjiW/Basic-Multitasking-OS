@@ -8,6 +8,7 @@
 #define ROOT_CLUSTER_NUMBER 65
 
 #include "window_manager.h"
+#include "font.h"
 
 //TODO: Document
 
@@ -35,14 +36,22 @@ typedef struct shell_app
 {    
     uint8_t default_font_color;
     uint8_t default_background_color;
+    uint8_t default_cursor_color;
     
     uint16_t cursor_x;
     uint16_t cursor_x_limit;
     uint16_t cursor_y;
     uint16_t cursor_y_limit;
     uint8_t cursor_on;
+    uint8_t cursor_show;
+    uint8_t* cursor_background_buffer;
+    uint16_t cursor_counter;
+    uint8_t cursor_blocked_1;
+    uint8_t cursor_blocked_2;
+
     
     window_info winfo;
+    font_info finfo;
     shell_reader reader;
     directory_info dir;
     text_grid grid;
@@ -64,6 +73,9 @@ void grid_initialize();
 void grid_write();
 
 //----Cursor
+void cursor_initialize();
+void cursor_hide();
+void cursor_show();
 uint16_t cursor_get_y();
 uint16_t cursor_get_x();
 void cursor_on();
@@ -72,7 +84,7 @@ void cursor_limit(uint8_t x, uint8_t y);
 void cursor_set(uint8_t x, uint8_t y);
 uint16_t cursor_find_edge(uint16_t y);
 int32_t cursor_move(int8_t direction);
-
+void cursor_blinking();
 
 //----Reader
 void reader_initialize();

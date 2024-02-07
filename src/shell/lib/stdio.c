@@ -39,11 +39,11 @@ void scroll(){
     }
 }
 
-void print(char* str){
-    print_color(str, sh.default_font_color, sh.default_background_color);
+void print(__attribute__((unused)) char* str){
+    print_color(str, sh.default_font_color);
 }
 
-void print_color(char* str, uint8_t fg_color, uint8_t bg_color){
+void print_color(char* str, uint8_t color){
     //kurang sangkil, masih bisa diimprove
     int i = 0;
     while (str[i] != 0){
@@ -55,7 +55,7 @@ void print_color(char* str, uint8_t fg_color, uint8_t bg_color){
                 sh.grid.char_color_map[0 + i] = sh.grid.char_color_map[0 + i - 1];
             }
             sh.grid.char_map[loc] = str[i];
-            sh.grid.char_color_map[loc] = (bg_color << 4) | (fg_color & 0xf);
+            sh.grid.char_color_map[loc] = color;
                 
             if(sh.cursor_x == sh.grid.xlen - 1 && sh.cursor_y == sh.grid.ylen - 1){
                 scroll();
@@ -103,11 +103,11 @@ void print_color(char* str, uint8_t fg_color, uint8_t bg_color){
 }
 
 void print_char(char c){
-    print_char_color(c, sh.default_font_color, sh.default_background_color);
+    print_char_color(c, sh.default_font_color);
 }
 
 
-void print_char_color(char c, uint8_t fg_color, uint8_t bg_color){
+void print_char_color(char c, uint8_t color){
     if(c != '\n'){
         uint32_t end = sh.grid.xlen * sh.grid.ylen;
         uint32_t loc = sh.cursor_y * sh.grid.xlen + sh.cursor_x;
@@ -120,7 +120,7 @@ void print_char_color(char c, uint8_t fg_color, uint8_t bg_color){
         }
 
         sh.grid.char_map[loc] = c;
-        sh.grid.char_color_map[loc] = (bg_color << 4) | (fg_color & 0xf);
+        sh.grid.char_color_map[loc] = color;
 
         if(sh.cursor_x == sh.grid.xlen - 1 && sh.cursor_x == sh.grid.ylen - 1){
             scroll();

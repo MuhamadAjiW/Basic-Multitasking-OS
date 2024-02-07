@@ -4,8 +4,6 @@
 #include "../lib-header/gdt.h"
 #include "../lib-header/idt.h"
 
-#include "../lib-header/framebuffer.h"
-
 KeyboardDriverState keyboard_state = {0};
 
 const char scantable[64] = {

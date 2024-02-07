@@ -3,7 +3,6 @@
 #include "../lib-header/interrupt.h"
 
 #include "../lib-header/keyboard.h"
-#include "../lib-header/framebuffer.h"
 #include "../lib-header/pit.h"
 #include "../lib-header/cmos.h"
 #include "../lib-header/window_manager.h"
@@ -31,13 +30,6 @@ void sys_get_time(TrapFrame cpu){
 void sys_get_keyboard_last_key(TrapFrame cpu){
     keyboard_flush_buffer((char*) cpu.registers.ebx);
 }
-void sys_set_cursor_active(TrapFrame cpu){
-    if(cpu.registers.ebx == 0) framebuffer_disable_cursor();
-    else framebuffer_enable_cursor();
-}
-void sys_set_cursor_location(TrapFrame cpu){
-    framebuffer_set_cursor((uint8_t) cpu.registers.ebx, (uint8_t) cpu.registers.ecx);
-}
 
 // Memory syscalls
 void sys_malloc(TrapFrame cpu){
@@ -63,16 +55,16 @@ void sys_winmgr_close(TrapFrame cpu){
 }
 
 // Tasking syscall
-void sys_task_start(__attribute__((unused)) TrapFrame cpu){
+void sys_task_start(TrapFrame cpu){
     task_create(*(FAT32DriverRequest*) cpu.registers.ebx, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
 }
-void sys_task_stop(__attribute__((unused)) TrapFrame cpu){
+void sys_task_stop(TrapFrame cpu){
     task_terminate(cpu.registers.ebx);
 }
 void sys_task_exit(__attribute__((unused)) TrapFrame cpu){
     task_terminate_current();
 }
-void sys_task_info(__attribute__((unused)) TrapFrame cpu){
+void sys_task_info(TrapFrame cpu){
     task_generate_list((task_list*) cpu.registers.ebx);
 }
 
@@ -108,8 +100,6 @@ void enable_system_calls(){
     register_syscall_response(SYSCALL_GET_TICK, sys_get_timer_tick);
     register_syscall_response(SYSCALL_GET_TIME, sys_get_time);
     register_syscall_response(SYSCALL_GET_KEYBOARD_LAST_KEY, sys_get_keyboard_last_key);
-    register_syscall_response(SYSCALL_SET_CURSOR_ACTIVE, sys_set_cursor_location);
-    register_syscall_response(SYSCALL_SET_CURSOR_LOCATION, sys_set_cursor_location);
 
     register_syscall_response(SYSCALL_MALLOC, sys_malloc);
     register_syscall_response(SYSCALL_REALLOC, sys_realloc);

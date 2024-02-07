@@ -2,7 +2,7 @@
 #include "lib-header/stdtype.h"
 #include "lib-header/stdmem.h"
 #include "lib-header/gdt.h"
-#include "lib-header/framebuffer.h"
+// #include "lib-header/framebuffer.h"
 #include "lib-header/kernel_loader.h"
 #include "lib-header/idt.h"
 #include "lib-header/interrupt.h"
@@ -13,19 +13,21 @@
 #include "lib-header/fat32.h"
 #include "lib-header/paging.h"
 #include "lib-header/memory_manager.h"
-
 #include "lib-header/task.h"
 #include "lib-header/window_manager.h"
+
+#include "lib-header/graphics.h"
 
 void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);
     pic_remap();
     initialize_idt();
-    framebuffer_clear();
-    framebuffer_set_cursor(0, 0);
+    // framebuffer_clear();
+    graphics_initialize();
 
     memory_initialize();
-    
+
+
     gdt_install_tss();
     set_tss_register_kernel();
     set_tss_kernel_current_stack();
@@ -55,14 +57,14 @@ void kernel_setup(void) {
     };
     task_create(shell, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
 
-    FAT32DriverRequest clock = {
-        .buf                   = (void*) 0,
-        .name                  = "sysclock",
-        .ext                   = "prg",
-        .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
-        .buffer_size           = 0x100000,
-    };
-    task_create(clock, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+    // FAT32DriverRequest clock = {
+    //     .buf                   = (void*) 0,
+    //     .name                  = "sysclock",
+    //     .ext                   = "prg",
+    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
+    //     .buffer_size           = 0x100000,
+    // };
+    // task_create(clock, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
 
     // the kernel acts as a garbage collector afterwards
     while (TRUE){

@@ -27,9 +27,9 @@ void sys_cursor_set_active(uint8_t active);
 void sys_cursor_set_location(uint8_t r, uint8_t c);
 void scroll();
 void print(char* str);
-void print_color(char* str, uint8_t fg_color, uint8_t bg_color);
+void print_color(char* str, uint8_t color);
 void print_char(char c);
-void print_char_color(char c, uint8_t fg_color, uint8_t bg_color);
+void print_char_color(char c, uint8_t color);
 
 
 //----File I/O

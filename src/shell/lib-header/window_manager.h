@@ -4,14 +4,13 @@
 
 #include "stdtype.h"
 
-#define MAX_WINDOW_NUM 64
-#define SCREEN_WIDTH 80
-#define SCREEN_HEIGHT 25
+#define SCREEN_WIDTH 320
+#define SCREEN_HEIGHT 200
 
 //TODO: Document
 typedef struct window_info{
-    uint16_t* mainBuffer;
-    uint16_t* rearBuffer;
+    uint8_t*  main_buffer;
+    uint8_t*  rear_buffer;
     uint16_t  xloc;
     uint16_t  xlen;
     uint16_t  yloc;
@@ -22,7 +21,7 @@ typedef struct window_info{
 } window_info;
 void window_init(window_info* winfo);
 void window_clear(window_info* winfo);
-void window_write(window_info* winfo, uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg);
+void window_draw_pixel(window_info* winfo, uint16_t row, uint16_t col, uint8_t color);
 void window_register(window_info* winfo);
 void window_update(window_info* winfo);
 void window_close(window_info* winfo);

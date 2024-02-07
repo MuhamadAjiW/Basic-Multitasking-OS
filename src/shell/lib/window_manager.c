@@ -5,20 +5,17 @@
 
 // Note: Would be interesting to make this a dynamically linked library 
 void window_init(window_info* winfo){
-    winfo->mainBuffer = (uint16_t*) malloc (sizeof(uint16_t) * ((uint32_t)winfo->xlen) * ((uint32_t)winfo->ylen));
-    winfo->rearBuffer = (uint16_t*) malloc (sizeof(uint16_t) * ((uint32_t)winfo->xlen) * ((uint32_t)winfo->ylen));
+    winfo->main_buffer = (uint8_t*) malloc (sizeof(uint8_t) * ((uint32_t)winfo->xlen) * ((uint32_t)winfo->ylen));
+    winfo->rear_buffer = (uint8_t*) malloc (sizeof(uint8_t) * ((uint32_t)winfo->xlen) * ((uint32_t)winfo->ylen));
 }
 
 void window_clear(window_info* winfo){
-    free(winfo->mainBuffer);
-    free(winfo->rearBuffer);
+    free(winfo->main_buffer);
+    free(winfo->rear_buffer);
 }
 
-void window_write(window_info* winfo, uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg){
-    uint16_t attrib = (bg << 4) | (fg & 0x0F);
-    volatile uint16_t * where;
-    where = (volatile uint16_t *) winfo->mainBuffer + (row * winfo->xlen + col);
-    *where = c | (attrib << 8);
+void window_draw_pixel(window_info* winfo, uint16_t row, uint16_t col, uint8_t color){
+    winfo->main_buffer[row * winfo->xlen + col] = color;
 }
 
 void window_register(window_info* winfo){

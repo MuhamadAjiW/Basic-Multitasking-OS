@@ -1,13 +1,14 @@
 
 #include "../lib-header/stdtype.h"
-#include "../lib-header/framebuffer.h"
+#include "../lib-header/graphics.h"
+// #include "../lib-header/framebuffer.h"
 #include "../lib-header/window_manager.h"
 #include "../lib-header/task.h"
 
 // TODO: Document
 // Note: Would be interesting to make this a separate program if we have inter-process communication 
 window_manager winmgr = {0};
-extern uint16_t screen_buffer[];
+extern uint8_t screen_buffer[];
 extern PCB* current_task;
 
 void winmgr_initalilze(){
@@ -16,8 +17,8 @@ void winmgr_initalilze(){
         winmgr.stack.ids[i] = -1;
     }
 }
-void winmgr_set_window(window_info* winfo, uint8_t row, uint8_t col, uint16_t info, bool mainBuffer){    
-    volatile uint16_t * where = mainBuffer? winfo->mainBuffer : winfo->rearBuffer;
+void winmgr_set_window(window_info* winfo, uint8_t row, uint8_t col, uint16_t info, bool main_buffer){    
+    volatile uint8_t * where = main_buffer? winfo->main_buffer : winfo->rear_buffer;
     where +=  (row * winfo->xlen + col);
     *where = info;
 }
@@ -43,7 +44,7 @@ void winmgr_show_window(window_info* winfo){
         uint16_t i = 0;
         while (xloc + i < SCREEN_WIDTH && i < xlen){
             winmgr_set_window(winfo, j, i, screen_buffer[(SCREEN_WIDTH * (yloc + j)) + (xloc + i)], FALSE);
-            framebuffer_set(yloc + j, xloc + i, winfo->mainBuffer[(xlen * j) + i]);
+            graphics_set(yloc + j, xloc + i, winfo->main_buffer[(xlen * j) + i]);
             i++;
         }
         j++;
@@ -54,7 +55,7 @@ void winmgr_show_window_flat(window_info winfo){
     while (winfo.yloc + j < SCREEN_HEIGHT && j < winfo.ylen){
         uint16_t i = 0;
         while (winfo.xloc + i < SCREEN_WIDTH && i < winfo.xlen){
-            framebuffer_set(winfo.yloc + j, winfo.xloc + i, winfo.mainBuffer[(winfo.xlen * j) + i]);
+            graphics_set(winfo.yloc + j, winfo.xloc + i, winfo.main_buffer[(winfo.xlen * j) + i]);
             i++;
         }
         j++;
@@ -65,7 +66,7 @@ void winmgr_hide_window(window_info winfo){
     while (winfo.yloc + j < SCREEN_HEIGHT && j < winfo.ylen){
         uint16_t i = 0;
         while (winfo.xloc + i < SCREEN_WIDTH && i < winfo.xlen){
-            framebuffer_set(winfo.yloc + j, winfo.xloc + i, winfo.rearBuffer[(winfo.xlen * j) + i]);
+            graphics_set(winfo.yloc + j, winfo.xloc + i, winfo.rear_buffer[(winfo.xlen * j) + i]);
             i++;
         }
         j++;
@@ -112,19 +113,19 @@ void winmgr_register_winfo(window_info* winfo){
     uint8_t id = winmgr_generate_window_id();
     winfo->id = id;
     winmgr.windows_ref[id] = winfo;
-    winmgr.windows[id].mainBuffer = winfo->mainBuffer;
-    winmgr.windows[id].rearBuffer = winfo->rearBuffer;
+    winmgr.windows[id].main_buffer = winfo->main_buffer;
+    winmgr.windows[id].rear_buffer = winfo->rear_buffer;
     winmgr.windows[id].pid = current_task->pid;
     winmgr.windows[id].id = id;
     winmgr_update_winfo(*winfo, id);
     winmgr_stack_add(id);
 
-    framebuffer_display();
+    graphics_display();
 }
 void winmgr_update_window(window_info* winfo){
     uint8_t id = winfo->id;
 
-    if(winmgr.windows[id].mainBuffer == 0) return; //Unregistered window requested
+    if(winmgr.windows[id].main_buffer == 0) return; //Unregistered window requested
 
     // TODO: Implement active window mechanism
     if(winfo->active){
@@ -156,15 +157,15 @@ void winmgr_update_window(window_info* winfo){
         }
     }
 
-    framebuffer_display();
+    graphics_display();
 }
 void winmgr_close_window(uint16_t id){
-    if(winmgr.windows[id].mainBuffer == 0) return; //Unregistered window requested
+    if(winmgr.windows[id].main_buffer == 0) return; //Unregistered window requested
 
     winmgr_stack_remove(id);
     winmgr.windows_exist[id] = 0;
 
-    framebuffer_display();
+    graphics_display();
     // TODO: Implement active window mechanism
 }
 

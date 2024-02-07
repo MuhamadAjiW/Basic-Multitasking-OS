@@ -6,6 +6,7 @@
 #include "lib-header/stdmem.h"
 #include "lib-header/parser.h"
 #include "lib-header/window_manager.h"
+#include "lib-header/font.h"
 
 #include "lib-header/shell.h"
 #include "lib-header/commands.h"
@@ -15,20 +16,27 @@
 
 parser_t sh_parser = {0};
 shell_app sh = {
-    .default_font_color = 0x0,
+    .default_font_color = 0xf,
     .default_background_color = 0xe,
+    .default_cursor_color = 0xd,
+
     .cursor_x = 0,
     .cursor_y = 0,
     .cursor_x_limit = 0,
     .cursor_y_limit = 0,
-    .cursor_on = 1,
+    .cursor_on = 0,
+    .cursor_show = 0,
+    .cursor_background_buffer = 0,
+    .cursor_counter = 0,
+    .cursor_blocked_1 = 0,
+    .cursor_blocked_2 = 0,
 
     .winfo = {
-        .mainBuffer = (uint16_t*) 1,
+        .main_buffer = (uint8_t*) 1,
         .xloc = 0,
         .yloc = 0,
         .xlen = SCREEN_WIDTH,
-        .ylen = SCREEN_HEIGHT - 1
+        .ylen = SCREEN_HEIGHT
     },
 
     .reader = {
@@ -49,22 +57,23 @@ void app_initialize(){
     sh.dir.path = (char*) malloc (sizeof(char) * INPUT_BUFFER_SIZE);
     memcpy(sh.dir.path, "/root", 6);
 
+    font_load(&(sh.finfo), "system/stdfont.fnt");
     window_init(&(sh.winfo));
     grid_initialize();
     app_load_background();
     app_draw_background();
     window_register(&(sh.winfo));
     reader_initialize();
+    cursor_initialize();
 
-    shell_newline();
+    shell_newline();    
 }
 void app_load_background(){
     // TODO: Switch to a better background structure
     // Generate simple background
-    uint32_t size = sh.grid.xlen * sh.grid.ylen;
+    uint32_t size = sh.winfo.xlen * sh.winfo.ylen;
     sh.background = (uint8_t*) malloc (sizeof(uint8_t) * size);
-    // uint8_t default_value = (sh.default_background_color << 4) | (sh.default_font_color & 0xf);
-    uint8_t default_value = (0x8 << 4) | (sh.default_font_color & 0xf);
+    uint8_t default_value = 0x8;
     for(uint32_t i = 0; i < size; i++){
         sh.background[i] = default_value;
     }
@@ -75,33 +84,68 @@ void app_draw_background(){
     for (uint16_t r = 0; r < sh.winfo.ylen; r++){
         for (uint16_t c = 0; c < sh.winfo.xlen; c++){
             uint32_t bg_offset = r * sh.winfo.ylen + c;
-            window_write(&(sh.winfo), r, c, 0, sh.background[bg_offset], sh.background[bg_offset] >> 4);
+            window_draw_pixel(&(sh.winfo), r, c, sh.background[bg_offset]);
         }
     }
 }
 
 // Grid
 void grid_initialize(){
-    sh.grid.xlen = sh.winfo.xlen;
-    sh.grid.ylen = sh.winfo.ylen;
+    sh.grid.xlen = sh.winfo.xlen / sh.finfo.width;
+    sh.grid.ylen = sh.winfo.ylen / sh.finfo.height;
     uint32_t size = sh.grid.xlen * sh.grid.ylen;
     sh.grid.char_map = (char*) malloc (sizeof(char) * size);
     sh.grid.char_color_map = (char*) malloc (sizeof(char) * size);
 }
 void grid_write(){
+    sh.cursor_blocked_2 = 1;
     app_draw_background();
     for (uint16_t r = 0; r < sh.grid.ylen; r++){
         for (uint16_t c = 0; c < sh.grid.xlen; c++){
-            uint32_t grid_offset = r * sh.winfo.xlen + c;
+            uint32_t grid_offset = r * sh.grid.xlen + c;
             if(sh.grid.char_map[grid_offset] != 0){
-                window_write(&(sh.winfo), r, c, sh.grid.char_map[grid_offset], sh.grid.char_color_map[grid_offset] & 0xf, sh.grid.char_color_map[grid_offset] >> 4);
+                font_write(&(sh.winfo), sh.finfo, r, c, sh.grid.char_map[grid_offset], sh.grid.char_color_map[grid_offset]);
             }
         }
     }
-    window_update(&(sh.winfo));
+    cursor_show();
+    sh.cursor_blocked_2 = 0;
 }
 
 // Cursor
+void cursor_initialize(){
+    sh.cursor_background_buffer = (uint8_t*) malloc (sh.finfo.height);
+    cursor_on();
+}
+void cursor_hide(){
+    if(sh.cursor_on){
+        sh.cursor_blocked_1 = 1;
+        sh.cursor_show = 0;
+        sh.cursor_counter = 0;
+
+        for(uint8_t j = 0; j < sh.finfo.height - 1; j++){
+            window_draw_pixel(&(sh.winfo), (sh.finfo.height * sh.cursor_y) + j, (sh.finfo.width * sh.cursor_x), sh.cursor_background_buffer[j]);
+        }
+
+        window_update(&(sh.winfo));
+        sh.cursor_blocked_1 = 0;
+    }
+}
+void cursor_show(){
+    if(sh.cursor_on){
+        sh.cursor_blocked_1 = 1;
+        sh.cursor_show = 1;
+        sh.cursor_counter = 0;
+        
+        for(uint8_t j = 0; j < sh.finfo.height - 1; j++){
+            sh.cursor_background_buffer[j] = sh.winfo.main_buffer[(320 * ((sh.finfo.height* sh.cursor_y) + j)) + sh.finfo.width * sh.cursor_x];
+            window_draw_pixel(&(sh.winfo), (sh.finfo.height * sh.cursor_y) + j, (sh.finfo.width * sh.cursor_x), sh.default_cursor_color);
+        }
+
+        window_update(&(sh.winfo));
+        sh.cursor_blocked_1 = 0;
+    }
+}
 uint16_t cursor_get_y(){
     return sh.cursor_y;
 }
@@ -111,12 +155,15 @@ uint16_t cursor_get_x(){
 
 void cursor_on(){
     sh.cursor_on = 1;
-    sys_cursor_set_active(sh.cursor_on);
 }
 
 void cursor_off(){
-    sh.cursor_on = 0;
-    sys_cursor_set_active(sh.cursor_on);
+    if(sh.cursor_on){
+        if(sh.cursor_show){
+            cursor_hide();
+        }
+        sh.cursor_on = 0;
+    }
 }
 
 void cursor_limit(uint8_t x, uint8_t y){
@@ -126,9 +173,17 @@ void cursor_limit(uint8_t x, uint8_t y){
 
 void cursor_set(uint8_t x, uint8_t y){
     if(sh.cursor_on){
+        sh.cursor_blocked_2 = 1;
+        if(sh.cursor_show){
+            cursor_hide();
+        }
+
         sh.cursor_x = x;
         sh.cursor_y = y;
-        sys_cursor_set_location(y, x);
+
+        sh.cursor_show = 1;
+        cursor_show();
+        sh.cursor_blocked_2 = 0;
     }
 }
 
@@ -192,6 +247,25 @@ int32_t cursor_move(int8_t direction){
 
     return dist;
 }
+
+// TODO: Use threading instead
+void cursor_blinking(){
+    if(sh.cursor_on && !sh.cursor_blocked_1 && !sh.cursor_blocked_2){
+        if(sh.cursor_counter > 20000){
+            if(sh.cursor_show){
+                cursor_hide();
+            }
+            else{
+                cursor_show();
+            }
+            sh.cursor_counter = 0;
+        }
+        else{
+            sh.cursor_counter++;
+        }
+    }
+}
+
 
 // Reader
 void reader_initialize(){
@@ -447,7 +521,7 @@ int main(void) {
     syscall(SYSCALL_NULL, 0, 0, 0);
 
     app_initialize();
-    
+
     char buf[2] = {0};
     while (TRUE){
         buf[0] = sys_keyboard_get_char();
@@ -490,6 +564,7 @@ int main(void) {
                 }
                 break;
         }
+        cursor_blinking();
     }
 
     return 0;
