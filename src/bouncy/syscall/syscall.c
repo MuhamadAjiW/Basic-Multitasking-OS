@@ -23,10 +23,6 @@ void delay(uint32_t tick){
     }
 }
 
-void close_window(uint32_t id){
-    syscall(SYSCALL_WINMGR_CLOSE, id, 0, 0);
-}
-
 void exit(){
     syscall(SYSCALL_TASK_EXIT, 0, 0, 0);
     while (TRUE); // wait for pit interrupt

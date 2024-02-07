@@ -9,8 +9,7 @@
 #define SYSCALL_GET_TICK 1
 #define SYSCALL_GET_TIME 2
 #define SYSCALL_GET_KEYBOARD_LAST_KEY 3
-#define SYSCALL_SET_CURSOR_ACTIVE 4
-#define SYSCALL_SET_CURSOR_LOCATION 5
+#define SYSCALL_GRAPHICS_PALETTE_UPDATE 4
 
 #define SYSCALL_MALLOC 10
 #define SYSCALL_REALLOC 11
@@ -40,10 +39,7 @@
  *              the rest may be filled with function arguments
 */
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx);
-
-// TODO: Document
 void delay(uint32_t tick);
-void close_window(uint32_t id);
 void exit();
 
 #endif

@@ -227,6 +227,7 @@ void task_clean_scan(){
     for (uint32_t i = 0; i < MAX_TASKS; i++){
         if(tasks[i].state == TERMINATED){
             task_clean(i);
+            // TODO: Also add a function to clean heap memory of dead tasks, for now they're leaking
         }
     }
 }

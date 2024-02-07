@@ -4,10 +4,10 @@
 #include "lib-header/window_manager.h"
 #include "lib-header/cmos.h"
 
-const uint8_t window_size = 2;
+const uint8_t window_size = 10;
 
 window_info winfo = {
-    .main_buffer = (uint16_t*) 1,
+    .main_buffer = (uint8_t*) 1,
     .xloc = 1,
     .yloc = 1,
     .xlen = window_size,
@@ -27,13 +27,13 @@ int main(void) {
     seed = seed + cmos.second + cmos.minute + cmos.hour + cmos.day + cmos.month + cmos.century;
     
     seed = randomizer(seed);
-    winfo.xloc = (seed % 77) + 1;
+    winfo.xloc = (seed % (SCREEN_WIDTH - window_size - 2)) + 1;
 
     seed = randomizer(seed);
-    winfo.yloc = (seed % 22) + 1;
+    winfo.yloc = (seed % (SCREEN_HEIGHT - window_size - 2)) + 1;
     
     seed = randomizer(seed);
-    uint8_t bgcolor = seed & 0xf;
+    uint8_t bgcolor = seed;
     
     seed = randomizer(seed);
     uint8_t x_direction = seed & 1;
@@ -42,14 +42,15 @@ int main(void) {
     uint8_t y_direction = seed & 1;
 
     seed = randomizer(seed);
-    uint8_t speed = (seed % 90) + 10;
+    uint8_t speed = (seed % 10);
     
     window_init(&winfo);
 
-    window_draw_pixel(&winfo, 0, 0, 'X', 0xf, bgcolor);
-    window_draw_pixel(&winfo, 0, 1, 'Y', 0xf, bgcolor);
-    window_draw_pixel(&winfo, 1, 0, 'Y', 0xf, bgcolor);
-    window_draw_pixel(&winfo, 1, 1, 'X', 0xf, bgcolor);
+    for (uint8_t i = 0; i < window_size; i++){
+        for (uint8_t j = 0; j < window_size; j++){
+            window_draw_pixel(&winfo, i, j, bgcolor);
+        }
+    }
 
     window_register(&winfo);
     

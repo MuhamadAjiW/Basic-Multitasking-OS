@@ -59,16 +59,20 @@ void app_initialize(){
     sh.dir.path = (char*) malloc (sizeof(char) * INPUT_BUFFER_SIZE);
     memcpy(sh.dir.path, "/root", 6);
 
-    font_load(&(sh.finfo), "system/stdfont.fnt", sh.dir.cluster_number);
+    font_load(&(sh.finfo), "system/stdfont.fnt", ROOT_CLUSTER_NUMBER);
+    sh.winfo.ylen -= sh.finfo.height;
     window_init(&(sh.winfo));
+
     grid_initialize();
     app_load_background("system/stdbg.imp");
     app_draw_background(&(sh.winfo), sh.background);
     window_register(&(sh.winfo));
     reader_initialize();
+
+
     cursor_initialize();
 
-    shell_newline();    
+    shell_newline();
 }
 void app_load_background(char* path){
     image_load(&(sh.background), path, sh.dir.cluster_number);
