@@ -11,14 +11,6 @@ char sys_keyboard_get_char(){
     return c;
 }
 
-void sys_cursor_set_active(uint8_t active){
-    syscall(SYSCALL_SET_CURSOR_ACTIVE, (uint32_t) active, 0, 0);
-}
-
-void sys_cursor_set_location(uint8_t r, uint8_t c){
-    syscall(SYSCALL_SET_CURSOR_LOCATION, (uint32_t) r, (uint32_t) c, 0);
-}
-
 void scroll(){
     if(sh.cursor_y_limit > 0){
         sh.cursor_y_limit = sh.cursor_y_limit - 1;

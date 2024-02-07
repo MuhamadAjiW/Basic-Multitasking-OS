@@ -184,8 +184,8 @@ insert: shell clock bouncy
 	@echo Inserting clock into system directory... && cd bin && ./inserter sysclock 66 drive.img prg
 	@echo Inserting bouncy into system directory... && cd bin && ./inserter bounce 66 drive.img prg
 	@echo Inserting font into system directory... && cp other/stdfont bin/stdfont && cd bin && ./inserter stdfont 66 drive.img fnt
-# 	@echo Inserting background image into system directory... && cp other/stdbg bin/stdbg && cd bin && ./inserter stdbg 66 drive.img imp
-# 	@echo Inserting second background image into system directory... && cp other/stdbg2 bin/stdbg2 && cd bin && ./inserter stdbg2 66 drive.img imp
+	@echo Inserting first background image into system directory... && cp other/stdbg bin/stdbg && cd bin && ./inserter stdbg 66 drive.img imp
+	@echo Inserting second background image into system directory... && cp other/stdbg2 bin/stdbg2 && cd bin && ./inserter stdbg2 66 drive.img imp
 # 	@echo Inserting animation into system directory... && cp other/stdanim bin/stdanim && cd bin && ./inserter stdanim 66 drive.img anm
 # 	@echo Inserting test text into root directory... && cp other/text bin/text && cd bin && ./inserter text 65 drive.img uwu 
 

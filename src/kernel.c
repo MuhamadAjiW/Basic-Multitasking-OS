@@ -2,7 +2,6 @@
 #include "lib-header/stdtype.h"
 #include "lib-header/stdmem.h"
 #include "lib-header/gdt.h"
-// #include "lib-header/framebuffer.h"
 #include "lib-header/kernel_loader.h"
 #include "lib-header/idt.h"
 #include "lib-header/interrupt.h"
@@ -22,11 +21,9 @@ void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);
     pic_remap();
     initialize_idt();
-    // framebuffer_clear();
     graphics_initialize();
 
     memory_initialize();
-
 
     gdt_install_tss();
     set_tss_register_kernel();
@@ -44,7 +41,7 @@ void kernel_setup(void) {
 
     winmgr_initalilze();
 
-    set_pit_freq(DEFAULT_FREQUENCY);
+    pit_set_freq(DEFAULT_FREQUENCY);
     register_irq_handler(IRQ_TIMER, pit_isr);
     activate_irq(IRQ_TIMER);
 

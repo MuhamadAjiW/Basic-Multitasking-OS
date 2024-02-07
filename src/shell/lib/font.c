@@ -5,12 +5,12 @@
 #include "../lib-header/font.h"
 #include "../lib-header/window_manager.h"
 
-void font_load(font_info* finfo, char* path_from_root){
+void font_load(font_info* finfo, char* path, uint32_t current_cluster){
     for(int i = 0; i < 128; i++){
         finfo->font[i] = 0;
     }
     
-    FAT32DriverRequest req = path_to_file_request(path_from_root, ROOT_CLUSTER_NUMBER);
+    FAT32DriverRequest req = path_to_file_request(path, current_cluster);
     FAT32FileReader font_file = readf(req);
 
     finfo->width = *(((uint8_t*)font_file.content) + 0) - 48;

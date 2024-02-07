@@ -7,6 +7,7 @@
 #include "lib-header/parser.h"
 #include "lib-header/window_manager.h"
 #include "lib-header/font.h"
+#include "lib-header/image.h"
 
 #include "lib-header/shell.h"
 #include "lib-header/commands.h"
@@ -17,6 +18,7 @@
 parser_t sh_parser = {0};
 shell_app sh = {
     .default_font_color = 0xf,
+    .default_input_color = 0x54,
     .default_background_color = 0xe,
     .default_cursor_color = 0xd,
 
@@ -48,7 +50,7 @@ shell_app sh = {
 
     .grid = {0},
 
-    .background = 0
+    .background = {0}
 };
 
 // App
@@ -57,36 +59,41 @@ void app_initialize(){
     sh.dir.path = (char*) malloc (sizeof(char) * INPUT_BUFFER_SIZE);
     memcpy(sh.dir.path, "/root", 6);
 
-    font_load(&(sh.finfo), "system/stdfont.fnt");
+    font_load(&(sh.finfo), "system/stdfont.fnt", sh.dir.cluster_number);
     window_init(&(sh.winfo));
     grid_initialize();
-    app_load_background();
-    app_draw_background();
+    app_load_background("system/stdbg.imp");
+    app_draw_background(&(sh.winfo), sh.background);
     window_register(&(sh.winfo));
     reader_initialize();
     cursor_initialize();
 
     shell_newline();    
 }
-void app_load_background(){
-    // TODO: Switch to a better background structure
-    // Generate simple background
-    uint32_t size = sh.winfo.xlen * sh.winfo.ylen;
-    sh.background = (uint8_t*) malloc (sizeof(uint8_t) * size);
-    uint8_t default_value = 0x8;
-    for(uint32_t i = 0; i < size; i++){
-        sh.background[i] = default_value;
-    }
+void app_load_background(char* path){
+    image_load(&(sh.background), path, sh.dir.cluster_number);
+    image_change_palette(sh.background);
 }
-void app_draw_background(){
-    // TODO: Switch to a better background structure
-    // Set background to window
-    for (uint16_t r = 0; r < sh.winfo.ylen; r++){
-        for (uint16_t c = 0; c < sh.winfo.xlen; c++){
-            uint32_t bg_offset = r * sh.winfo.ylen + c;
-            window_draw_pixel(&(sh.winfo), r, c, sh.background[bg_offset]);
+void app_draw_background(window_info* winfo, image_info imginfo){
+    uint16_t min_width;
+    uint16_t min_height;
+
+    if(winfo->xlen < imginfo.width) min_width = winfo->xlen;
+    else min_width = imginfo.width;
+    if(winfo->ylen < imginfo.height) min_height = winfo->ylen;
+    else min_height = imginfo.height;
+
+    for(int r = 0; r < min_height; r++){
+        for(int c = 0; c < min_width; c++){
+            window_draw_pixel(winfo, r, c, imginfo.map[r * imginfo.width + c]);
         }
     }
+}
+void app_change_background(char* path){
+    image_delete(&(sh.background));
+    app_load_background(path);
+    app_draw_background(&(sh.winfo), sh.background);
+    print("\nBackground change successful\n");
 }
 
 // Grid
@@ -99,7 +106,7 @@ void grid_initialize(){
 }
 void grid_write(){
     sh.cursor_blocked_2 = 1;
-    app_draw_background();
+    app_draw_background(&(sh.winfo), sh.background);
     for (uint16_t r = 0; r < sh.grid.ylen; r++){
         for (uint16_t c = 0; c < sh.grid.xlen; c++){
             uint32_t grid_offset = r * sh.grid.xlen + c;
@@ -251,7 +258,7 @@ int32_t cursor_move(int8_t direction){
 // TODO: Use threading instead
 void cursor_blinking(){
     if(sh.cursor_on && !sh.cursor_blocked_1 && !sh.cursor_blocked_2){
-        if(sh.cursor_counter > 20000){
+        if(sh.cursor_counter > 30000){
             if(sh.cursor_show){
                 cursor_hide();
             }
@@ -314,7 +321,7 @@ void shell_clear(){
         sh.grid.char_map[i] = 0;
         sh.grid.char_color_map[i] = 0;
     }
-    app_draw_background();
+    app_draw_background(&(sh.winfo), sh.background);
 
     if(sh.cursor_on){
         cursor_set(0, 0);
@@ -436,6 +443,39 @@ void shell_evaluate(){
                 print("\ncat: ");
                 print(sh_parser.content[1]);
                 print(": No such file\n");
+            }
+        }
+        else if(strcmp(sh_parser.content[0], "changebg") == 0){
+            if(sh_parser.word_count == 1){
+                print("\nchangebg: no image provided\n");
+            }
+            else{
+                if(is_filepath_valid(sh_parser.content[1], sh.dir.cluster_number)){
+                    int len = strlen(sh_parser.content[1]);
+                    uint8_t valid = 1;
+                    if(len < 3) valid = 0;
+                    else{
+                        for (int i = 0; i < 3; i++) {
+                            if (sh_parser.content[1][len - 1 - i] == '.') {
+                                valid = 0;
+                                break;
+                            }
+                        }
+                        if(valid){
+                            valid = sh_parser.content[1][len-1] == 'p' &&
+                                    sh_parser.content[1][len-2] == 'm' && 
+                                    sh_parser.content[1][len-3] == 'i';
+                        }
+                    }
+                    
+                    if(!valid) print("\nchangebg: invalid file\n");
+                    else app_change_background(sh_parser.content[1]);
+                }
+                else{
+                    print("\nchangebg: no such file: ");
+                    print(sh_parser.content[1]);
+                    print("\n");
+                }
             }
         }
 
@@ -560,7 +600,7 @@ int main(void) {
             default:
                 if(buf[0] >= 32 && buf[0] <= 126){
                     reader_insert(buf[0]);
-                    print(buf);
+                    print_char_color(buf[0], 14);
                 }
                 break;
         }

@@ -14,7 +14,7 @@ void pit_isr(){
     task_schedule();
 }
 
-void set_pit_freq(uint32_t freq){
+void pit_set_freq(uint32_t freq){
     uint32_t x = 1193182 / freq;
     uint8_t low = (uint8_t) (x & 0xff);
     uint8_t high = (uint8_t) ( (x >> 8) & 0xff);

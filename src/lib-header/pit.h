@@ -4,7 +4,10 @@
 
 #include "stdtype.h"
 
-#define DEFAULT_FREQUENCY 1000          //every ms so it is easily translateable to other time units
+// Frequency can be tweaked for performance
+// Higher frequency would mean more frequent context switching
+// It is best to keep it balanced
+#define DEFAULT_FREQUENCY 100          //every 10 ms so it is easily translateable to other time units
 
 /**
  *  Call assigned interrupt response
@@ -17,7 +20,7 @@ void pit_isr();
  * 
  *  @param freq frequency of timer, should be larger than 18 and smaller then 10000 or is going to be unstable
  */
-void set_pit_freq(uint32_t freq);
+void pit_set_freq(uint32_t freq);
 
 
 /**

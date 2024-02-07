@@ -9,6 +9,7 @@
 
 #include "window_manager.h"
 #include "font.h"
+#include "image.h"
 
 //TODO: Document
 
@@ -35,6 +36,7 @@ typedef struct text_grid{
 typedef struct shell_app
 {    
     uint8_t default_font_color;
+    uint8_t default_input_color;
     uint8_t default_background_color;
     uint8_t default_cursor_color;
     
@@ -56,8 +58,7 @@ typedef struct shell_app
     directory_info dir;
     text_grid grid;
 
-    // TODO: Switch to a better background structure
-    uint8_t* background;
+    image_info background;
 
 } shell_app;
 
@@ -65,8 +66,9 @@ typedef struct shell_app
 
 //----App
 void app_initialize();
-void app_load_background();
-void app_draw_background();
+void app_load_background(char* path);
+void app_draw_background(window_info* winfo, image_info imginfo);
+void app_change_background(char* path);
 
 //----Grid
 void grid_initialize();

@@ -2,6 +2,7 @@
 #include "../lib-header/stdtype.h"
 #include "../lib-header/interrupt.h"
 
+#include "../lib-header/graphics.h"
 #include "../lib-header/keyboard.h"
 #include "../lib-header/pit.h"
 #include "../lib-header/cmos.h"
@@ -29,6 +30,10 @@ void sys_get_time(TrapFrame cpu){
 }
 void sys_get_keyboard_last_key(TrapFrame cpu){
     keyboard_flush_buffer((char*) cpu.registers.ebx);
+}
+void sys_graphics_palette_update(TrapFrame cpu){
+    graphics_palette_update((uint8_t*) cpu.registers.ebx, cpu.registers.ecx, cpu.registers.edx);
+    *((int8_t*) cpu.registers.edx) = 1;
 }
 
 // Memory syscalls
@@ -100,6 +105,7 @@ void enable_system_calls(){
     register_syscall_response(SYSCALL_GET_TICK, sys_get_timer_tick);
     register_syscall_response(SYSCALL_GET_TIME, sys_get_time);
     register_syscall_response(SYSCALL_GET_KEYBOARD_LAST_KEY, sys_get_keyboard_last_key);
+    register_syscall_response(SYSCALL_GRAPHICS_PALETTE_UPDATE, sys_graphics_palette_update);
 
     register_syscall_response(SYSCALL_MALLOC, sys_malloc);
     register_syscall_response(SYSCALL_REALLOC, sys_realloc);

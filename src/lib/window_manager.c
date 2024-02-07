@@ -1,7 +1,6 @@
 
 #include "../lib-header/stdtype.h"
 #include "../lib-header/graphics.h"
-// #include "../lib-header/framebuffer.h"
 #include "../lib-header/window_manager.h"
 #include "../lib-header/task.h"
 
