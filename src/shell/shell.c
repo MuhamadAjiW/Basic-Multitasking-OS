@@ -133,7 +133,7 @@ void app_play_animation(char* path){
                 sh.winfo.main_buffer[j] = anim.map[frameoffset + j] - offset;
             }
             window_update(&(sh.winfo));
-            delay(5);
+            delay(4);
         }
 
         anim_delete(&anim);
@@ -304,7 +304,7 @@ int32_t cursor_move(int8_t direction){
 // TODO: Use threading instead
 void cursor_blinking(){
     if(sh.cursor_on && !sh.cursor_blocked_1 && !sh.cursor_blocked_2){
-        if(sh.cursor_counter > 30000){
+        if(sh.cursor_counter > 20000){
             if(sh.cursor_show){
                 cursor_hide();
             }
