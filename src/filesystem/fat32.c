@@ -418,7 +418,6 @@ uint8_t delete(FAT32DriverRequest request){
 
     update_size(request, '-', &fat);
 
-    uint32_t reader[CLUSTER_SIZE/4] = {0};
     uint32_t empty_cluster[CLUSTER_SIZE/4] = {0};
     DirectoryEntry self = get_self_entry(request);
     uint32_t marker = 0;
@@ -435,7 +434,7 @@ uint8_t delete(FAT32DriverRequest request){
     deleting = 1;
     
     while (deleting){
-        reader[currentCluster] = 0;
+        fat.sector_next[currentCluster] = 0;
         writer = (void*) empty_cluster;
         write_clusters(writer, currentCluster, 1);
         if(marker == END_OF_FILE){
@@ -443,11 +442,12 @@ uint8_t delete(FAT32DriverRequest request){
         }
         else{
             currentCluster = marker;
-            marker = reader[currentCluster];
+            marker = fat.sector_next[currentCluster];
         }
     }
     write_fat(&fat);
 
+    uint32_t reader[CLUSTER_SIZE/4] = {0};
     DirectoryTable parent_table;
     uint32_t roaming_cluster = request.parent_cluster_number;
     uint8_t found = 0;

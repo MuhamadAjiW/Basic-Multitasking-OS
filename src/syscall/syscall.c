@@ -33,7 +33,6 @@ void sys_get_keyboard_last_key(TrapFrame cpu){
 }
 void sys_graphics_palette_update(TrapFrame cpu){
     graphics_palette_update((uint8_t*) cpu.registers.ebx, cpu.registers.ecx, cpu.registers.edx);
-    *((int8_t*) cpu.registers.edx) = 1;
 }
 
 // Memory syscalls

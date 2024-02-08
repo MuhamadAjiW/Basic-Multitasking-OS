@@ -120,8 +120,11 @@ void app_play_animation(char* path){
         offset += ((*(((uint8_t*)config.content) + roamer - j) - 48) * multiplier);
         multiplier *= 10;
     }
+    
     if(offset + anim.palette_len > 256){
         print("\nplayanim: Too many colors\n");
+        anim_delete(&anim);
+        cursor_on();
     }
     else{
         syscall(SYSCALL_GRAPHICS_PALETTE_UPDATE, (uint32_t) anim.palette, anim.palette_len, offset);
@@ -304,7 +307,7 @@ int32_t cursor_move(int8_t direction){
 // TODO: Use threading instead
 void cursor_blinking(){
     if(sh.cursor_on && !sh.cursor_blocked_1 && !sh.cursor_blocked_2){
-        if(sh.cursor_counter > 20000){
+        if(sh.cursor_counter > 30000){
             if(sh.cursor_show){
                 cursor_hide();
             }
@@ -562,6 +565,7 @@ void shell_evaluate(){
                     else{
                         print("\nLoading animation...");
                         app_play_animation(sh_parser.content[1]);
+                        print("\n");                
                     }
                 }
                 else{
