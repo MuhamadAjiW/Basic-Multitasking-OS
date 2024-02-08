@@ -17,7 +17,7 @@ void out(uint16_t port, uint8_t data) {
 
 void out2(uint16_t port, uint16_t data) {
     __asm__(
-        "out %%ax, %%dx"
+        "outw %%ax, %%dx"
         : // <Empty output operand>
         : "a"(data), "d"(port)
     );
@@ -26,7 +26,7 @@ void out2(uint16_t port, uint16_t data) {
 
 void out4(uint32_t port, uint32_t data) {
     __asm__(
-        "out %%eax, %%edx"
+        "outl %%eax, %%dx"
         : // <Empty output operand>
         : "a"(data), "d"(port)
     );
@@ -46,7 +46,7 @@ uint8_t in(uint16_t port) {
 uint16_t in2(uint16_t port) {
     uint16_t result;
     __asm__ volatile(
-        "in %%dx, %%ax" 
+        "inw %%dx, %%ax" 
         : "=a"(result) 
         : "d"(port)
     );

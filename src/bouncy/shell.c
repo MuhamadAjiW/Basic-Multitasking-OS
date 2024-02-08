@@ -4,14 +4,14 @@
 #include "lib-header/window_manager.h"
 #include "lib-header/cmos.h"
 
-const uint8_t window_size = 10;
+#define WINDOW_SIZE 10
 
 window_info winfo = {
     .main_buffer = (uint8_t*) 1,
     .xloc = 1,
     .yloc = 1,
-    .xlen = window_size,
-    .ylen = window_size
+    .xlen = WINDOW_SIZE,
+    .ylen = WINDOW_SIZE
 };
 
 uint32_t randomizer(uint32_t seed) {
@@ -27,10 +27,10 @@ int main(void) {
     seed = seed + cmos.second + cmos.minute + cmos.hour + cmos.day + cmos.month + cmos.century;
     
     seed = randomizer(seed);
-    winfo.xloc = (seed % (SCREEN_WIDTH - window_size - 2)) + 1;
+    winfo.xloc = (seed % (SCREEN_WIDTH - WINDOW_SIZE - 2)) + 1;
 
     seed = randomizer(seed);
-    winfo.yloc = (seed % (SCREEN_HEIGHT - window_size - 2)) + 1;
+    winfo.yloc = (seed % (SCREEN_HEIGHT - WINDOW_SIZE - 2)) + 1;
     
     seed = randomizer(seed);
     uint8_t bgcolor = seed;
@@ -46,8 +46,8 @@ int main(void) {
     
     window_init(&winfo);
 
-    for (uint8_t i = 0; i < window_size; i++){
-        for (uint8_t j = 0; j < window_size; j++){
+    for (uint8_t i = 0; i < WINDOW_SIZE; i++){
+        for (uint8_t j = 0; j < WINDOW_SIZE; j++){
             window_draw_pixel(&winfo, i, j, bgcolor);
         }
     }
@@ -63,12 +63,12 @@ int main(void) {
 
     while (++running_time < time_limit){
         winfo.xloc += movx;
-        if(winfo.xloc == SCREEN_WIDTH - window_size || winfo.xloc == 0){
+        if(winfo.xloc == SCREEN_WIDTH - WINDOW_SIZE || winfo.xloc == 0){
             movx = (-1) * movx;
         }
 
         winfo.yloc += movy;
-        if(winfo.yloc == SCREEN_HEIGHT - window_size || winfo.yloc == 0){
+        if(winfo.yloc == SCREEN_HEIGHT - WINDOW_SIZE || winfo.yloc == 0){
             movy = (-1) * movy;
         }
 
