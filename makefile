@@ -1,7 +1,7 @@
 # Compiler & linker
 ASM           = nasm
-LIN           = ld
-CC            = gcc
+LIN           = i686-elf-ld
+CC            = i686-elf-gcc
 QEMU_IMG      = qemu-img
 
 
@@ -29,8 +29,8 @@ clean:
 $(OUTPUT_FOLDER)/%.o: $(SOURCE_FOLDER)/%.c
 	@$(CC) $(CFLAGS) $< -o $@
 
-SRC := $(filter-out $(SOURCE_FOLDER)/bouncy/%, $(filter-out $(SOURCE_FOLDER)/shell/%, $(filter-out $(SOURCE_FOLDER)/clock/%, $(shell find $(SOURCE_FOLDER) -name '*.c'))))
-DIR := $(filter-out $(SOURCE_FOLDER), $(filter-out $(SOURCE_FOLDER)/bouncy/%, $(filter-out $(SOURCE_FOLDER)/shell, $(filter-out $(SOURCE_FOLDER)/clock, $(patsubst $(SOURCE_FOLDER)/%, $(OUTPUT_FOLDER)/%, $(shell find $(SOURCE_FOLDER) -type d))))))
+SRC := $(filter-out $(SOURCE_FOLDER)/bouncy/%, $(filter-out $(SOURCE_FOLDER)/shell/%, $(filter-out $(SOURCE_FOLDER)/clock/%, $(shell unixfind $(SOURCE_FOLDER) -name '*.c'))))
+DIR := $(filter-out $(SOURCE_FOLDER), $(filter-out $(SOURCE_FOLDER)/bouncy/%, $(filter-out $(SOURCE_FOLDER)/shell, $(filter-out $(SOURCE_FOLDER)/clock, $(patsubst $(SOURCE_FOLDER)/%, $(OUTPUT_FOLDER)/%, $(shell unixfind $(SOURCE_FOLDER) -type d))))))
 OBJ := $(patsubst $(SOURCE_FOLDER)/%.c, $(OUTPUT_FOLDER)/%.o, $(SRC))
 
 dir: 
@@ -54,7 +54,7 @@ iso: dir kernel
 	@cp $(OUTPUT_FOLDER)/kernel     $(OUTPUT_FOLDER)/iso/boot/
 	@cp other/grub1                 $(OUTPUT_FOLDER)/iso/boot/grub/
 	@cp $(SOURCE_FOLDER)/menu.lst   $(OUTPUT_FOLDER)/iso/boot/grub/
-	@cd $(OUTPUT_FOLDER)/iso && genisoimage -R				\
+	@cd $(OUTPUT_FOLDER)/iso && xorriso -as mkisofs -R		\
 			-b boot/grub/grub1						        \
 			-no-emul-boot              						\
 			-boot-load-size 4          						\
@@ -73,7 +73,7 @@ disk:
 
 # ngecompile yang buat nginsert file
 inserter:
-	@$(CC) -Wno-builtin-declaration-mismatch \
+	@gcc -Wno-builtin-declaration-mismatch \
 		$(SOURCE_FOLDER)/lib/stdmem.c other/fat32nocmos.c \
 		other/external-inserter.c \
 		-o $(OUTPUT_FOLDER)/inserter
@@ -86,8 +86,8 @@ inserter:
 $(OUTPUT_FOLDER)/shell/%.o: $(SOURCE_FOLDER)/shell/%.c
 	@$(CC) $(CFLAGS) -fno-pie $< -o $@
 
-SRC_U := $(shell find $(SOURCE_FOLDER)/shell -name '*.c')
-DIR_U := $(filter-out src/shell, $(patsubst $(SOURCE_FOLDER)/shell/%, $(OUTPUT_FOLDER)/shell/%, $(shell find $(SOURCE_FOLDER)/shell -type d)))
+SRC_U := $(shell unixfind $(SOURCE_FOLDER)/shell -name '*.c')
+DIR_U := $(filter-out src/shell, $(patsubst $(SOURCE_FOLDER)/shell/%, $(OUTPUT_FOLDER)/shell/%, $(shell unixfind $(SOURCE_FOLDER)/shell -type d)))
 OBJ_U := $(patsubst $(SOURCE_FOLDER)/shell/%.c, $(OUTPUT_FOLDER)/shell/%.o, $(SRC_U))
 
 dir-u: 
@@ -118,8 +118,8 @@ shell: dir-u $(OBJ_U)
 $(OUTPUT_FOLDER)/clock/%.o: $(SOURCE_FOLDER)/clock/%.c
 	@$(CC) $(CFLAGS) -fno-pie $< -o $@
 
-SRC_C := $(shell find $(SOURCE_FOLDER)/clock -name '*.c')
-DIR_C := $(filter-out src/clock, $(patsubst $(SOURCE_FOLDER)/clock/%, $(OUTPUT_FOLDER)/clock/%, $(shell find $(SOURCE_FOLDER)/clock -type d)))
+SRC_C := $(shell unixfind $(SOURCE_FOLDER)/clock -name '*.c')
+DIR_C := $(filter-out src/clock, $(patsubst $(SOURCE_FOLDER)/clock/%, $(OUTPUT_FOLDER)/clock/%, $(shell unixfind $(SOURCE_FOLDER)/clock -type d)))
 OBJ_C := $(patsubst $(SOURCE_FOLDER)/clock/%.c, $(OUTPUT_FOLDER)/clock/%.o, $(SRC_C))
 
 dir-c: 
@@ -149,8 +149,8 @@ clock: dir-c $(OBJ_C)
 $(OUTPUT_FOLDER)/bouncy/%.o: $(SOURCE_FOLDER)/bouncy/%.c
 	@$(CC) $(CFLAGS) -fno-pie $< -o $@
 
-SRC_B := $(shell find $(SOURCE_FOLDER)/bouncy -name '*.c')
-DIR_B := $(filter-out src/bouncy, $(patsubst $(SOURCE_FOLDER)/bouncy/%, $(OUTPUT_FOLDER)/bouncy/%, $(shell find $(SOURCE_FOLDER)/bouncy -type d)))
+SRC_B := $(shell unixfind $(SOURCE_FOLDER)/bouncy -name '*.c')
+DIR_B := $(filter-out src/bouncy, $(patsubst $(SOURCE_FOLDER)/bouncy/%, $(OUTPUT_FOLDER)/bouncy/%, $(shell unixfind $(SOURCE_FOLDER)/bouncy -type d)))
 OBJ_B := $(patsubst $(SOURCE_FOLDER)/bouncy/%.c, $(OUTPUT_FOLDER)/bouncy/%.o, $(SRC_B))
 
 dir-b: 
@@ -194,4 +194,5 @@ insert: shell clock bouncy
 
 
 #build everything
-complete: disk iso inserter insert
+# complete: disk iso inserter insert
+complete: disk inserter insert

@@ -2,8 +2,8 @@
 #include <stdlib.h>
 
 // Usual gcc fixed width integer type 
-typedef u_int32_t uint32_t;
-typedef u_int8_t  uint8_t;
+typedef unsigned int   uint32_t;
+typedef unsigned char  uint8_t;
 
 // Manual import from fat32.h, disk.h, & stdmem.h due some issue with size_t
 #define BLOCK_SIZE      512
@@ -89,7 +89,7 @@ int main(int argc, char *argv[]) {
         puts("Error: Unknown error");
 
     // Write image in memory into original, overwrite them
-    fptr              = fopen(argv[3], "w");
+    fptr              = fopen(argv[3], "wb");
     fwrite(image_storage, 64*1024*1024, 1, fptr);
     fclose(fptr);
 

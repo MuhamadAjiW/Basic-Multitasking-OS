@@ -78,7 +78,7 @@ void initialize_filesystem_fat32(){
             .sector_next = 0
         };
         FAT_Table.sector_next[RESERVED_CLUSTER_NUMBER] = END_OF_FILE;
-        for (int i = 1; i < FAT_CLUSTER_LENGTH; i++){
+        for (uint32_t i = 1; i < FAT_CLUSTER_LENGTH; i++){
             FAT_Table.sector_next[i] = i + 1;
         }
         FAT_Table.sector_next[FAT_CLUSTER_LENGTH] = END_OF_FILE;
@@ -116,7 +116,7 @@ void initialize_filesystem_fat32(){
 }
 
 void write_fat(FAT32FileAllocationTable* FAT_request){
-    int cluster = 0;
+    uint32_t cluster = 0;
     for(uint16_t i = 0; i < FAT_CLUSTER_LENGTH; i++){
         write_clusters(((void*)FAT_request + cluster), i + 1, 1);
         cluster += 512;
@@ -124,7 +124,7 @@ void write_fat(FAT32FileAllocationTable* FAT_request){
 }
 
 void read_fat(FAT32FileAllocationTable* FAT_destination){
-    int cluster = 0;
+    uint32_t cluster = 0;
     for(uint16_t i = 0; i < FAT_CLUSTER_LENGTH; i++){
         read_clusters(((void*)FAT_destination + cluster), i + 1, 1);
         cluster += 512;
