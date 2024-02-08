@@ -35,7 +35,7 @@ public class GifConverter {
         int width = frames.get(0).getWidth();
         int height = frames.get(0).getHeight();
         int mod = 1;            //mod yang udah disebut
-        int leninency = 5;      //leninency yang udah disebut
+        int leninency = 4;      //leninency yang udah disebut
         int reswidth = width / mod;
         int resheight = height / mod;
         int colorCombined = reswidth * 3;

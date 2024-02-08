@@ -1,7 +1,5 @@
 import java.awt.Color;
 import java.awt.image.BufferedImage;
-import java.io.BufferedWriter; 
-import java.io.FileWriter; 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -25,10 +23,10 @@ public class ImageConverter {
 
     public static void main(String[] args) {
         try{
-            BufferedImage image = ImageIO.read(new File("assets/waifu4dim.jpg"));     //kalo mau ganti nama file di sini
+            BufferedImage image = ImageIO.read(new File("assets/waifu2dim.jpg"));     //kalo mau ganti nama file di sini
             
             int mod = 4;            //mod yang udah disebut
-            int leninency = 3;      //leninency yang udah disebut
+            int leninency = 2;      //leninency yang udah disebut
 
             int width = image.getWidth();
             int height = image.getHeight();

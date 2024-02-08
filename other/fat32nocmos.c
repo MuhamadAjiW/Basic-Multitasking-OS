@@ -94,6 +94,14 @@ void initialize_filesystem_fat32(){
             .buffer_size           = 0,
         };
         write(request);
+        struct FAT32DriverRequest request2 = {
+            .buf                   = (uint8_t*)0,
+            .name                  = "bg",
+            .ext                   = "\0\0\0",
+            .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
+            .buffer_size           = 0,
+        };
+        write(request2);
         entryflags systemflags = {
             .read_only = 0,
             .hidden = 0,

@@ -19,10 +19,10 @@
 
 parser_t sh_parser = {0};
 shell_app sh = {
-    .default_font_color = 0xf,
-    .default_input_color = 0x54,
-    .default_background_color = 0xe,
-    .default_cursor_color = 0xd,
+    .default_font_color = 0x1,
+    .default_input_color = 0x2,
+    .default_background_color = 0x0,
+    .default_cursor_color = 0x4,
 
     .cursor_x = 0,
     .cursor_y = 0,
@@ -68,7 +68,7 @@ void app_initialize(){
     grid_initialize();
     cursor_initialize();
 
-    app_load_background("system/stdbg.imp");
+    app_load_background("system/bg/stdbg1.imp");
     app_draw_background(&(sh.winfo), sh.background);
     reader_initialize();
 
@@ -121,7 +121,7 @@ void app_play_animation(char* path){
         multiplier *= 10;
     }
     
-    if(offset + anim.palette_len > 256){
+    if(offset + anim.palette_len > 250){
         print("\nplayanim: Too many colors\n");
         anim_delete(&anim);
         cursor_on();
@@ -652,7 +652,7 @@ void shell_evaluate(){
     }
 
     sout_t outstream = sout_newstr(message);
-    sout_printall_ws(&outstream);
+    sout_printall(&outstream);
 
     str_delete(&message);
     sout_clear(&outstream);
@@ -704,7 +704,8 @@ int main(void) {
             default:
                 if(buf[0] >= 32 && buf[0] <= 126){
                     reader_insert(buf[0]);
-                    print_char_color(buf[0], 14);
+                    print_char_color(buf[0], sh.default_input_color);
+                    // 14
                 }
                 break;
         }

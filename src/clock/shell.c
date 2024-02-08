@@ -6,7 +6,7 @@
 #include "lib-header/cmos.h"
 
 shell_app sh = {
-    .default_font_color = 0xf,
+    .default_font_color = 0x1,
     .default_background_color = 0x0,
     .winfo = {0},
     .grid = {0},

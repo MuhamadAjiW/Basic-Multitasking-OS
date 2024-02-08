@@ -43,9 +43,14 @@
 #define BUFFER_WIDTH 64
 
 
-#define DEFAULT_COLOR_BG 84
-#define DEFAULT_COLOR_FG 15
-#define CURSOR_COLOR 13
+#define DEFAULT_COLOR_FG 0x1
+#define DEFAULT_COLOR_INPUT 0x2
+#define DEFAULT_COLOR_BG 0x3
+#define DEFAULT_CURSOR_COLOR 0x4
+
+// #define DEFAULT_COLOR_BG 84
+// #define DEFAULT_COLOR_FG 15
+// #define DEFAULT_CURSOR_COLOR 13
 
 #define MEMORY_GRAPHICS (uint8_t *) 0xC00A0000 //0xA0000 before remapping
 
