@@ -53,6 +53,7 @@ int main(void) {
     }
 
     window_register(&winfo);
+    window_update(&winfo);
     
     int8_t movx = x_direction? 1 : -1;
     int8_t movy = y_direction? 1 : -1;

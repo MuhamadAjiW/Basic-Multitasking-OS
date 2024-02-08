@@ -118,8 +118,6 @@ void winmgr_register_winfo(window_info* winfo){
     winmgr.windows[id].id = id;
     winmgr_update_winfo(*winfo, id);
     winmgr_stack_add(id);
-
-    graphics_display();
 }
 void winmgr_update_window(window_info* winfo){
     uint8_t id = winfo->id;

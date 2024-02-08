@@ -11,7 +11,7 @@ void font_load(font_info* finfo, char* path, uint32_t current_cluster){
     }
     
     FAT32DriverRequest req = path_to_file_request(path, current_cluster);
-    FAT32FileReader font_file = readf(req);
+    FAT32FileReader font_file = readf(&req);
 
     finfo->width = *(((uint8_t*)font_file.content) + 0) - 48;
     finfo->height = *(((uint8_t*)font_file.content) + 1) - 48;
@@ -67,7 +67,7 @@ void font_load(font_info* finfo, char* path, uint32_t current_cluster){
         line++;
     }
 
-    closef(font_file);
+    closef(&font_file);
 }
 
 void font_clear(font_info* finfo){

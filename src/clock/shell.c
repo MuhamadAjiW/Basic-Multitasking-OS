@@ -49,8 +49,8 @@ void app_initialize(){
     sh.grid.char_map[5] = ':';
 
 
-    write_time();
     window_register(&(sh.winfo));
+    write_time();
 }
 
 void app_load_background(){

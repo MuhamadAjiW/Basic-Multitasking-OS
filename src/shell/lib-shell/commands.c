@@ -18,17 +18,6 @@
 extern shell_app shell;
 extern parser_t sh_parser;
 
-void delay(uint32_t ms){
-    uint32_t currentTick = 0;
-    uint32_t cachedTick = 0;
-    syscall(SYSCALL_GET_TICK, (uint32_t) &currentTick, 0, 0);
-    cachedTick = currentTick + ms;
-
-    while (currentTick < cachedTick){
-        syscall(SYSCALL_GET_TICK, (uint32_t) &currentTick, 0, 0);
-    }
-}
-
 void dir(uint32_t currentCluster){
     FAT32DirectoryReader directory_reader;
 
@@ -100,7 +89,7 @@ void dir(uint32_t currentCluster){
 
     sout_clear(&sout);
     str_delete(&string);
-    closef_dir(directory_reader);
+    closef_dir(&directory_reader);
 }
 
 void mkdir(char *dirname, uint32_t currentCluster){
@@ -147,7 +136,7 @@ void mkdir(char *dirname, uint32_t currentCluster){
                 }
             }
         }
-        closef_dir(read);
+        closef_dir(&read);
     }
 
     if(isFound){
@@ -172,7 +161,7 @@ void mkdir(char *dirname, uint32_t currentCluster){
                 return;
             }
 
-            writef(req);
+            writef(&req);
             
             read = get_dir_info(current_cluster);
             DirectoryEntry self;
@@ -189,7 +178,7 @@ void mkdir(char *dirname, uint32_t currentCluster){
             current_cluster = self.cluster_number;
             counter++;
 
-            closef_dir(read);
+            closef_dir(&read);
         }
 
 
@@ -299,7 +288,7 @@ void whereis(uint16_t current_cluster, char* filename, char* path){
 
         }
     }
-    closef_dir(read);
+    closef_dir(&read);
 }
 
 void ls(uint32_t currentCluster){
@@ -451,11 +440,13 @@ void rm(uint32_t currentCluster) {
                 print("': Is a directory\n");
             } else {
                 //print("\ndianggep dir");
-                deletef(path_to_dir_request(sh_parser.content[length - 1], currentCluster));
+                FAT32DriverRequest req = path_to_dir_request(sh_parser.content[length - 1], currentCluster);
+                deletef(&req);
             }
         } else if (is_filepath_valid(sh_parser.content[length - 1], currentCluster)) {
             //print("\ndianggep file");
-            deletef(path_to_file_request(sh_parser.content[length - 1], currentCluster));
+            FAT32DriverRequest req = path_to_file_request(sh_parser.content[length - 1], currentCluster);
+            deletef(&req);
         } else {
             print("\nrm: Invalid command\n");
         }
@@ -759,7 +750,7 @@ void mv(uint32_t currentCluster) {
         }
 
         for (int i = 0; i < nSrc; i++) {
-            deletef(srcs[i]);
+            deletef(&srcs[i]);
         }
 
     } else {
@@ -774,7 +765,7 @@ void copy1Folder(FAT32DriverRequest src, FAT32DriverRequest dest) {
     DirectoryEntry destination = get_info(dest);
     FAT32DriverRequest selfReq = src;
     selfReq.parent_cluster_number = destination.cluster_number;
-    uint8_t code = writef(selfReq);
+    uint8_t code = writef(&selfReq);
     if (code == 1){
         print("\ncp: Folder already exist\n");
         return;
@@ -788,7 +779,7 @@ void copy1Folder(FAT32DriverRequest src, FAT32DriverRequest dest) {
     DirectoryEntry self = get_info(selfReq);
     DirectoryEntry source = get_info(src);
 
-    FAT32DirectoryReader read = readf_dir(src);
+    FAT32DirectoryReader read = readf_dir(&src);
     for(uint32_t i = 0; i < read.cluster_count; i++){
         for(uint32_t j = 0; j < ENTRY_COUNT; j++){
             // read.content[i].entry[j];
@@ -832,16 +823,16 @@ void copy1Folder(FAT32DriverRequest src, FAT32DriverRequest dest) {
         }
     }
     
-    closef_dir(read);
+    closef_dir(&read);
 }
 
 void copy1File(FAT32DriverRequest src, FAT32DriverRequest dest) {
-    FAT32FileReader read = readf(src);
+    FAT32FileReader read = readf(&src);
     dest.buffer_size = read.size;
     dest.buf = read.content;
-    closef(read);
+    closef(&read);
     
-    uint8_t code = writef(dest);
+    uint8_t code = writef(&dest);
     if (code == 1){
         print("\ncp: Filename already exist\n");
         return;
@@ -856,7 +847,7 @@ void cat(uint32_t currentCluster) {
     // prekondisi: path sudah valid, dan adalah path ke file
     FAT32DriverRequest req = path_to_file_request(sh_parser.content[1], currentCluster);
     
-    FAT32FileReader result = readf(req);
+    FAT32FileReader result = readf(&req);
     string_t string = str_new("\n");
     for (uint32_t j = 0; j < result.size; j++) {
         str_addc(&string, *(((char*)result.content) + j));
@@ -866,9 +857,8 @@ void cat(uint32_t currentCluster) {
 
     str_delete(&string);
     sout_clear(&sout);
-    closef(result);
+    closef(&result);
 } 
-
 
 // TODO: Review
 void exec(FAT32DriverRequest* req){

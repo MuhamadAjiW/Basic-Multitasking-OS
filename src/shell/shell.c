@@ -8,6 +8,7 @@
 #include "lib-header/window_manager.h"
 #include "lib-header/font.h"
 #include "lib-header/image.h"
+#include "lib-header/animation.h"
 
 #include "lib-header/shell.h"
 #include "lib-header/commands.h"
@@ -62,15 +63,18 @@ void app_initialize(){
     font_load(&(sh.finfo), "system/stdfont.fnt", ROOT_CLUSTER_NUMBER);
     sh.winfo.ylen -= sh.finfo.height;
     window_init(&(sh.winfo));
-
+    window_register(&(sh.winfo));
     grid_initialize();
+    cursor_initialize();
+
     app_load_background("system/stdbg.imp");
     app_draw_background(&(sh.winfo), sh.background);
-    window_register(&(sh.winfo));
     reader_initialize();
 
 
-    cursor_initialize();
+    app_play_animation("system/stdanim.anm");
+    app_play_animation("system/stdanim.anm");
+    app_play_animation("system/stdanim.anm");
 
     shell_newline();
 }
@@ -98,6 +102,46 @@ void app_change_background(char* path){
     app_load_background(path);
     app_draw_background(&(sh.winfo), sh.background);
     print("\nBackground change successful\n");
+}
+void app_play_animation(char* path){
+    cursor_off();
+    anim_info anim;
+    anim_load(&anim, path, sh.dir.cluster_number);
+
+    FAT32DriverRequest req = path_to_file_request("system/colors.cnf", ROOT_CLUSTER_NUMBER);
+    FAT32FileReader config = readf(&req);
+
+    uint32_t roamer = 0;
+    uint32_t multiplier = 1;
+    uint32_t offset = 0;
+
+    while (*(((char*)config.content) + roamer) != 0){
+        roamer++;
+    }
+    for(uint32_t j = 1; j <= roamer; j++){
+        offset += ((*(((uint8_t*)config.content) + roamer - j) - 48) * multiplier);
+        multiplier *= 10;
+    }
+    if(offset + anim.palette_len > 256){
+        print("\nplayanim: Too many colors\n");
+    }
+    else{
+        syscall(SYSCALL_GRAPHICS_PALETTE_UPDATE, (uint32_t) anim.palette, anim.palette_len, offset);
+
+        for(uint32_t i = 0; i < anim.frame_count; i++){
+            uint32_t frameoffset = i * anim.width * anim.height;
+            uint32_t limit = sh.winfo.xlen * sh.winfo.ylen;
+            for(uint32_t j = 0; j < limit; j++){
+                sh.winfo.main_buffer[j] = anim.map[frameoffset + j] - offset;
+            }
+            window_update(&(sh.winfo));
+            delay(5);
+        }
+
+        anim_delete(&anim);
+        print("\n");
+        cursor_on();
+    }
 }
 
 // Grid
@@ -397,7 +441,7 @@ void shell_evaluate(){
             else if (is_directorypath_valid(sh_parser.content[1], sh.dir.cluster_number)){
                 cd(sh_parser.content[1], &sh.dir);
             } else {
-                print("\ncd: no such directory: ");
+                print("\ncd: No such directory: ");
                 print(sh_parser.content[1]);
                 print("\n");
             }
@@ -451,7 +495,10 @@ void shell_evaluate(){
         }
         else if(strcmp(sh_parser.content[0], "changebg") == 0){
             if(sh_parser.word_count == 1){
-                print("\nchangebg: no image provided\n");
+                print("\nchangebg: No image provided\n");
+            }
+            else if (sh_parser.word_count > 2){
+                print("\nchangebg: Invalid argument\n");
             }
             else{
                 if(is_filepath_valid(sh_parser.content[1], sh.dir.cluster_number)){
@@ -472,11 +519,50 @@ void shell_evaluate(){
                         }
                     }
                     
-                    if(!valid) print("\nchangebg: invalid file\n");
+                    if(!valid) print("\nchangebg: Invalid file\n");
                     else app_change_background(sh_parser.content[1]);
                 }
                 else{
-                    print("\nchangebg: no such file: ");
+                    print("\nchangebg: No such file: ");
+                    print(sh_parser.content[1]);
+                    print("\n");
+                }
+            }
+        }
+        else if(strcmp(sh_parser.content[0], "playanim") == 0){
+            if(sh_parser.word_count == 1){
+                print("\nplayanim: No animation provided\n");
+            }
+            else if (sh_parser.word_count > 2){
+                print("\nplayanim: Invalid argument\n");
+            }
+            else{
+                if(is_filepath_valid(sh_parser.content[1], sh.dir.cluster_number)){
+                    int len = strlen(sh_parser.content[1]);
+                    uint8_t valid = 1;
+                    if(len < 3) valid = 0;
+                    else{
+                        for (int i = 0; i < 3; i++) {
+                            if (sh_parser.content[1][len - 1 - i] == '.') {
+                                valid = 0;
+                                break;
+                            }
+                        }
+                        if(valid){
+                            valid = sh_parser.content[1][len-1] == 'm' &&
+                                    sh_parser.content[1][len-2] == 'n' && 
+                                    sh_parser.content[1][len-3] == 'a';
+                        }
+                    }
+                    
+                    if(!valid) print("\nplayanim: Invalid file\n");
+                    else{
+                        print("\nLoading animation...");
+                        app_play_animation(sh_parser.content[1]);
+                    }
+                }
+                else{
+                    print("\nplayanim: No such file: ");
                     print(sh_parser.content[1]);
                     print("\n");
                 }

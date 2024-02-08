@@ -8,7 +8,7 @@
 
 void image_load(image_info* img, char* path, uint32_t current_cluster){
     FAT32DriverRequest req = path_to_file_request(path, current_cluster);
-    FAT32FileReader img_file = readf(req);
+    FAT32FileReader img_file = readf(&req);
 
     uint32_t roamer = 0;
     uint32_t number_count = 0;
@@ -30,10 +30,10 @@ void image_load(image_info* img, char* path, uint32_t current_cluster){
         else img->height = number_value;
         roamer++;
     }
-    img->map = malloc(img->width * img->height);
+    uint32_t size = img->width * img->height;
+    img->map = malloc(size);
 
-    for(uint32_t i = 0; i < img->height * img->width; i++){
-        // TODO: Implement
+    for(uint32_t i = 0; i < size; i++){
         img->map[i] = *(((char*)img_file.content) + roamer);
         roamer++;
     }
@@ -50,7 +50,7 @@ void image_load(image_info* img, char* path, uint32_t current_cluster){
     }
     roamer++;
 
-    closef(img_file);
+    closef(&img_file);
 }
 
 void image_delete(image_info* img){
@@ -71,9 +71,9 @@ void image_change_palette(image_info img){
         .buffer_size           = sizeof(imgoffset),
     };
     if (is_filepath_valid("system/colors.cnf", ROOT_CLUSTER_NUMBER)){
-        deletef(palette_config);
+        deletef(&palette_config);
     }
-    writef(palette_config);
+    writef(&palette_config);
     
     syscall(SYSCALL_GRAPHICS_PALETTE_UPDATE, (uint32_t) img.palette, img.palette_len, 0);
 }

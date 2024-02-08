@@ -64,7 +64,7 @@ uint8_t is_directorypath_valid(char* pathname, uint32_t current_cluster){
                 return isFound;        
             }
         }
-        closef_dir(read);
+        closef_dir(&read);
     }
     parser_clear(&pathparser);
     return isFound;
@@ -154,7 +154,7 @@ uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster){
                 break;
             }
         }
-        closef_dir(read);
+        closef_dir(&read);
     }
 
     if (isFound || pathLength <= 2) {
@@ -177,7 +177,7 @@ uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster){
                 break;
             }
         }
-        closef_dir(read);
+        closef_dir(&read);
     }
     parser_clear(&pathparser);
     return isFound;
@@ -229,7 +229,7 @@ uint32_t path_to_cluster(char* pathname, uint32_t current_cluster){
                 }
             }
         }
-        closef_dir(read);
+        closef_dir(&read);
     }
     parser_clear(&pathparser);
     return current_cluster;
@@ -315,7 +315,7 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
                 break;
             }
         }
-        closef_dir(read);
+        closef_dir(&read);
     }
 
     uint32_t parentCluster = current_cluster;
@@ -347,7 +347,7 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
                 break;
             }
         }
-        closef_dir(read);
+        closef_dir(&read);
     }
 
     FAT32DriverRequest req = {
@@ -409,7 +409,7 @@ FAT32DriverRequest path_to_dir_request(char* pathname, uint32_t current_cluster)
                 break;
             }
         }
-        closef_dir(read);
+        closef_dir(&read);
 
     }
 
@@ -446,14 +446,14 @@ uint8_t check_contain(uint32_t cluster_child, uint32_t cluster_parent){
         while (traversal_cluster != ROOT_CLUSTER_NUMBER)
         {
             if(traversal_cluster == cluster_parent){
-                closef_dir(read);
+                closef_dir(&read);
                 return 1;
             }
             traversal_cluster = read.content[0].info.parent_base_cluster;
             read = get_dir_info(traversal_cluster);
         }
 
-        closef_dir(read);
+        closef_dir(&read);
         return 0;
         
     }
@@ -474,7 +474,7 @@ DirectoryEntry get_info(FAT32DriverRequest request){
             }
         }
     }
-    closef_dir(read);
+    closef_dir(&read);
 
     return self;
 }
@@ -526,7 +526,7 @@ uint8_t copy_create_folders(char* path, uint32_t currentCluster, uint8_t named){
                 }
             }
         }
-        closef_dir(read);
+        closef_dir(&read);
     }
 
     while (counter < pathparser.word_count - named){
@@ -544,7 +544,7 @@ uint8_t copy_create_folders(char* path, uint32_t currentCluster, uint8_t named){
             print("\ncp: Operation halted because of forbidden folder name (..)\n");
             return 1;
         }
-        writef(req);
+        writef(&req);
         read = get_dir_info(current_cluster);
         DirectoryEntry self;
         for(uint32_t i = 0; i < read.cluster_count; i++){
@@ -559,7 +559,7 @@ uint8_t copy_create_folders(char* path, uint32_t currentCluster, uint8_t named){
         }
         current_cluster = self.cluster_number;
         counter++;
-        closef_dir(read);
+        closef_dir(&read);
     }
     parser_clear(&pathparser);
     return 0;

@@ -75,29 +75,29 @@ void sys_task_info(TrapFrame cpu){
 
 // Filesystem syscall
 void sys_read(TrapFrame cpu){
-    struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.registers.ebx;
+    FAT32DriverRequest request = *(FAT32DriverRequest*) cpu.registers.ebx;
     *((FAT32FileReader*) cpu.registers.ecx) = read(request);
 }
 void sys_read_directory(TrapFrame cpu){
-    struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.registers.ebx;
+    FAT32DriverRequest request = *(FAT32DriverRequest*) cpu.registers.ebx;
     *((FAT32DirectoryReader*) cpu.registers.ecx) = read_directory(request);
 }
 void sys_self_directory_info(TrapFrame cpu){
     *((FAT32DirectoryReader*) cpu.registers.ecx) = self_directory_info(cpu.registers.ebx);
 }
 void sys_write(TrapFrame cpu){
-    struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.registers.ebx;
+    FAT32DriverRequest request = *(FAT32DriverRequest*) cpu.registers.ebx;
     *((int8_t*) cpu.registers.ecx) =  write(request);
 }
 void sys_delete(TrapFrame cpu){
-    struct FAT32DriverRequest request = *(struct FAT32DriverRequest*) cpu.registers.ebx;
+    FAT32DriverRequest request = *(FAT32DriverRequest*) cpu.registers.ebx;
     *((int8_t*) cpu.registers.ecx) =  delete(request);
 }
 void sys_close_file(TrapFrame cpu){
-    close_file(*(struct FAT32FileReader*) cpu.registers.ebx);
+    close_file(*(FAT32FileReader*) cpu.registers.ebx);
 }
 void sys_close_directory(TrapFrame cpu){
-    close_directory(*(struct FAT32DirectoryReader*) cpu.registers.ebx);
+    close_directory(*(FAT32DirectoryReader*) cpu.registers.ebx);
 }
 
 void enable_system_calls(){

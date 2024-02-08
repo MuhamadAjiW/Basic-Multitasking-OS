@@ -69,6 +69,7 @@ void app_initialize();
 void app_load_background(char* path);
 void app_draw_background(window_info* winfo, image_info imginfo);
 void app_change_background(char* path);
+void app_play_animation(char* path);
 
 //----Grid
 void grid_initialize();
