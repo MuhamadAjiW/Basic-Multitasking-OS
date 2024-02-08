@@ -86,7 +86,7 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
                 break;
             }
         }
-        closef_dir(read);
+        closef_dir(&read);
     }
 
     uint32_t parentCluster = current_cluster;
@@ -115,7 +115,7 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
                 break;
             }
         }
-        closef_dir(read);
+        closef_dir(&read);
     }
 
     FAT32DriverRequest req = {

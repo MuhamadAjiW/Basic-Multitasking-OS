@@ -71,9 +71,6 @@ void app_initialize(){
     app_draw_background(&(sh.winfo), sh.background);
     reader_initialize();
 
-
-    app_play_animation("system/stdanim.anm");
-    app_play_animation("system/stdanim.anm");
     app_play_animation("system/stdanim.anm");
 
     shell_newline();
