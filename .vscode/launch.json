@@ -25,9 +25,7 @@
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
-            
-            "miDebuggerPath": "C:/external_tools/i686-elf-tools-windows/bin/i686-elf-gdb.exe",
-            
+            // "miDebuggerPath": "C:/external_tools/i686-elf-tools-windows/bin/i686-elf-gdb.exe",
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",

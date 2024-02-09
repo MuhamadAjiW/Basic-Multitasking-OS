@@ -35,7 +35,7 @@ typedef struct PCB
     uint32_t pid;                   // id
     struct PCB* parent;             // parent id
 
-    TrapFrame* tf;                  // TrapFrame for current syscall
+    TrapFrame* tf;                  // TrapFrame for syscalls
     Context* context;               // Context to switch to
     
     // Extras for process management purposes
