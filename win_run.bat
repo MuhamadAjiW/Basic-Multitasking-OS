@@ -1,1 +1,0 @@
-cd bin && qemu-system-i386 -m 1024m -drive file=drive.img,format=raw,media=disk,id=disk -cdrom os2023.iso -accel tcg -cpu "max"

@@ -24,7 +24,10 @@ run: all
 all: build
 build: complete
 clean:
-	rm -rf *.o *.iso $(OUTPUT_FOLDER)/kernel
+	@rm -rf .\bin
+	@mkdir bin
+nobuild:
+	@cd bin && qemu-system-i386 -m 1024m -drive file=drive.img,format=raw,media=disk,id=disk -cdrom os2023.iso -accel tcg -cpu "max"
 
 $(OUTPUT_FOLDER)/%.o: $(SOURCE_FOLDER)/%.c
 	@$(CC) $(CFLAGS) $< -o $@
@@ -182,16 +185,17 @@ insert: shell clock bouncy
 
 	@echo Inserting shell into system directory... && cd bin && ./inserter sh 66 drive.img
 	@echo Inserting clock into system directory... && cd bin && ./inserter sysclock 66 drive.img prg
-# @echo Inserting bouncy into system directory... && cd bin && ./inserter bounce 66 drive.img prg
-# @echo Inserting font into system directory... && cp other/stdfont bin/stdfont && cd bin && ./inserter stdfont 66 drive.img fnt
-# @echo Inserting first background image into system directory... && cp other/stdbg1 bin/stdbg1 && cd bin && ./inserter stdbg1 67 drive.img imp
-# @echo Inserting second background image into system directory... && cp other/stdbg2 bin/stdbg2 && cd bin && ./inserter stdbg2 67 drive.img imp
-# @echo Inserting third background image into system directory... && cp other/stdbg3 bin/stdbg3 && cd bin && ./inserter stdbg3 67 drive.img imp
-# @echo Inserting fourth background image into system directory... && cp other/stdbg4 bin/stdbg4 && cd bin && ./inserter stdbg4 67 drive.img imp
-# @echo Inserting fifth background image into system directory... && cp other/stdbg5 bin/stdbg5 && cd bin && ./inserter stdbg5 67 drive.img imp
-# @echo Inserting animation into system directory... && cp other/stdanim bin/stdanim && cd bin && ./inserter stdanim 66 drive.img anm
+	@echo Inserting bouncy into system directory... && cd bin && ./inserter bounce 66 drive.img prg
+	@echo Inserting font into system directory... && cp other/stdfont bin/stdfont && cd bin && ./inserter stdfont 66 drive.img fnt
+	@echo Inserting first background image into system directory... && cp other/stdbg1 bin/stdbg1 && cd bin && ./inserter stdbg1 67 drive.img imp
+	@echo Inserting second background image into system directory... && cp other/stdbg2 bin/stdbg2 && cd bin && ./inserter stdbg2 67 drive.img imp
+	@echo Inserting third background image into system directory... && cp other/stdbg3 bin/stdbg3 && cd bin && ./inserter stdbg3 67 drive.img imp
+	@echo Inserting fourth background image into system directory... && cp other/stdbg4 bin/stdbg4 && cd bin && ./inserter stdbg4 67 drive.img imp
+	@echo Inserting fifth background image into system directory... && cp other/stdbg5 bin/stdbg5 && cd bin && ./inserter stdbg5 67 drive.img imp
+	@echo Inserting animation into system directory... && cp other/stdanim bin/stdanim && cd bin && ./inserter stdanim 66 drive.img anm
 # 	@echo Inserting test text into root directory... && cp other/text bin/text && cd bin && ./inserter text 65 drive.img uwu 
 
 
 #build everything
 complete: disk iso inserter insert
+# complete: disk inserter insert

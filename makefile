@@ -24,7 +24,10 @@ run: all
 all: build
 build: complete
 clean:
-	rm -rf *.o *.iso $(OUTPUT_FOLDER)/kernel
+	@rm -rf .\bin
+	@mkdir bin
+nobuild:
+	@cd bin && qemu-system-i386 -m 1024m -drive file=drive.img,format=raw,media=disk,id=disk -cdrom os2023.iso -accel tcg -cpu "max"
 
 $(OUTPUT_FOLDER)/%.o: $(SOURCE_FOLDER)/%.c
 	@$(CC) $(CFLAGS) $< -o $@
@@ -194,5 +197,5 @@ insert: shell clock bouncy
 
 
 #build everything
-# complete: disk iso inserter insert
-complete: disk inserter insert
+complete: disk iso inserter insert
+# complete: disk inserter insert
