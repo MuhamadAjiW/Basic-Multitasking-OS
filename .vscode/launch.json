@@ -1,18 +1,33 @@
 {
     "version": "0.2.0",
+    "inputs": [
+        {
+          "id": "workspaceFolderFix",
+          "type": "command",
+          "command": "extension.commandvariable.transform",
+          "args": {
+            "text": "${workspaceFolder}",
+            "find": "\\\\",
+            "replace": "/",
+            "flags": "g"
+          }
+        }
+      ],  
     "configurations": [
         {
             "name": "Kernel",
             "type": "cppdbg",
             "request": "launch",
-            "program": "${workspaceRoot}/bin/kernel",
+            "program": "${input:workspaceFolderFix}/bin/kernel",
             "args": [],
             "stopAtEntry": false,
-            "cwd": "${workspaceFolder}",
+            "cwd": "${input:workspaceFolderFix}/bin",
             "environment": [],
             "externalConsole": false,
             "MIMode": "gdb",
+            
             "miDebuggerPath": "C:/external_tools/i686-elf-tools-windows/bin/i686-elf-gdb.exe",
+            
             "setupCommands": [
                 {
                     "description": "Enable pretty-printing for gdb",
@@ -29,11 +44,11 @@
                     "description": "Connect to QEMU remote debugger"
                 },
                 {
-                    "text": "symbol-file kernel",
+                    "text": "symbol-file ${input:workspaceFolderFix}/bin/kernel",
                     "description": "Get kernel symbols"
                 },
                 {
-                    "text": "add-symbol-file sh_elf",
+                    "text": "add-symbol-file ${input:workspaceFolderFix}/bin/sh_elf",
                     "description": "Get shell symbols"
                 },
                 // {
