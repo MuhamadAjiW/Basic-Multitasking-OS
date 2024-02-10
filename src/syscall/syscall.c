@@ -2,6 +2,7 @@
 #include "../lib-header/stdtype.h"
 #include "../lib-header/interrupt.h"
 
+#include "../lib-header/parser.h"
 #include "../lib-header/graphics.h"
 #include "../lib-header/keyboard.h"
 #include "../lib-header/pit.h"
@@ -60,7 +61,7 @@ void sys_winmgr_close(TrapFrame cpu){
 
 // Tasking syscall
 void sys_task_start(TrapFrame cpu){
-    task_create(*(FAT32DriverRequest*) cpu.registers.ebx, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+    task_create(*(FAT32DriverRequest*) cpu.registers.ebx, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY, (char**) cpu.registers.ecx);
 }
 void sys_task_stop(TrapFrame cpu){
     task_terminate(cpu.registers.ebx);

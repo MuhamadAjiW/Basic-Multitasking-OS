@@ -577,53 +577,6 @@ void shell_evaluate(){
         }
 
         // TODO: Review
-        else if(strcmp(sh_parser.content[0], "exec") == 0){
-            int execution_num = 1;
-            switch (sh_parser.word_count){
-            case 3:
-                if(!int_parse_string_valid(sh_parser.content[2])){
-                    str_add(&message, "\nexec: ");
-                    str_add(&message, sh_parser.content[3]);
-                    str_add(&message, ": Invalid execution amount\n");
-                    break;
-                }
-                
-                execution_num = int_parse_string(sh_parser.content[2]);
-                if(execution_num < 1){
-                    str_add(&message, "\nexec: ");
-                    str_add(&message, sh_parser.content[3]);
-                    str_add(&message, ": Invalid execution amount\n");
-                    break;
-                }
-                /* fall through */
-
-            case 2:
-                if(is_filepath_valid(sh_parser.content[1], sh.dir.cluster_number)){
-                    FAT32DriverRequest req = path_to_file_request(sh_parser.content[1], sh.dir.cluster_number);
-                    if( req.ext[0] == 'p' &&
-                        req.ext[1] == 'r' &&
-                        req.ext[2] == 'g'
-                    ){
-                        for (int i = 0; i < execution_num; i++){
-                            exec(&req);
-                        }
-                    }
-                    else{
-                        str_add(&message, "\nexec: Invalid file type");
-                    }
-                }
-                else{
-                    str_add(&message, "\nexec: ");
-                    str_add(&message, sh_parser.content[1]);
-                    str_add(&message, ": No such file\n");
-                }
-                break;
-            
-            default:
-                str_add(&message, "\nexec: Invalid argument");
-                break;
-            }
-        }
         else if(strcmp(sh_parser.content[0], "ps") == 0){
             if(sh_parser.word_count == 1) ps();
             else str_add(&message, "\nps: Invalid argument");
@@ -643,6 +596,11 @@ void shell_evaluate(){
             } else{
                 str_add(&message, "\nkill: Invalid argument");
             }
+        }
+        else if (is_filepath_valid(sh_parser.content[0], sh.dir.cluster_number)){
+            // TODO: Argument passing to programs
+            FAT32DriverRequest req = path_to_file_request(sh_parser.content[0], sh.dir.cluster_number);
+            exec(&req, sh_parser.content);
         }
         else{
             str_add(&message, "\nNo Command found: ");

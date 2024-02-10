@@ -101,7 +101,7 @@ uint32_t task_generate_pid(){
     return i;
 }
 
-uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags){
+uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags, char** args){
     __asm__ volatile ("cli");   // Stop interrupts when creating a task
 
     if(num_task == MAX_TASKS) {
@@ -175,10 +175,12 @@ uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t efl
 
     tf->cs = cs;
     tf->segments.ds = ds;
-
     tf->userss = ds;
     tf->useresp = u_stack;
     tf->eflags = eflags;
+
+    // Get args at edx, not eax since it is frequently used
+    tf->registers.edx = (uint32_t) args;
 
     // Note: entry is assumed to be always set at 0 when linking a program
     tf->eip = (uint32_t) request.buf;

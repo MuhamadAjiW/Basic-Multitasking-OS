@@ -861,8 +861,8 @@ void cat(uint32_t currentCluster) {
 } 
 
 // TODO: Review
-void exec(FAT32DriverRequest* req){
-    syscall(SYSCALL_TASK_START, (uint32_t) req, 0, 0);
+void exec(FAT32DriverRequest* req, char** args){
+    syscall(SYSCALL_TASK_START, (uint32_t) req, (uint32_t) args, 0);
 }
 
 void ps(){

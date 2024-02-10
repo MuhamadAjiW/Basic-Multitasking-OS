@@ -48,7 +48,7 @@ void copy1File(FAT32DriverRequest src, FAT32DriverRequest dest);
 void mkdir(char *dirname, uint32_t currentCluster);
 
 void whereis(uint16_t current_cluster, char* filename, char* path);
-void exec(FAT32DriverRequest* req);
+void exec(FAT32DriverRequest* req, char** args);
 void ps();
 void kill(uint32_t pid);
 
