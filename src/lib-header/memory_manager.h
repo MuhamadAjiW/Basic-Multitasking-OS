@@ -20,6 +20,7 @@
  */
 typedef struct allocator{
     uint8_t status;
+    uint32_t pid;
     uint32_t size;
 } __attribute__((packed)) allocator;
 
@@ -34,7 +35,7 @@ void memory_initialize();
  *  Should only be done if no pointers are active
  * 
  */
-void memory_clean();
+void memory_reset();
 
 /**
  *  Allocate memory in heap
@@ -64,5 +65,7 @@ void* krealloc(void* ptr, uint32_t size);
  */
 void kfree(void* ptr);
 
+// TODO: Document
+void memory_clean();
 
 #endif

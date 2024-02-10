@@ -233,6 +233,7 @@ void task_clean_scan(){
         if(tasks[i].state == TERMINATED){
             task_clean(i);
             // TODO: Also add a function to clean heap memory of dead tasks, for now they're leaking
+            memory_clean();
         }
     }
 }

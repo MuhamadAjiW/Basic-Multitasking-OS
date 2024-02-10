@@ -4,13 +4,20 @@
 #include "../lib-header/stdtype.h"
 #include "../lib-header/stdmem.h"
 #include "../lib-header/paging.h"
+#include "../lib-header/task.h"
 
 static uint32_t last_alloc = 0;
 static uint32_t heap_start = 0;
 static uint32_t heap_end = 0;
 
 static uint32_t dynamic_pointers = 0;
+
 extern Resource resource_table[RESOURCE_AMOUNT];
+extern PCB* current_task;
+extern uint8_t tasks_active[MAX_TASKS];
+
+// We have concurrent processes that might cause a conflict now so here's a simple mutex lock
+uint8_t mutex = 0;
 
 // Note:
 // heap is placed under kernel space
@@ -50,21 +57,61 @@ void memory_initialize(){
 }
 
 void memory_clean(){
+    // Wait if mutex locked
+    // Don't forget to open the mutex lock in every return
+    while (mutex);
+    mutex = 1;
+
+    void* memory = (void*) heap_start;
+    
+    while((uint32_t) memory < last_alloc){
+        allocator* a = (allocator*) memory;
+
+        // Basically kfree if there's an allocated memory for dead tasks while reducing internal fragmentation
+        // TODO: Cleaner can still be improved
+        if(!(a->status && tasks_active[a->pid])){
+            a->status = 0;
+
+            void* cleaner = memory + a->size + sizeof(allocator);
+            allocator* roam = (allocator*) cleaner;
+            while ((!roam->status || !tasks_active[roam->pid]) && (uint32_t) cleaner < last_alloc){
+                
+                a->size += roam->size + sizeof(allocator);                
+                cleaner += roam->size + sizeof(allocator);
+
+                roam = (allocator*) cleaner;
+            }
+        }
+
+        memory += a->size;
+        memory += sizeof(allocator);
+    }
+
+    mutex = 0;
+}
+
+void memory_reset(){
     memset((char*) heap_start, 0, last_alloc - heap_start);
     last_alloc = heap_start;
 }
 
 void* kmalloc(uint32_t size){
+    // Wait if mutex locked
+    // Don't forget to open the mutex lock in every return
+    while (mutex);
+    mutex = 1;
+
     void* memory = (void*) heap_start;
 
     if (size == 0){
+        mutex = 0;
         return 0;
     }
     else{
         while((uint32_t) memory < last_alloc){
             allocator* a = (allocator*) memory;
 
-            if(a->status){
+            if(a->status && tasks_active[a->pid]){
                 memory += a->size;
                 memory += sizeof(allocator);
             }
@@ -72,6 +119,7 @@ void* kmalloc(uint32_t size){
                 if(a->size >= size + sizeof(allocator) || a->size == size){
                     uint32_t oldsize = a->size;
                     a->status = 1;
+                    a->pid = current_task->pid;
                     a->size = size;
 
                     memset(memory + sizeof(allocator), 0, size);
@@ -79,11 +127,13 @@ void* kmalloc(uint32_t size){
                     if (oldsize != size){
                         a = (allocator*) ((uint32_t) a + sizeof(allocator) + size);
                         a->status = 0;
+                        a->pid = 0;
                         a->size = oldsize - size - sizeof(allocator);                        
                     }
 
                     dynamic_pointers++;
                     
+                    mutex = 0;
                     return (void*)(memory + sizeof(allocator));
                 }
                 else{
@@ -95,12 +145,14 @@ void* kmalloc(uint32_t size){
     }
 
     if (last_alloc + size + sizeof(allocator) >= heap_end){
+        mutex = 0;
         __asm__ volatile ("int $4");
         return 0;
     }
     else{
         allocator* a = (allocator*) last_alloc;
         a->status = 1;
+        a->pid = current_task->pid;
         a->size = size;
 
         last_alloc += size;
@@ -109,11 +161,13 @@ void* kmalloc(uint32_t size){
 
         dynamic_pointers++;
 
+        mutex = 0;
         return (void*)((uint32_t)a + sizeof(allocator));
     }
 }
 
 void* krealloc(void* ptr, uint32_t size){
+    // Doesn't need a mutex lock here since it does not potentially cause a conflict
     allocator* alloc = (allocator*)((uint32_t)ptr - sizeof(allocator));
     uint32_t oldsize = alloc->size;
 
@@ -130,6 +184,10 @@ void* krealloc(void* ptr, uint32_t size){
 
 
 void kfree(void* memory){
+    // Wait if mutex locked
+    while (mutex);
+    mutex = 1;
+
     allocator* alloc = (memory - sizeof(allocator));
     alloc->status = 0;
 
@@ -137,17 +195,16 @@ void kfree(void* memory){
 
     void* cleaner = memory + alloc->size;
     allocator* roam = (allocator*) cleaner;
-    while (!roam->status && (uint32_t) cleaner < last_alloc){
+    while ((!roam->status || !tasks_active[roam->pid]) && (uint32_t) cleaner < last_alloc){
         
-        alloc->size += roam->size + sizeof(allocator);
-        
-        cleaner += roam->size;
-        cleaner += sizeof(allocator);
+        alloc->size += roam->size + sizeof(allocator);        
+        cleaner += roam->size + sizeof(allocator);
 
         roam = (allocator*) cleaner;
     }
 
     dynamic_pointers--;
 
-    if(dynamic_pointers == 0) memory_clean();
+    if(dynamic_pointers == 0) memory_reset();
+    mutex = 0;
 }
