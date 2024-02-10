@@ -19,7 +19,7 @@ uint32_t randomizer(uint32_t seed) {
     return (seed / 65536) % 32768;
 }
 
-int main(void) {
+int main(__attribute__((unused)) uint32_t argc, __attribute__((unused)) char** argv) {
     uint32_t seed;
     syscall(SYSCALL_GET_TICK, (uint32_t) &seed, 0, 0);
 

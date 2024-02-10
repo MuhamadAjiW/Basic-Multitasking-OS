@@ -24,6 +24,7 @@
         "stdlib.h": "c",
         "graphics.h": "c",
         "image.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "commands.h": "c"
     },
 }

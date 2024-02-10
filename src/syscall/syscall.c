@@ -61,7 +61,12 @@ void sys_winmgr_close(TrapFrame cpu){
 
 // Tasking syscall
 void sys_task_start(TrapFrame cpu){
-    task_create(*(FAT32DriverRequest*) cpu.registers.ebx, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY, (char**) cpu.registers.ecx);
+    task_create(
+        *(FAT32DriverRequest*) cpu.registers.ebx,
+        STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY,
+        (uint32_t) cpu.registers.ecx,
+        (char**) cpu.registers.edx
+    );
 }
 void sys_task_stop(TrapFrame cpu){
     task_terminate(cpu.registers.ebx);
