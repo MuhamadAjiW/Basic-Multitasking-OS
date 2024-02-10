@@ -600,7 +600,7 @@ void shell_evaluate(){
         else if (is_filepath_valid(sh_parser.content[0], sh.dir.cluster_number)){
             // TODO: Argument passing to programs
             FAT32DriverRequest req = path_to_file_request(sh_parser.content[0], sh.dir.cluster_number);
-            exec(&req, sh_parser.word_count, sh_parser.content);
+            exec(&req, sh_parser);
         }
         else{
             str_add(&message, "\nNo Command found: ");

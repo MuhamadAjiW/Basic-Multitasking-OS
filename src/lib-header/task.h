@@ -6,6 +6,7 @@
 #include "stdtype.h"
 #include "cpu.h"
 #include "paging.h"
+#include "parser.h"
 #include "fat32.h"
 
 #define EFLAGS_BASE         0x2
@@ -76,7 +77,7 @@ void task_initialize();
 void task_get_info(task_info* tinfo, PCB task);
 void task_generate_list(task_list* list);
 uint32_t task_generate_pid();
-uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags, uint32_t argc, char** argv);
+uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags, parser_t* parser);
 void task_terminate_current();
 void task_terminate(uint32_t pid);
 void task_clean_scan();

@@ -861,8 +861,12 @@ void cat(uint32_t currentCluster) {
 } 
 
 // TODO: Review
-void exec(FAT32DriverRequest* req, uint32_t argc, char** argv){
-    syscall(SYSCALL_TASK_START, (uint32_t) req, argc, (uint32_t) argv);
+void exec(FAT32DriverRequest* req, parser_t parser){
+    // Behaviour is really weird if I referenced sh_parser
+    // I have no fucking idea why this is necessary but here we are
+    parser_t parser_copy = parser;
+    syscall(SYSCALL_TASK_START, (uint32_t) req, (uint32_t) &parser_copy, 0);
+    return;
 }
 
 void ps(){

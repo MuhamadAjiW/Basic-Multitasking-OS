@@ -25,6 +25,7 @@
         "graphics.h": "c",
         "image.h": "c",
         "stdio.h": "c",
-        "commands.h": "c"
+        "commands.h": "c",
+        "parser.h": "c"
     },
 }

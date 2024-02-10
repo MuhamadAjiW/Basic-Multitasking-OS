@@ -7,6 +7,7 @@
 #include "../lib-header/window_manager.h"
 #include "../lib-header/resource.h"
 #include "../lib-header/paging.h"
+#include "../lib-header/parser.h"
 #include "../lib-header/fat32.h"
 
 extern TSSEntry tss;
@@ -101,7 +102,7 @@ uint32_t task_generate_pid(){
     return i;
 }
 
-uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags, uint32_t argc, char** argv){
+uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags, parser_t* parser){
     __asm__ volatile ("cli");   // Stop interrupts when creating a task
 
     if(num_task == MAX_TASKS) {
@@ -151,6 +152,16 @@ uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t efl
     last_task_pid = pid;
     tasks_active[pid] = 1;
 
+
+    // Parser args if passed, had to do it before swapping pages
+    char** argv = 0;
+    uint32_t word_count = 0;
+    if(parser != 0 && parser->status && parser->word_count > 1){
+        argv = parser_args_extract(parser, pid);
+        word_count = parser->word_count - 1;
+    }
+
+
     // Prepare the entry for new task
     paging_use_page_dir(tasks[pid].cr3);
 
@@ -180,10 +191,15 @@ uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t efl
     tf->eflags = eflags;
 
     // Make room for argc and argv
-    tf->useresp = u_stack - sizeof(char*);
-    *(char***)(tf->useresp) = argv;
-    tf->useresp -= sizeof(uint32_t);
-    *(uint32_t*)(tf->useresp) = argc;
+    tf->useresp = u_stack - sizeof(char**);
+    if(argv != 0){
+        *(char***)(tf->useresp) = argv;
+        tf->useresp -= sizeof(uint32_t);
+        *(uint32_t*)(tf->useresp) = word_count;
+    }
+    else{
+        tf->useresp -= sizeof(uint32_t);
+    }
     
     // Note: entry is assumed to be always set at 0 when linking a program
     tf->eip = (uint32_t) request.buf;
