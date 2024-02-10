@@ -1,5 +1,6 @@
 #include "lib-header/stdtype.h"
 #include "lib-header/stdlib.h"
+#include "lib-header/string.h"
 #include "lib-header/syscall.h"
 #include "lib-header/window_manager.h"
 #include "lib-header/shell.h"
@@ -14,8 +15,6 @@ shell_app sh = {
 };
 
 cmos_reader time_current = {0};
-uint8_t bgcolor = 0x0;
-uint8_t fgcolor = 0xf;
 
 void write_time(){
     uint8_t hour = time_current.hour;
@@ -92,7 +91,22 @@ void grid_write(){
     window_update(&(sh.winfo));
 }
 
-int main(void) {
+int main(__attribute__((unused)) uint32_t argc, __attribute__((unused)) char** argv) {
+    switch (argc){
+        case 1:
+            if(int_parse_string_valid(argv[0])){
+                sh.default_font_color = (uint8_t) int_parse_string(argv[0]);
+            }
+            break;
+        
+        case 2:
+            if(int_parse_string_valid(argv[0]) && int_parse_string_valid(argv[1])){
+                sh.default_font_color = (uint8_t) int_parse_string(argv[0]);
+                sh.default_background_color = (uint8_t) int_parse_string(argv[1]);
+            }
+            break;
+    }
+
     app_initialize();
 
     cmos_reader time_new = get_time();

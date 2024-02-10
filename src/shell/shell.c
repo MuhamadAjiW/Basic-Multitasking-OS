@@ -433,7 +433,7 @@ void shell_evaluate(){
     if (sh_parser.word_count > 0){
         if(strcmp(sh_parser.content[0], "clear") == 0){
             if(sh_parser.word_count == 1) shell_clear();
-            else str_add(&message, "\nclear: Invalid argument");
+            else str_add(&message, "\nclear: Invalid argument\n");
         }
         else if(strcmp(sh_parser.content[0], "dir") == 0){
             dir(sh.dir.cluster_number);
@@ -579,28 +579,34 @@ void shell_evaluate(){
         // TODO: Review
         else if(strcmp(sh_parser.content[0], "ps") == 0){
             if(sh_parser.word_count == 1) ps();
-            else str_add(&message, "\nps: Invalid argument");
+            else str_add(&message, "\nps: Invalid argument\n");
         }
         else if(strcmp(sh_parser.content[0], "kill") == 0){
             if(sh_parser.word_count == 2){
                 if(int_parse_string_valid(sh_parser.content[1])){
                     uint32_t pid = int_parse_string(sh_parser.content[1]);
                     if(pid == 0){
-                        str_add(&message, "\nkill: Terminating the kernel is not allowed");
+                        str_add(&message, "\nkill: Terminating the kernel is not allowed\n");
                     } else{
                         kill(pid);
                     }
                 } else{
-                    str_add(&message, "\nkill: Invalid argument");
+                    str_add(&message, "\nkill: Invalid argument\n");
                 }
             } else{
-                str_add(&message, "\nkill: Invalid argument");
+                str_add(&message, "\nkill: Invalid argument\n");
             }
         }
         else if (is_filepath_valid(sh_parser.content[0], sh.dir.cluster_number)){
-            // TODO: Argument passing to programs
             FAT32DriverRequest req = path_to_file_request(sh_parser.content[0], sh.dir.cluster_number);
-            exec(&req, sh_parser);
+            if( req.ext[0] == 'p' &&	
+                req.ext[1] == 'r' &&	
+                req.ext[2] == 'g'	
+            ){
+                exec(&req, sh_parser);
+            } else{
+                str_add(&message, "\nShell: Non-executable file\n");
+            }
         }
         else{
             str_add(&message, "\nNo Command found: ");
