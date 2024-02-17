@@ -5,7 +5,7 @@
 // TODO: Review
 // global amount of available resources, pages are located by its index
 // Used to track physical memory rather than virtual
-Resource resource_table[RESOURCE_AMOUNT];
+struct Resource resource_table[RESOURCE_AMOUNT];
 
 bool resource_check(uint32_t amount){
     uint32_t i = RESOURCE_KERNEL_OFFSET;
@@ -25,7 +25,7 @@ bool resource_check(uint32_t amount){
     return (available >= amount);
 }
 
-uint32_t resource_allocate(uint32_t amount, uint32_t pid, PageDirectory* page_dir){
+uint32_t resource_allocate(uint32_t amount, uint32_t pid, struct PageDirectory* page_dir){
     // Always check with resource_check
 
     struct PageDirectoryEntryFlag flag ={
@@ -54,7 +54,7 @@ uint32_t resource_allocate(uint32_t amount, uint32_t pid, PageDirectory* page_di
 }
 
 // TODO: Improve, for now resource can only allocate one page
-uint32_t resource_allocate_kernel(uint32_t pid, PageDirectory* page_dir){
+uint32_t resource_allocate_kernel(uint32_t pid, struct PageDirectory* page_dir){
     // Always check with resource_check
     
     struct PageDirectoryEntryFlag flag ={

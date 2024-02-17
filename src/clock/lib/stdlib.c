@@ -20,8 +20,8 @@ void free(void* memory){
     syscall(SYSCALL_FREE, (uint32_t) memory, 0, 0);
 }
 
-cmos_reader get_time(){
-    cmos_reader cmos;
+struct cmos_reader get_time(){
+    struct cmos_reader cmos;
     syscall(SYSCALL_GET_TIME, (uint32_t) &cmos, 0, 0);
     return cmos;
 }

@@ -7,7 +7,7 @@
 /**
  * TSSEntry, Task State Segment. Used when jumping back to ring 0 / kernel
  */
-typedef struct {
+struct TSSEntry{
     uint32_t prev_tss; // Previous TSS
     uint32_t esp0;     // Stack pointer to load when changing to kernel mode
     uint32_t ss0;      // Stack segment to load when changing to kernel mode
@@ -40,7 +40,7 @@ typedef struct {
 
     uint32_t ldtr;
     uint32_t debug;
-} __attribute__((packed)) TSSEntry;
+} __attribute__((packed));
 
 // Set kernel stack in TSS
 void set_tss_kernel_current_stack(void);

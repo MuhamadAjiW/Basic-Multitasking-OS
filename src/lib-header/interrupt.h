@@ -73,12 +73,12 @@
  * @param cs         Code segment selector where interrupt is raised
  * @param eflags     CPU eflags register when interrupt is raised
  */
-typedef struct InterruptStack {
+struct InterruptStack {
     uint32_t error_code;
     uint32_t eip;
     uint32_t cs;
     uint32_t eflags;
-} __attribute__((packed)) InterruptStack;
+} __attribute__((packed));
 
 
 
@@ -104,11 +104,11 @@ void pic_remap(void);
  * Again, this function is not for normal function call, all parameter will be automatically set when interrupt is called.
  * @param cpu        CPU information when interrupt is raised
  */
-void main_interrupt_handler(TrapFrame cpu);
+void main_interrupt_handler(struct TrapFrame cpu);
 
 
 //TODO: Document
-typedef void (*InterruptHandler)(TrapFrame cpu);
+typedef void (*InterruptHandler)(struct TrapFrame cpu);
 void register_irq_handler(uint16_t int_no, InterruptHandler handler);
 void activate_interrupts();
 void activate_irq(uint8_t irq);

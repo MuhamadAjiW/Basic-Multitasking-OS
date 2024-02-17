@@ -21,11 +21,11 @@
 enum ProcState { NULL_TASK, NEW, READY, RUNNING, WAITING, TERMINATED };
 
 //TODO: Document
-typedef struct Context {
+struct Context {
     uint32_t edi, esi, ebx, ebp, eip;
-} __attribute__((packed)) Context;
+} __attribute__((packed));
 
-typedef struct PCB
+struct PCB
 {
     uint32_t size;                  // process size
     struct PageDirectory* cr3;             // virtual address space
@@ -34,8 +34,8 @@ typedef struct PCB
     uint32_t pid;                   // id
     struct PCB* parent;             // parent id
 
-    TrapFrame* tf;                  // TrapFrame for current syscall
-    Context* context;               // Context to switch to
+    struct TrapFrame* tf;                  // TrapFrame for current syscall
+    struct Context* context;               // Context to switch to
     
     // Extras for process management purposes
     uint32_t resource_amount;       // Amount of resources used
@@ -45,10 +45,10 @@ typedef struct PCB
     uint32_t previous_pid;
     uint32_t next_pid;
 
-} PCB;
+};
 
 // To pass to shell
-typedef struct task_info
+struct task_info
 {
     uint32_t pid;                   // id
     uint32_t ppid;                  // parent id    
@@ -56,26 +56,26 @@ typedef struct task_info
     enum ProcState state;           // state
     char name[MAX_TASKS_PNAME];
 
-} task_info;
+};
 
-typedef struct task_list
+struct task_list
 {
-    task_info info[MAX_TASKS];
+    struct task_info info[MAX_TASKS];
     uint32_t num_task;
 
-} task_list;
+};
 
 // Not packed because of alignment
 
-void switch_context(Context** old_task, Context* new_task);
+void switch_context(struct Context** old_task, struct Context* new_task);
 void restore_context();
 void isr_exit();
 
 void task_initialize();
-void task_get_info(task_info* tinfo, PCB task);
-void task_generate_list(task_list* list);
+void task_get_info(struct task_info* tinfo, struct PCB task);
+void task_generate_list(struct task_list* list);
 uint32_t task_generate_pid();
-uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags);
+uint8_t task_create(struct FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags);
 void task_terminate_current();
 void task_terminate(uint32_t pid);
 void task_clean_scan();

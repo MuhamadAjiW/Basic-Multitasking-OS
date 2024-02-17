@@ -18,10 +18,10 @@
  *  Should be self explanatory
  * 
  */
-typedef struct allocator{
+struct allocator{
     uint8_t status;
     uint32_t size;
-} __attribute__((packed)) allocator;
+} __attribute__((packed));
 
 /**
  *  Page heap memory with appropriate flags and set heap with 0

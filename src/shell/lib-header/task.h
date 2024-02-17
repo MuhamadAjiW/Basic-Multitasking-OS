@@ -10,7 +10,7 @@
 enum ProcState { NULL_TASK, NEW, READY, RUNNING, WAITING, TERMINATED };
 
 // To pass to shell
-typedef struct task_info
+struct task_info
 {
     uint32_t pid;                   // id
     uint32_t ppid;                  // parent id    
@@ -18,12 +18,12 @@ typedef struct task_info
     enum ProcState state;           // state
     char name[MAX_TASKS_PNAME];
     
-} task_info;
+};
 
-typedef struct task_list
+struct task_list
 {
-    task_info info[MAX_TASKS];
+    struct task_info info[MAX_TASKS];
     uint32_t num_task;
-} task_list;
+};
 
 #endif

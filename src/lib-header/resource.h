@@ -16,17 +16,17 @@
 
 //TODO: Document
 enum ResourceType { NULL_RESOURCE, KERNEL, HEAP, USER };
-typedef struct Resource{
+struct Resource{
     uint32_t            pid;
     bool                used;
     enum ResourceType   type;
-} __attribute__((packed)) Resource;
+} __attribute__((packed));
 
 bool resource_check(uint32_t amount);
 
 //Returns bottom of the stack given
-uint32_t resource_allocate(uint32_t amount, uint32_t pid, PageDirectory* page_dir);
-uint32_t resource_allocate_kernel(uint32_t pid, PageDirectory* page_dir);
+uint32_t resource_allocate(uint32_t amount, uint32_t pid, struct PageDirectory* page_dir);
+uint32_t resource_allocate_kernel(uint32_t pid, struct PageDirectory* page_dir);
 void resource_deallocate(uint32_t pid, uint32_t resource_count);
 
 #endif

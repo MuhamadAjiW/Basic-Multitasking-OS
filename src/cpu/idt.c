@@ -1,8 +1,8 @@
 #include "../lib-header/idt.h"
 #include "../lib-header/gdt.h"
 
-InterruptDescriptorTable interrupt_descriptor_table;
-IDTR _idt_idtr = {
+struct InterruptDescriptorTable interrupt_descriptor_table;
+struct IDTR _idt_idtr = {
     .size = sizeof(interrupt_descriptor_table) - 1,
     .address = &interrupt_descriptor_table
 };
@@ -29,7 +29,7 @@ void initialize_idt(void) {
 }
 
 void set_interrupt_gate(uint8_t int_vector, void *handler_address, uint16_t gdt_seg_selector, uint8_t privilege) {
-    IDTGate *idt_int_gate = &interrupt_descriptor_table.table[int_vector];
+    struct IDTGate *idt_int_gate = &interrupt_descriptor_table.table[int_vector];
 
     // Target system 32-bit and flag this as valid interrupt gate
     idt_int_gate->_r_bit_1    = INTERRUPT_GATE_R_BIT_1;

@@ -46,7 +46,7 @@ void kernel_setup(void) {
     register_irq_handler(IRQ_TIMER, pit_isr);
     activate_irq(IRQ_TIMER);
 
-    FAT32DriverRequest shell = {
+    struct FAT32DriverRequest shell = {
         .buf                   = (void*) 0,
         .name                  = "sh",
         .ext                   = "\0\0\0",
@@ -55,7 +55,7 @@ void kernel_setup(void) {
     };
     task_create(shell, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
 
-    FAT32DriverRequest clock = {
+    struct FAT32DriverRequest clock = {
         .buf                   = (void*) 0,
         .name                  = "sysclock",
         .ext                   = "prg",

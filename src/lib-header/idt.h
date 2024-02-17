@@ -31,7 +31,7 @@ extern struct IDTR _idt_idtr;
  * @param valid       P, Segment Present Flag
  * @param offset_high Higher 16-bit offset
  */
-typedef struct IDTGate {
+struct IDTGate {
     uint16_t offset_low     : 16;
     uint16_t segment        : 16;
     uint8_t  _reserved      : 5;
@@ -42,16 +42,16 @@ typedef struct IDTGate {
     uint8_t  _privilege     : 2;
     uint8_t  valid_bit      : 1;
     uint16_t offset_high    : 16;
-} __attribute__((packed)) IDTGate;
+} __attribute__((packed));
 
 /**
  * Interrupt Descriptor Table, containing lists of IDTGate.
  * One IDT already defined in idt.c
  *
  */
-typedef struct InterruptDescriptorTable{
-    IDTGate table[IDT_MAX_ENTRY_COUNT];
-} __attribute__((packed)) InterruptDescriptorTable;
+struct InterruptDescriptorTable{
+    struct IDTGate table[IDT_MAX_ENTRY_COUNT];
+} __attribute__((packed));
 
 /**
  * IDTR, carrying information where's the IDT located and size.
@@ -60,10 +60,10 @@ typedef struct InterruptDescriptorTable{
  *  @param size size of InterruptDescriptorTable - 1
  *  @param address address of loaded Interrupt Descriptor Table
  */
-typedef struct IDTR{
+struct IDTR{
    uint16_t size;
-   InterruptDescriptorTable* address;
-} __attribute__((packed)) IDTR;
+   struct InterruptDescriptorTable* address;
+} __attribute__((packed));
 
 
 

@@ -10,9 +10,9 @@
 #include "../lib-header/parser.h"
 #include "../lib-header/shell.h"
 
-uint8_t is_entry_empty(DirectoryEntry in){
+uint8_t is_entry_empty(struct DirectoryEntry in){
     char* checker = (char*) &in;
-    for(uint32_t i = 0; i < sizeof(DirectoryEntry); i++){
+    for(uint32_t i = 0; i < sizeof(struct DirectoryEntry); i++){
         if(checker[i] != 0) return 0;
     }
     return 1;
@@ -29,7 +29,7 @@ uint8_t is_directorypath_valid(char* pathname, uint32_t current_cluster){
         counter = 1;
     } 
 
-    FAT32DirectoryReader read;
+    struct FAT32DirectoryReader read;
     char emptyString[9] = {0};
     char string[9] = {0};
 
@@ -126,7 +126,7 @@ uint8_t is_filepath_valid(char* pathname, uint32_t current_cluster){
         counter = 1;
     }
 
-    FAT32DirectoryReader read;
+    struct FAT32DirectoryReader read;
     char emptyString[9] = {0};
     char string[9] = {0};
     char extstring[4] = {0};
@@ -197,7 +197,7 @@ uint32_t path_to_cluster(char* pathname, uint32_t current_cluster){
         counter = 1;
     }
 
-    FAT32DirectoryReader read;
+    struct FAT32DirectoryReader read;
     char emptyString[9] = {0};
     char string[9] = {0};
 
@@ -235,7 +235,7 @@ uint32_t path_to_cluster(char* pathname, uint32_t current_cluster){
     return current_cluster;
 }
 
-FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster) {
+struct FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster) {
     parser_t pathparser = {0};
     parser_parse(&pathparser, pathname, '/');
 
@@ -249,7 +249,7 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
     int dotIdx  = -1;
     int fileNameExtLen = strlen(pathparser.content[pathLength - 1]);
 
-    FAT32DriverRequest emptyReq = {};
+    struct FAT32DriverRequest emptyReq = {};
     
     // search .
     for (int i = fileNameExtLen - 1; i >= 0; i--) {
@@ -287,7 +287,7 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
         counter = 1;
     }
 
-    FAT32DirectoryReader read;
+    struct FAT32DirectoryReader read;
     char emptyString[9] = {0};
     char string[9] = {0};
     char extstring[4] = {0};
@@ -350,7 +350,7 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
         closef_dir(read);
     }
 
-    FAT32DriverRequest req = {
+    struct FAT32DriverRequest req = {
         .parent_cluster_number = parentCluster,
         .buffer_size = size
     };
@@ -362,7 +362,7 @@ FAT32DriverRequest path_to_file_request(char* pathname, uint32_t current_cluster
     return req;
 }
 
-FAT32DriverRequest path_to_dir_request(char* pathname, uint32_t current_cluster) {
+struct FAT32DriverRequest path_to_dir_request(char* pathname, uint32_t current_cluster) {
     //prekondisi: path to dir valid
 
     parser_t pathparser = {0};
@@ -377,7 +377,7 @@ FAT32DriverRequest path_to_dir_request(char* pathname, uint32_t current_cluster)
         counter = 1;
     } 
 
-    FAT32DirectoryReader read;
+    struct FAT32DirectoryReader read;
     char emptyString[9] = {0};
     char string[9] = {0};
 
@@ -413,7 +413,7 @@ FAT32DriverRequest path_to_dir_request(char* pathname, uint32_t current_cluster)
 
     }
 
-    FAT32DriverRequest req = {
+    struct FAT32DriverRequest req = {
         .parent_cluster_number = parentCluster,
         .buffer_size = 0
     };
@@ -430,8 +430,8 @@ FAT32DriverRequest path_to_dir_request(char* pathname, uint32_t current_cluster)
     return req;
 }
 
-FAT32DirectoryReader get_dir_info(uint32_t current_cluster){
-    FAT32DirectoryReader retval;
+struct FAT32DirectoryReader get_dir_info(uint32_t current_cluster){
+    struct FAT32DirectoryReader retval;
     syscall(SYSCALL_SELF_DIR_INFO, current_cluster, (uint32_t) &retval, 0);
     return retval;
 }
@@ -441,7 +441,7 @@ uint8_t check_contain(uint32_t cluster_child, uint32_t cluster_parent){
     if(cluster_parent == ROOT_CLUSTER_NUMBER) return 1;
     else{
         uint32_t traversal_cluster = cluster_child;
-        FAT32DirectoryReader read = get_dir_info(traversal_cluster);
+        struct FAT32DirectoryReader read = get_dir_info(traversal_cluster);
 
         while (traversal_cluster != ROOT_CLUSTER_NUMBER)
         {
@@ -460,9 +460,9 @@ uint8_t check_contain(uint32_t cluster_child, uint32_t cluster_parent){
 
 }
 
-DirectoryEntry get_info(FAT32DriverRequest request){
-    FAT32DirectoryReader read = get_dir_info(request.parent_cluster_number);
-    DirectoryEntry self;
+struct DirectoryEntry get_info(struct FAT32DriverRequest request){
+    struct FAT32DirectoryReader read = get_dir_info(request.parent_cluster_number);
+    struct DirectoryEntry self;
     for(uint32_t i = 0; i < read.cluster_count; i++){
         for(uint32_t j = 0; j < ENTRY_COUNT; j++){
             // read.content[i].entry[j];
@@ -496,7 +496,7 @@ uint8_t copy_create_folders(char* path, uint32_t currentCluster, uint8_t named){
         current_cluster = ROOT_CLUSTER_NUMBER;
         counter = 1;
     } 
-    FAT32DirectoryReader read;
+    struct FAT32DirectoryReader read;
     char emptyString[9] = {0};
     char string[9] = {0};
     while (counter < pathparser.word_count - 1 && isFound){
@@ -530,7 +530,7 @@ uint8_t copy_create_folders(char* path, uint32_t currentCluster, uint8_t named){
     }
 
     while (counter < pathparser.word_count - named){
-        FAT32DriverRequest req = {0};
+        struct FAT32DriverRequest req = {0};
         req.parent_cluster_number = current_cluster;
         req.buffer_size = 0;
         for(uint8_t i = 0; i < 8; i++){
@@ -546,7 +546,7 @@ uint8_t copy_create_folders(char* path, uint32_t currentCluster, uint8_t named){
         }
         writef(req);
         read = get_dir_info(current_cluster);
-        DirectoryEntry self;
+        struct DirectoryEntry self;
         for(uint32_t i = 0; i < read.cluster_count; i++){
             for(uint32_t j = 0; j < ENTRY_COUNT; j++){
                 if(memcmp(&read.content[i].entry[j].filename, req.name, 8) == 0 &&

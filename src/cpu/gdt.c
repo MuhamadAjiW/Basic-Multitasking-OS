@@ -71,14 +71,14 @@ struct GlobalDescriptorTable global_descriptor_table = {
             .base_high = 0,
         },
         {//kernel tss
-            .segment_low       = sizeof(TSSEntry),
+            .segment_low       = sizeof(struct TSSEntry),
             .base_low          = 0,
             .base_mid          = 0,
             .type_bit          = 0x9,
             .non_system        = 0,    // S bit
             .DPL               = 0,    // DPL
             .P                 = 1,    // P bit
-            .segment_mid       = (sizeof(TSSEntry) & (0xF << 16)) >> 16,
+            .segment_mid       = (sizeof(struct TSSEntry) & (0xF << 16)) >> 16,
             .AVL               = 0,
             .L                 = 0,    // L bit
             .DB                = 1,    // D/B bit
@@ -86,14 +86,14 @@ struct GlobalDescriptorTable global_descriptor_table = {
             .base_high         = 0,
         },
         {//user tss
-            .segment_low       = sizeof(TSSEntry),
+            .segment_low       = sizeof(struct TSSEntry),
             .base_low          = 0,
             .base_mid          = 0,
             .type_bit          = 0x9,
             .non_system        = 0,    // S bit
             .DPL               = 3,    // DPL
             .P                 = 1,    // P bit
-            .segment_mid       = (sizeof(TSSEntry) & (0xF << 16)) >> 16,
+            .segment_mid       = (sizeof(struct TSSEntry) & (0xF << 16)) >> 16,
             .AVL               = 0,
             .L                 = 0,    // L bit
             .DB                = 1,    // D/B bit
@@ -116,7 +116,7 @@ struct GDTR _gdt_gdtr = {
     .address = &global_descriptor_table
 };
 
-TSSEntry tss = {
+struct TSSEntry tss = {
     .ss0 = GDT_KERNEL_DATA_SEGMENT_SELECTOR
 };
 
@@ -133,6 +133,6 @@ void gdt_install_tss(void) {
     global_descriptor_table.table[5].base_high = (base & (0xFF << 24)) >> 24;
     global_descriptor_table.table[5].base_mid  = (base & (0xFF << 16)) >> 16;
     global_descriptor_table.table[5].base_low  = base & 0xFFFF;
-    global_descriptor_table.table[5].segment_low = sizeof(TSSEntry) & 0xFFFF;
+    global_descriptor_table.table[5].segment_low = sizeof(struct TSSEntry) & 0xFFFF;
 }
 

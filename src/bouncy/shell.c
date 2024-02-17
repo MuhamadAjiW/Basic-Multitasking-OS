@@ -6,7 +6,7 @@
 
 const uint8_t window_size = 2;
 
-window_info winfo = {
+struct window_info winfo = {
     .mainBuffer = (uint16_t*) 1,
     .xloc = 1,
     .yloc = 1,
@@ -23,7 +23,7 @@ int main(void) {
     uint32_t seed;
     syscall(SYSCALL_GET_TICK, (uint32_t) &seed, 0, 0);
 
-    cmos_reader cmos = get_time();
+    struct cmos_reader cmos = get_time();
     seed = seed + cmos.second + cmos.minute + cmos.hour + cmos.day + cmos.month + cmos.century;
     
     seed = randomizer(seed);

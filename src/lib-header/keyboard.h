@@ -33,12 +33,12 @@ extern const char keyboard_scancode_1_to_ascii_map[256];
  * @param shigt              Indicate whether shift is active
  * @param on                 Indicate whether keyboard ISR is activated or not
  */
-typedef struct KeyboardDriverState {
+struct KeyboardDriverState {
     char    buffer;
     uint8_t caps;
     uint8_t shift;
     bool    on;
-} __attribute((packed)) KeyboardDriverState;
+} __attribute((packed));
 
 
 

@@ -9,7 +9,7 @@
  * Reading should always be done to this variable
  * 
 */
-static cmos_reader cmos_data = {
+static struct cmos_reader cmos_data = {
     .century = 0,
     .second = 0,
     .minute = 0,
@@ -51,7 +51,7 @@ void cmos_read_rtc(){
     cmos_data.century = cmos_get_reg(0x32);
 }
 
-cmos_reader cmos_get_data(){
+struct cmos_reader cmos_get_data(){
     cmos_read_rtc();
     return cmos_data;
 }

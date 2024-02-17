@@ -82,7 +82,7 @@ void pic_remap(void) {
     out(PIC2_DATA, a2);
 }
 
-void main_interrupt_handler(TrapFrame cpu) {
+void main_interrupt_handler(struct TrapFrame cpu) {
     if(cpu.int_no < 0x20){
         // Error, message is exception_msg[int_number]
         __asm__ volatile("hlt");

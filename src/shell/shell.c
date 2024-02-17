@@ -14,7 +14,7 @@
 // const uint8_t window_size = 2;
 
 parser_t sh_parser = {0};
-shell_app sh = {
+struct shell_app sh = {
     .default_font_color = 0x0,
     .default_background_color = 0xe,
     .cursor_x = 0,
@@ -388,7 +388,7 @@ void shell_evaluate(){
 
             case 2:
                 if(is_filepath_valid(sh_parser.content[1], sh.dir.cluster_number)){
-                    FAT32DriverRequest req = path_to_file_request(sh_parser.content[1], sh.dir.cluster_number);
+                    struct FAT32DriverRequest req = path_to_file_request(sh_parser.content[1], sh.dir.cluster_number);
                     if( req.ext[0] == 'p' &&
                         req.ext[1] == 'r' &&
                         req.ext[2] == 'g'

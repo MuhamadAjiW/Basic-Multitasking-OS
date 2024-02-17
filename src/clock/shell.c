@@ -4,7 +4,7 @@
 #include "lib-header/window_manager.h"
 #include "lib-header/cmos.h"
 
-window_info winfo = {
+struct window_info winfo = {
     .mainBuffer = (uint16_t*) 1,
     .xloc = SCREEN_WIDTH - 8,
     .yloc = SCREEN_HEIGHT - 1,
@@ -12,7 +12,7 @@ window_info winfo = {
     .ylen = 1
 };
 
-cmos_reader time_current = {0};
+struct cmos_reader time_current = {0};
 uint8_t bgcolor = 0x0;
 uint8_t fgcolor = 0xf;
 
@@ -32,7 +32,7 @@ void write_time(){
 
 int main(void) {
     window_init(&winfo);
-    cmos_reader time_new = get_time();
+    struct cmos_reader time_new = get_time();
     time_current = time_new;
 
     window_write(&winfo, 0, 2, ':', fgcolor, bgcolor);

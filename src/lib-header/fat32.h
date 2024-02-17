@@ -82,7 +82,6 @@ struct FAT32BootSector{
     uint8_t volume_label[11];
     uint8_t file_system_type[8];
 }__attribute__((packed));
-typedef struct FAT32BootSector FAT32BootSector;
 */
 /*
 static FAT32BootSector bootSector ={
@@ -132,25 +131,25 @@ static FAT32BootSector bootSector ={
  * 
  * @param buf           Array of each byte
  */
-typedef struct ClusterBuffer{
+struct ClusterBuffer{
     uint8_t buf[CLUSTER_SIZE];
-}__attribute__((packed)) ClusterBuffer;
+}__attribute__((packed));
 
 /**
  * Struct containing the FAT table
  * 
  * @param sector_next   Array of next cluster location
  */
-typedef struct FAT32FileAllocationTable{
+struct FAT32FileAllocationTable{
     uint32_t sector_next[CLUSTER_COUNT];
-}__attribute__((packed)) FAT32FileAllocationTable;
+}__attribute__((packed));
 
 /**
  * Struct for FAT entries
  * Should be self explanatory
  * 
  */
- typedef struct DirectoryEntry{
+ struct DirectoryEntry{
     char filename[8];
     char extension[3];
 
@@ -190,14 +189,14 @@ typedef struct FAT32FileAllocationTable{
 
     uint16_t cluster_number;
     uint32_t size;
-}__attribute__((packed)) DirectoryEntry;
+}__attribute__((packed));
 
 /**
  * Struct for FAT entries
  * Should be self explanatory
  * 
  */
-typedef struct DirectoryInfo{
+struct DirectoryInfo{
     char filename[8];
     char extension[3];
 
@@ -220,7 +219,7 @@ typedef struct DirectoryInfo{
     uint32_t size;
 
     uint8_t unused[7];
-}__attribute__((packed)) DirectoryInfo;
+}__attribute__((packed));
 
 /**
  * Struct for folders
@@ -228,10 +227,10 @@ typedef struct DirectoryInfo{
  * 
  * @param entry file FAT entry
  */
-typedef struct DirectoryTable{
-    DirectoryInfo info;
-    DirectoryEntry entry[ENTRY_COUNT];
-}__attribute__((packed)) DirectoryTable;
+struct DirectoryTable{
+    struct DirectoryInfo info;
+    struct DirectoryEntry entry[ENTRY_COUNT];
+}__attribute__((packed));
 
 /**
  * Struct for CRUD request
@@ -242,13 +241,13 @@ typedef struct DirectoryTable{
  * @param parent_cluster_number parent cluster location
  * @param buffer_size           assigned buffer size for load, unused for other operations
  */
-typedef struct FAT32DriverRequest{
+struct FAT32DriverRequest{
     void* buf;
     char name[8];
     char ext[3];
     uint32_t parent_cluster_number;
     uint32_t buffer_size;
-}__attribute__((packed)) FAT32DriverRequest;
+}__attribute__((packed));
 
 /**
  * Struct for reading files
@@ -257,11 +256,11 @@ typedef struct FAT32DriverRequest{
  * @param size                  actual size of the file
  * @param content               pointer to the actual content of the file divided to clusters
  */
-typedef struct FAT32FileReader{
+struct FAT32FileReader{
     uint32_t cluster_count;
     uint32_t size;
-    ClusterBuffer* content;
-}__attribute__((packed)) FAT32FileReader;
+    struct ClusterBuffer* content;
+}__attribute__((packed));
 
 /**
  * Struct for reading folders
@@ -269,10 +268,10 @@ typedef struct FAT32FileReader{
  * @param cluster_count         number of clusters containing the read folder
  * @param content               pointer to the actual content of the folder divided to clusters
  */
-typedef struct FAT32DirectoryReader{
+struct FAT32DirectoryReader{
     uint32_t cluster_count;
-    DirectoryTable* content;
-}__attribute__((packed)) FAT32DirectoryReader;
+    struct DirectoryTable* content;
+}__attribute__((packed));
 
 /**
  * Check the bootsector of a drive
@@ -294,7 +293,7 @@ void initialize_filesystem_fat32();
  * @param request
  * @param cluster_number
  */
-void create_entry(FAT32DriverRequest request, uint16_t cluster_number, FAT32FileAllocationTable* fat);
+void create_entry(struct FAT32DriverRequest request, uint16_t cluster_number, struct FAT32FileAllocationTable* fat);
 
 /**
  * Get fat directory entry of request, request must exist in the folder beforehand
@@ -303,7 +302,7 @@ void create_entry(FAT32DriverRequest request, uint16_t cluster_number, FAT32File
  * 
  * @return                          fat entry of request
  */
-DirectoryEntry get_self_entry(FAT32DriverRequest request);
+struct DirectoryEntry get_self_entry(struct FAT32DriverRequest request);
 
 /**
  * Copies a reader buffer and returns it as a directory table
@@ -313,7 +312,7 @@ DirectoryEntry get_self_entry(FAT32DriverRequest request);
  * 
  * @return                          reader as directory table, contents are copied and not as a casted pointer
  */
-DirectoryTable as_directory(uint32_t* reader);
+struct DirectoryTable as_directory(uint32_t* reader);
 
 /**
  * Translates cluster number to index in lba
@@ -332,14 +331,14 @@ int cluster_to_lba(int clusters);
  * 
  * @return                          Status of deletion, 0 is success, other than 0 are error codes
  */
-uint8_t delete(FAT32DriverRequest request);
+uint8_t delete(struct FAT32DriverRequest request);
 
 /**
  * Inner recursive function for delete
  * 
  * @param cluster_number            cluster of the folder
  */
-void deleteFolder(uint16_t cluster_number, FAT32FileAllocationTable* fat);
+void deleteFolder(uint16_t cluster_number, struct FAT32FileAllocationTable* fat);
 
 /**
  * Read clusters from the disk
@@ -367,7 +366,7 @@ void write_clusters(void* writer, uint16_t cluster, uint16_t sector_count);
  * 
  * @return                          a struct containing the read data and number of read clusters
  */
-FAT32FileReader read(FAT32DriverRequest request);
+struct FAT32FileReader read(struct FAT32DriverRequest request);
 
 /**
  * Read a folder from a request
@@ -377,7 +376,7 @@ FAT32FileReader read(FAT32DriverRequest request);
  * 
  * @return                          a struct containing the read data and number of read clusters
  */
-FAT32DirectoryReader read_directory(FAT32DriverRequest request);
+struct FAT32DirectoryReader read_directory(struct FAT32DriverRequest request);
 
 /**
  * Reads a cluster as a folder without input handling
@@ -387,7 +386,7 @@ FAT32DirectoryReader read_directory(FAT32DriverRequest request);
  * 
  * @return                          a struct containing the read data and number of read clusters
  */
-FAT32DirectoryReader self_directory_info(uint32_t cluster_number);
+struct FAT32DirectoryReader self_directory_info(uint32_t cluster_number);
 
 /**
  * Unallocates file reader buffer
@@ -396,7 +395,7 @@ FAT32DirectoryReader self_directory_info(uint32_t cluster_number);
  * @param pointer                   an allocated file reader pointer
  * 
  */
-void close_file(FAT32FileReader pointer);
+void close_file(struct FAT32FileReader pointer);
 
 /**
  * Unallocates folder reader buffer
@@ -405,7 +404,7 @@ void close_file(FAT32FileReader pointer);
  * @param pointer                   an allocated folder reader pointer
  * 
  */
-void close_directory(FAT32DirectoryReader pointer);
+void close_directory(struct FAT32DirectoryReader pointer);
 
 /**
  * Copies a requested file to a requested address
@@ -420,7 +419,7 @@ void close_directory(FAT32DirectoryReader pointer);
  * 
  * @return                          0 means success, anything other than 0 are error codes
  */
-uint8_t load(FAT32DriverRequest request);
+uint8_t load(struct FAT32DriverRequest request);
 
 /**
  * Writes a requested file to the filesystem
@@ -429,7 +428,7 @@ uint8_t load(FAT32DriverRequest request);
  * 
  * @return                          0 means success, anything other than 0 are error codes
  */
-uint8_t write(FAT32DriverRequest request);
+uint8_t write(struct FAT32DriverRequest request);
 
 /**
  * Expands folder to a new cluster
@@ -438,7 +437,7 @@ uint8_t write(FAT32DriverRequest request);
  * 
  * @return                          cluster index of the expansion
  */
-uint32_t expand_folder(int cluster_number, FAT32FileAllocationTable* fat);
+uint32_t expand_folder(int cluster_number, struct FAT32FileAllocationTable* fat);
 
 /**
  * Updates file time modified data by inserting CMOS data
@@ -448,7 +447,7 @@ uint32_t expand_folder(int cluster_number, FAT32FileAllocationTable* fat);
  * @param entry                     FAT entry to be updated
  * 
  */
-void update_file_time(DirectoryEntry *entry);
+void update_file_time(struct DirectoryEntry *entry);
 
 /**
  * Updates file size
@@ -458,7 +457,7 @@ void update_file_time(DirectoryEntry *entry);
  * @param category                  used to categorize addition or subtraction. '+' and '-' respectively
  * 
  */
-void update_file_size(DirectoryEntry* entry, uint32_t size, char category);
+void update_file_size(struct DirectoryEntry* entry, uint32_t size, char category);
 
 /**
  * Checks whether a cluster is a directory, uses reserved bits and directory flags, still might not be 100% accurate
@@ -476,7 +475,7 @@ uint8_t is_directory(uint32_t cluster);
  * 
  * @return                          1 if is a folder, 0 if not
  */
-uint8_t name_exists(FAT32DriverRequest request);
+uint8_t name_exists(struct FAT32DriverRequest request);
 
 /**
  * Searches for all files in a given folder with the same name and extension as the requested file
@@ -490,17 +489,17 @@ uint8_t name_exists(FAT32DriverRequest request);
 // void whereis(uint16_t cluster_number, FAT32DriverRequest* result_array, uint16_t* result_count);
 
 //TODO: Document
-void write_fat(FAT32FileAllocationTable* FAT_request);
-void read_fat(FAT32FileAllocationTable* FAT_destination);
-void deleteRecurse(FAT32DriverRequest request, FAT32FileAllocationTable* fat);
+void write_fat(struct FAT32FileAllocationTable* FAT_request);
+void read_fat(struct FAT32FileAllocationTable* FAT_destination);
+void deleteRecurse(struct FAT32DriverRequest request, struct FAT32FileAllocationTable* fat);
 void init_directory_table(
-    FAT32DriverRequest request,
+    struct FAT32DriverRequest request,
     uint16_t cluster_number,
     uint16_t parent_actual_cluster,
     uint16_t entry_number
 );
 
-typedef struct entryflags{
+struct entryflags{
     uint8_t read_only : 1 ;
     uint8_t hidden : 1 ;
     uint8_t system : 1 ;
@@ -509,8 +508,8 @@ typedef struct entryflags{
     uint8_t archive : 1 ;
     uint8_t resbit1 : 1 ;
     uint8_t resbit2 : 1 ;
-} entryflags;
+};
 
-void set_entry_flag(FAT32DriverRequest request, entryflags flag);
+void set_entry_flag(struct FAT32DriverRequest request, struct entryflags flag);
 
 #endif

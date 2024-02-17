@@ -9,7 +9,7 @@
  * Should be self explanatory
  * 
 */
-typedef struct cmos_reader{
+struct cmos_reader{
     uint8_t century;
     uint8_t second;
     uint8_t minute;
@@ -17,6 +17,6 @@ typedef struct cmos_reader{
     uint8_t day;
     uint8_t month;
     uint16_t year;
-} cmos_reader;
+};
 
 #endif

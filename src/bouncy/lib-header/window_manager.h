@@ -9,7 +9,7 @@
 #define SCREEN_HEIGHT 25
 
 //TODO: Document
-typedef struct window_info{
+struct window_info{
     uint16_t* mainBuffer;
     uint16_t* rearBuffer;
     uint16_t  xloc;
@@ -19,12 +19,12 @@ typedef struct window_info{
     uint8_t   id;
     uint8_t   pid;
     uint8_t   active;       // Activeness not implemented yet
-} window_info;
-void window_init(window_info* winfo);
-void window_clear(window_info* winfo);
-void window_write(window_info* winfo, uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg);
-void window_register(window_info* winfo);
-void window_update(window_info* winfo);
-void window_close(window_info* winfo);
+};
+void window_init(struct window_info* winfo);
+void window_clear(struct window_info* winfo);
+void window_write(struct window_info* winfo, uint8_t row, uint8_t col, char c, uint8_t fg, uint8_t bg);
+void window_register(struct window_info* winfo);
+void window_update(struct window_info* winfo);
+void window_close(struct window_info* winfo);
 
 #endif

@@ -2,7 +2,7 @@
 #include "../lib-header/shell.h"
 #include "../lib-header/stdio.h"
 
-extern shell_app sh;
+extern struct shell_app sh;
 
 // Screen I/O
 char sys_keyboard_get_char(){
@@ -142,33 +142,33 @@ void print_char_color(char c, uint8_t fg_color, uint8_t bg_color){
 }
 
 // File I/O
-FAT32FileReader readf(FAT32DriverRequest request){
-    FAT32FileReader retval;
+struct FAT32FileReader readf(struct FAT32DriverRequest request){
+    struct FAT32FileReader retval;
     syscall(SYSCALL_READ_FILE, (uint32_t) &request, (uint32_t) &retval, 0);
     return retval;
 }
 
-FAT32DirectoryReader readf_dir(FAT32DriverRequest request){
-    FAT32DirectoryReader retval;
+struct FAT32DirectoryReader readf_dir(struct FAT32DriverRequest request){
+    struct FAT32DirectoryReader retval;
     syscall(SYSCALL_READ_DIR, (uint32_t) &request, (uint32_t) &retval, 0);
     return retval;
 }
 
-void closef(FAT32FileReader request){
+void closef(struct FAT32FileReader request){
     syscall(SYSCALL_CLOSE_FILE, (uint32_t) &request, 0, 0);
 }
 
-void closef_dir(FAT32DirectoryReader request){
+void closef_dir(struct FAT32DirectoryReader request){
     syscall(SYSCALL_CLOSE_DIR, (uint32_t) &request, 0, 0);
 }
 
-uint8_t writef(FAT32DriverRequest request){
+uint8_t writef(struct FAT32DriverRequest request){
     uint8_t status;
     syscall(SYSCALL_WRITE_FILE, (uint32_t) &request, (uint32_t) &status, 0);
     return status;
 }
 
-uint8_t deletef(FAT32DriverRequest request){
+uint8_t deletef(struct FAT32DriverRequest request){
     uint8_t status;
     syscall(SYSCALL_DELETE_FILE, (uint32_t) &request, (uint32_t) &status, 0);
     return status;

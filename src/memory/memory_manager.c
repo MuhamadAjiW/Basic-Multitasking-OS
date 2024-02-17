@@ -10,7 +10,7 @@ static uint32_t heap_start = 0;
 static uint32_t heap_end = 0;
 
 static uint32_t dynamic_pointers = 0;
-extern Resource resource_table[RESOURCE_AMOUNT];
+extern struct Resource resource_table[RESOURCE_AMOUNT];
 
 // Note:
 // heap is placed under kernel space
@@ -62,59 +62,59 @@ void* kmalloc(uint32_t size){
     }
     else{
         while((uint32_t) memory < last_alloc){
-            allocator* a = (allocator*) memory;
+            struct allocator* a = (struct allocator*) memory;
 
             if(a->status){
                 memory += a->size;
-                memory += sizeof(allocator);
+                memory += sizeof(struct allocator);
             }
             else{
-                if(a->size >= size + sizeof(allocator) || a->size == size){
+                if(a->size >= size + sizeof(struct allocator) || a->size == size){
                     uint32_t oldsize = a->size;
                     a->status = 1;
                     a->size = size;
 
-                    memset(memory + sizeof(allocator), 0, size);
+                    memset(memory + sizeof(struct allocator), 0, size);
 
                     if (oldsize != size){
-                        a = (allocator*) ((uint32_t) a + sizeof(allocator) + size);
+                        a = (struct allocator*) ((uint32_t) a + sizeof(struct allocator) + size);
                         a->status = 0;
-                        a->size = oldsize - size - sizeof(allocator);                        
+                        a->size = oldsize - size - sizeof(struct allocator);                        
                     }
 
                     dynamic_pointers++;
                     
-                    return (void*)(memory + sizeof(allocator));
+                    return (void*)(memory + sizeof(struct allocator));
                 }
                 else{
                     memory += a->size;
-                    memory += sizeof(allocator);
+                    memory += sizeof(struct allocator);
                 }
             }
         }
     }
 
-    if (last_alloc + size + sizeof(allocator) >= heap_end){
+    if (last_alloc + size + sizeof(struct allocator) >= heap_end){
         __asm__ volatile ("int $4");
         return 0;
     }
     else{
-        allocator* a = (allocator*) last_alloc;
+        struct allocator* a = (struct allocator*) last_alloc;
         a->status = 1;
         a->size = size;
 
         last_alloc += size;
-        last_alloc += sizeof(allocator);
-        memset((char*)((uint32_t)a + sizeof(allocator)), 0, size);
+        last_alloc += sizeof(struct allocator);
+        memset((char*)((uint32_t)a + sizeof(struct allocator)), 0, size);
 
         dynamic_pointers++;
 
-        return (void*)((uint32_t)a + sizeof(allocator));
+        return (void*)((uint32_t)a + sizeof(struct allocator));
     }
 }
 
 void* krealloc(void* ptr, uint32_t size){
-    allocator* alloc = (allocator*)((uint32_t)ptr - sizeof(allocator));
+    struct allocator* alloc = (struct allocator*)((uint32_t)ptr - sizeof(struct allocator));
     uint32_t oldsize = alloc->size;
 
     void* newptr = kmalloc(size);
@@ -130,21 +130,21 @@ void* krealloc(void* ptr, uint32_t size){
 
 
 void kfree(void* memory){
-    allocator* alloc = (memory - sizeof(allocator));
+    struct allocator* alloc = (memory - sizeof(struct allocator));
     alloc->status = 0;
 
     // TODO: Cleaner can still be improved
 
     void* cleaner = memory + alloc->size;
-    allocator* roam = (allocator*) cleaner;
+    struct allocator* roam = (struct allocator*) cleaner;
     while (!roam->status && (uint32_t) cleaner < last_alloc){
         
-        alloc->size += roam->size + sizeof(allocator);
+        alloc->size += roam->size + sizeof(struct allocator);
         
         cleaner += roam->size;
-        cleaner += sizeof(allocator);
+        cleaner += sizeof(struct allocator);
 
-        roam = (allocator*) cleaner;
+        roam = (struct allocator*) cleaner;
     }
 
     dynamic_pointers--;

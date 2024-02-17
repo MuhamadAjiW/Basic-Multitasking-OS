@@ -51,16 +51,16 @@ void print_char_color(char c, uint8_t fg_color, uint8_t bg_color);
  * 
  * @param buf           Array of each byte
  */
-typedef struct ClusterBuffer{
+struct ClusterBuffer{
     uint8_t buf[CLUSTER_SIZE];
-}__attribute__((packed)) ClusterBuffer;
+}__attribute__((packed));
 
 /**
  * Struct for FAT entries
  * Should be self explanatory
  * 
  */
-typedef struct DirectoryEntry{
+struct DirectoryEntry{
     char filename[8];
     char extension[3];
 
@@ -100,14 +100,14 @@ typedef struct DirectoryEntry{
 
     uint16_t cluster_number;
     uint32_t size;
-}__attribute__((packed)) DirectoryEntry;
+}__attribute__((packed));
 
 /**
  * Struct for FAT entries
  * Should be self explanatory
  * 
  */
-typedef struct DirectoryInfo{
+struct DirectoryInfo{
     char filename[8];
     char extension[3];
 
@@ -130,7 +130,7 @@ typedef struct DirectoryInfo{
     uint32_t size;
 
     uint8_t unused[7];
-}__attribute__((packed)) DirectoryInfo;
+}__attribute__((packed));
 
 /**
  * Struct for folders
@@ -138,10 +138,10 @@ typedef struct DirectoryInfo{
  * 
  * @param entry file FAT entry
  */
-typedef struct DirectoryTable{
-    DirectoryInfo info;
-    DirectoryEntry entry[ENTRY_COUNT];
-}__attribute__((packed)) DirectoryTable;
+struct DirectoryTable{
+    struct DirectoryInfo info;
+    struct DirectoryEntry entry[ENTRY_COUNT];
+}__attribute__((packed));
 
 /**
  * Struct for CRUD request
@@ -152,11 +152,11 @@ typedef struct DirectoryTable{
  * @param parent_cluster_number parent cluster location
  * @param buffer_size           assigned buffer size for load, unused for other operations
  */
-typedef struct FAT32FileReader{
+struct FAT32FileReader{
     uint32_t cluster_count;
     uint32_t size;
-    ClusterBuffer* content;
-}__attribute__((packed)) FAT32FileReader;
+    struct ClusterBuffer* content;
+}__attribute__((packed));
 
 /**
  * Struct for reading files
@@ -164,10 +164,10 @@ typedef struct FAT32FileReader{
  * @param cluster_count         number of clusters containing the read file
  * @param content               pointer to the actual content of the file divided to clusters
  */
-typedef struct FAT32DirectoryReader{
+struct FAT32DirectoryReader{
     uint32_t cluster_count;
-    DirectoryTable* content;
-}__attribute__((packed)) FAT32DirectoryReader;
+    struct DirectoryTable* content;
+}__attribute__((packed));
 
 /**
  * Struct for reading folders
@@ -175,13 +175,13 @@ typedef struct FAT32DirectoryReader{
  * @param cluster_count         number of clusters containing the read folder
  * @param content               pointer to the actual content of the folder divided to clusters
  */
-typedef struct FAT32DriverRequest{
+struct FAT32DriverRequest{
     void* buf;
     char name[8];
     char ext[3];
     uint32_t parent_cluster_number;
     uint32_t buffer_size;
-}__attribute__((packed)) FAT32DriverRequest;
+}__attribute__((packed));
 
 
 /**
@@ -192,7 +192,7 @@ typedef struct FAT32DriverRequest{
  * 
  * @return          a struct containing the read data and number of read clusters
  */
-FAT32FileReader readf(FAT32DriverRequest request);
+struct FAT32FileReader readf(struct FAT32DriverRequest request);
 
 /**
  * Read a folder from a request
@@ -202,7 +202,7 @@ FAT32FileReader readf(FAT32DriverRequest request);
  * 
  * @return          a struct containing the read data and number of read clusters
  */
-FAT32DirectoryReader readf_dir(FAT32DriverRequest request);
+struct FAT32DirectoryReader readf_dir(struct FAT32DriverRequest request);
 
 /**
  * Unallocates file reader buffer
@@ -211,7 +211,7 @@ FAT32DirectoryReader readf_dir(FAT32DriverRequest request);
  * @param pointer   an allocated file reader pointer
  * 
  */
-void closef(FAT32FileReader request);
+void closef(struct FAT32FileReader request);
 
 /**
  * Unallocates folder reader buffer
@@ -220,7 +220,7 @@ void closef(FAT32FileReader request);
  * @param pointer   an allocated folder reader pointer
  * 
  */
-void closef_dir(FAT32DirectoryReader request);
+void closef_dir(struct FAT32DirectoryReader request);
 
 /**
  * Writes a requested file to the filesystem
@@ -229,7 +229,7 @@ void closef_dir(FAT32DirectoryReader request);
  * 
  * @return          0 means success, anything other than 0 are error codes
  */
-uint8_t writef(FAT32DriverRequest request);
+uint8_t writef(struct FAT32DriverRequest request);
 
 /**
  * Deletes a fat directory entry in a directory cluster
@@ -238,7 +238,7 @@ uint8_t writef(FAT32DriverRequest request);
  * 
  * @return           Status of deletion, 0 is success, other than 0 are error codes
  */
-uint8_t deletef(FAT32DriverRequest request);
+uint8_t deletef(struct FAT32DriverRequest request);
 
 
 /**
@@ -258,7 +258,7 @@ void readcluster(void* reader, uint16_t cluster, uint16_t sector_count);
  * 
  * @return                          reader as directory table, contents are copied and not as a casted pointer
  */
-DirectoryTable asdirectory(uint32_t* reader);
+struct DirectoryTable asdirectory(uint32_t* reader);
 
 /**
  * Checks whether a cluster is a directory, uses reserved bits and directory flags, still might not be 100% accurate

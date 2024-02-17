@@ -12,26 +12,26 @@
 //TODO: Document
 
 //----Structs
-typedef struct shell_reader {
+struct shell_reader {
     char* buffer_addr;
     uint32_t buffer_size;
     uint32_t max_idx;
     uint32_t current_idx;
-} shell_reader;
+};
 
-typedef struct directory_info {
+struct directory_info {
     char* path;
     uint32_t cluster_number;
-}__attribute__((packed)) directory_info;
+}__attribute__((packed));
 
-typedef struct text_grid{
+struct text_grid{
     char* char_map;
     char* char_color_map;
     uint16_t xlen;
     uint16_t ylen;
-} text_grid;
+};
 
-typedef struct shell_app
+struct shell_app
 {    
     uint8_t default_font_color;
     uint8_t default_background_color;
@@ -42,15 +42,15 @@ typedef struct shell_app
     uint16_t cursor_y_limit;
     uint8_t cursor_on;
     
-    window_info winfo;
-    shell_reader reader;
-    directory_info dir;
-    text_grid grid;
+    struct window_info winfo;
+    struct shell_reader reader;
+    struct directory_info dir;
+    struct text_grid grid;
 
     // TODO: Switch to a better background structure
     uint8_t* background;
 
-} shell_app;
+};
 
 
 

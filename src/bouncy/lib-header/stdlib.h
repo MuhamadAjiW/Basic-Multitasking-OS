@@ -34,6 +34,6 @@ void free(void* ptr);
 
 
 //TODO: Document
-cmos_reader get_time();
+struct cmos_reader get_time();
 
 #endif

@@ -6,9 +6,9 @@
 
 // TODO: Document
 // Note: Would be interesting to make this a separate program if we have inter-process communication 
-window_manager winmgr = {0};
+struct window_manager winmgr = {0};
 extern uint16_t screen_buffer[];
-extern PCB* current_task;
+extern struct PCB* current_task;
 
 void winmgr_initalilze(){
     // The stack have to be initialized with -1 or 255 since 0 is used as an id
@@ -16,7 +16,7 @@ void winmgr_initalilze(){
         winmgr.stack.ids[i] = -1;
     }
 }
-void winmgr_set_window(window_info* winfo, uint8_t row, uint8_t col, uint16_t info, bool mainBuffer){    
+void winmgr_set_window(struct window_info* winfo, uint8_t row, uint8_t col, uint16_t info, bool mainBuffer){    
     volatile uint16_t * where = mainBuffer? winfo->mainBuffer : winfo->rearBuffer;
     where +=  (row * winfo->xlen + col);
     *where = info;
@@ -32,7 +32,7 @@ uint8_t winmgr_generate_window_id(){
     winmgr.windows_exist[given_id] = 1;
     return given_id;
 }
-void winmgr_show_window(window_info* winfo){
+void winmgr_show_window(struct window_info* winfo){
     uint16_t j = 0;
     uint16_t xloc = winfo->xloc;
     uint16_t xlen = winfo->xlen;
@@ -49,7 +49,7 @@ void winmgr_show_window(window_info* winfo){
         j++;
     }
 }
-void winmgr_show_window_flat(window_info winfo){
+void winmgr_show_window_flat(struct window_info winfo){
     uint16_t j = 0;
     while (winfo.yloc + j < SCREEN_HEIGHT && j < winfo.ylen){
         uint16_t i = 0;
@@ -60,7 +60,7 @@ void winmgr_show_window_flat(window_info winfo){
         j++;
     }
 }
-void winmgr_hide_window(window_info winfo){
+void winmgr_hide_window(struct window_info winfo){
     uint16_t j = 0;
     while (winfo.yloc + j < SCREEN_HEIGHT && j < winfo.ylen){
         uint16_t i = 0;
@@ -71,7 +71,7 @@ void winmgr_hide_window(window_info winfo){
         j++;
     }
 }
-void winmgr_update_winfo(window_info winfo, uint8_t id){
+void winmgr_update_winfo(struct window_info winfo, uint8_t id){
     winmgr.windows[id].xloc = winfo.xloc;
     winmgr.windows[id].xlen = winfo.xlen;
     winmgr.windows[id].yloc = winfo.yloc;
@@ -108,7 +108,7 @@ void winmgr_stack_add(uint16_t id){
 }
 
 // Syscall functions
-void winmgr_register_winfo(window_info* winfo){
+void winmgr_register_winfo(struct window_info* winfo){
     uint8_t id = winmgr_generate_window_id();
     winfo->id = id;
     winmgr.windows_ref[id] = winfo;
@@ -121,7 +121,7 @@ void winmgr_register_winfo(window_info* winfo){
 
     framebuffer_display();
 }
-void winmgr_update_window(window_info* winfo){
+void winmgr_update_window(struct window_info* winfo){
     uint8_t id = winfo->id;
 
     if(winmgr.windows[id].mainBuffer == 0) return; //Unregistered window requested

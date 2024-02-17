@@ -8,13 +8,13 @@
 #include "../src/lib-header/cmos.h"
 #include "../src/lib-header/memory_manager.h"
 
-static cmos_reader cmos = {0};
-DirectoryEntry emptyEntry = {0};
+static struct cmos_reader cmos = {0};
+struct DirectoryEntry emptyEntry = {0};
 
-FAT32FileAllocationTable fat;
-DirectoryEntry* root_directory;
+struct FAT32FileAllocationTable fat;
+struct DirectoryEntry* root_directory;
 
-cmos_reader cmos_get_data(){
+struct cmos_reader cmos_get_data(){
     time_t raw;
     time(&raw);
 
@@ -49,8 +49,8 @@ void initialize_filesystem_fat32(){
         write_clusters((void*)signature, 0, 1);
 
         //initialize root
-        DirectoryTable table = {0};
-        DirectoryInfo info = {
+        struct DirectoryTable table = {0};
+        struct DirectoryInfo info = {
             .filename = {'r', 'o', 'o', 't','\0', '\0', '\0', '\0'},
             .extension = {'\0', '\0', '\0'},
             .read_only = 0,
@@ -74,7 +74,7 @@ void initialize_filesystem_fat32(){
         write_clusters(writer, ROOT_CLUSTER_NUMBER, 1);
 
         //initialize FAT
-        FAT32FileAllocationTable FAT_Table = {
+        struct FAT32FileAllocationTable FAT_Table = {
             .sector_next = 0
         };
         FAT_Table.sector_next[RESERVED_CLUSTER_NUMBER] = END_OF_FILE;
@@ -94,7 +94,7 @@ void initialize_filesystem_fat32(){
             .buffer_size           = 0,
         };
         write(request);
-        entryflags systemflags = {
+        struct entryflags systemflags = {
             .read_only = 0,
             .hidden = 0,
             .system = 1,
@@ -107,7 +107,7 @@ void initialize_filesystem_fat32(){
     }
 }
 
-void write_fat(FAT32FileAllocationTable* FAT_request){
+void write_fat(struct FAT32FileAllocationTable* FAT_request){
     int cluster = 0;
     for(uint16_t i = 0; i < FAT_CLUSTER_LENGTH; i++){
         write_clusters(((void*)FAT_request + cluster), i + 1, 1);
@@ -115,7 +115,7 @@ void write_fat(FAT32FileAllocationTable* FAT_request){
     }
 }
 
-void read_fat(FAT32FileAllocationTable* FAT_destination){
+void read_fat(struct FAT32FileAllocationTable* FAT_destination){
     int cluster = 0;
     for(uint16_t i = 0; i < FAT_CLUSTER_LENGTH; i++){
         read_clusters(((void*)FAT_destination + cluster), i + 1, 1);
@@ -123,9 +123,9 @@ void read_fat(FAT32FileAllocationTable* FAT_destination){
     }
 }
 
-void create_entry(FAT32DriverRequest request, uint16_t cluster_number, FAT32FileAllocationTable* fat){
+void create_entry(struct FAT32DriverRequest request, uint16_t cluster_number, struct FAT32FileAllocationTable* fat){
     cmos = cmos_get_data();
-    DirectoryEntry add = {
+    struct DirectoryEntry add = {
         .filename = {0},
         .extension = {0},
         .read_only = 0,
@@ -169,7 +169,7 @@ void create_entry(FAT32DriverRequest request, uint16_t cluster_number, FAT32File
 
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     read_clusters((void*)reader, request.parent_cluster_number, 1);
-    DirectoryTable table = as_directory(reader);
+    struct DirectoryTable table = as_directory(reader);
     int i;
 
     uint32_t currentCluster = request.parent_cluster_number;
@@ -203,8 +203,8 @@ void create_entry(FAT32DriverRequest request, uint16_t cluster_number, FAT32File
 }
 
 
-void update_size(FAT32DriverRequest request, char category, FAT32FileAllocationTable* fat){
-    DirectoryTable table = {0};
+void update_size(struct FAT32DriverRequest request, char category, struct FAT32FileAllocationTable* fat){
+    struct DirectoryTable table = {0};
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     uint32_t currentCluster = request.parent_cluster_number;
     uint32_t entryCluster;
@@ -261,7 +261,7 @@ void update_size(FAT32DriverRequest request, char category, FAT32FileAllocationT
     } while (currentCluster != END_OF_FILE);
 }
 
-uint8_t write(FAT32DriverRequest request){
+uint8_t write(struct FAT32DriverRequest request){
     if(request.parent_cluster_number < 2){
         return 2;
     }
@@ -273,7 +273,7 @@ uint8_t write(FAT32DriverRequest request){
     }
 
 
-    FAT32FileAllocationTable fat = {0};
+    struct FAT32FileAllocationTable fat = {0};
     read_fat(&fat);
 
     update_size(request, '+', &fat);
@@ -340,12 +340,12 @@ uint8_t write(FAT32DriverRequest request){
 
 
 void init_directory_table(
-    FAT32DriverRequest request,
+    struct FAT32DriverRequest request,
     uint16_t cluster_number,
     uint16_t parent_actual_cluster,
     uint16_t entry_number
 ){
-    DirectoryTable table = {0};
+    struct DirectoryTable table = {0};
 
     memcpy(&table.info.filename, &request.name, 8);
     table.info.directory = 1;
@@ -359,10 +359,10 @@ void init_directory_table(
     write_clusters(writer, cluster_number, 1);
 }
 
-void deleteRecurse(FAT32DriverRequest request, FAT32FileAllocationTable* fat){
+void deleteRecurse(struct FAT32DriverRequest request, struct FAT32FileAllocationTable* fat){
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     uint32_t empty_cluster[CLUSTER_SIZE/4] = {0};
-    DirectoryEntry self = get_self_entry(request);
+    struct DirectoryEntry self = get_self_entry(request);
     uint32_t marker = 0;
     uint32_t currentCluster = 0;
     uint8_t deleting = 0;
@@ -388,7 +388,7 @@ void deleteRecurse(FAT32DriverRequest request, FAT32FileAllocationTable* fat){
         }
     }
 
-    DirectoryTable parent_table;
+    struct DirectoryTable parent_table;
     uint32_t roaming_cluster = request.parent_cluster_number;
     uint8_t found = 0;
 
@@ -413,10 +413,10 @@ void deleteRecurse(FAT32DriverRequest request, FAT32FileAllocationTable* fat){
     write_clusters(writer, roaming_cluster, 1);    
 }
 
-void deleteFolder(uint16_t cluster_number, FAT32FileAllocationTable* fat){
+void deleteFolder(uint16_t cluster_number, struct FAT32FileAllocationTable* fat){
     uint32_t reader[CLUSTER_SIZE/4] = {0};
-    DirectoryTable table;
-    FAT32DriverRequest request;
+    struct DirectoryTable table;
+    struct FAT32DriverRequest request;
 
     uint32_t currentCluster = cluster_number;
     do{
@@ -435,15 +435,15 @@ void deleteFolder(uint16_t cluster_number, FAT32FileAllocationTable* fat){
     } while (currentCluster != END_OF_FILE);
 }
 
-uint8_t delete(FAT32DriverRequest request){
-    FAT32FileAllocationTable fat;
+uint8_t delete(struct FAT32DriverRequest request){
+    struct FAT32FileAllocationTable fat;
     read_fat(&fat);
 
     update_size(request, '-', &fat);
 
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     uint32_t empty_cluster[CLUSTER_SIZE/4] = {0};
-    DirectoryEntry self = get_self_entry(request);
+    struct DirectoryEntry self = get_self_entry(request);
     uint32_t marker = 0;
     uint32_t currentCluster = 0;
     uint8_t deleting = 0;
@@ -474,7 +474,7 @@ uint8_t delete(FAT32DriverRequest request){
     writer = (void*) reader;
     write_clusters(writer, FAT_CLUSTER_NUMBER, 1);    
 
-    DirectoryTable parent_table;
+    struct DirectoryTable parent_table;
     uint32_t roaming_cluster = request.parent_cluster_number;
     uint8_t found = 0;
 
@@ -507,9 +507,9 @@ uint8_t delete(FAT32DriverRequest request){
     return 1;
 }
 
-DirectoryEntry get_self_entry(FAT32DriverRequest request){
-    DirectoryEntry info;
-    DirectoryTable table;
+struct DirectoryEntry get_self_entry(struct FAT32DriverRequest request){
+    struct DirectoryEntry info;
+    struct DirectoryTable table;
 
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     uint32_t currentCluster = request.parent_cluster_number;
@@ -545,8 +545,8 @@ DirectoryEntry get_self_entry(FAT32DriverRequest request){
     return info;
 }
 
-DirectoryTable as_directory(uint32_t* reader){
-    DirectoryTable table;
+struct DirectoryTable as_directory(uint32_t* reader){
+    struct DirectoryTable table;
     memcpy(&table, reader, CLUSTER_SIZE);
     return table;
 }
@@ -571,7 +571,7 @@ int cluster_to_lba(int clusters){
     return 4 * clusters;
 }
 
-uint32_t expand_folder(int cluster_number, FAT32FileAllocationTable* fat){
+uint32_t expand_folder(int cluster_number, struct FAT32FileAllocationTable* fat){
     //nyari yang kosong di fat
     uint32_t i = 0;
     for (i = ROOT_CLUSTER_NUMBER + 1; i < CLUSTER_COUNT; i++){
@@ -597,7 +597,7 @@ uint32_t expand_folder(int cluster_number, FAT32FileAllocationTable* fat){
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     read_clusters((void*)reader, cluster_number, 1);
 
-    DirectoryTable table = {0};
+    struct DirectoryTable table = {0};
     table.info = as_directory(reader).info;
 
     write_clusters((void*) &table, i, 1);
@@ -605,7 +605,7 @@ uint32_t expand_folder(int cluster_number, FAT32FileAllocationTable* fat){
     return i;
 }
 
-void update_file_time(DirectoryEntry* entry){
+void update_file_time(struct DirectoryEntry* entry){
     //cmosnya gak dipanggil di sini siapa tau perlu buat waktu lain, inget aja buat manggil cmosnya
     entry->modification_time_seconds = cmos.second;
     entry->modification_time_minutes = cmos.minute;
@@ -615,7 +615,7 @@ void update_file_time(DirectoryEntry* entry){
     entry->modifcation_time_year = cmos.year;
 }
 
-void update_file_size(DirectoryEntry* entry, uint32_t size, char category){
+void update_file_size(struct DirectoryEntry* entry, uint32_t size, char category){
     if(size == 0){
         if(category == '+'){
             entry->size += 32;
@@ -640,7 +640,7 @@ void update_file_size(DirectoryEntry* entry, uint32_t size, char category){
 uint8_t is_directory(uint32_t cluster){
     uint32_t reader[CLUSTER_SIZE/4] = {0};
     read_clusters((void*)reader, cluster, 1);
-    DirectoryTable table = as_directory(reader);
+    struct DirectoryTable table = as_directory(reader);
 
     if(table.info.directory != 1){
         return 0;
@@ -654,10 +654,10 @@ uint8_t is_directory(uint32_t cluster){
     return 1;
 }
 
-uint8_t name_exists(FAT32DriverRequest request){
+uint8_t name_exists(struct FAT32DriverRequest request){
     uint32_t currentCluster = request.parent_cluster_number;
     uint32_t reader[CLUSTER_SIZE/4] = {0};
-    DirectoryTable table = {0};
+    struct DirectoryTable table = {0};
 
     do{
         read_clusters((void*)reader, currentCluster, 1);
@@ -678,8 +678,8 @@ uint8_t name_exists(FAT32DriverRequest request){
     return 0;
 }
 
-void set_entry_flag(FAT32DriverRequest request, entryflags flag){
-    DirectoryEntry entry = get_self_entry(request);
+void set_entry_flag(struct FAT32DriverRequest request, struct entryflags flag){
+    struct DirectoryEntry entry = get_self_entry(request);
 
     entry.read_only = flag.read_only;
     entry.hidden = flag.hidden;
@@ -691,7 +691,7 @@ void set_entry_flag(FAT32DriverRequest request, entryflags flag){
     entry.resbit2 = flag.resbit2;
 
     uint32_t reader[CLUSTER_SIZE/4] = {0};
-    DirectoryTable table = {0};
+    struct DirectoryTable table = {0};
 
     read_clusters((void*) reader, entry.cluster_number, 1);
     table = as_directory(reader);

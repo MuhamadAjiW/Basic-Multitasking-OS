@@ -9,7 +9,7 @@
 #include "../lib-header/paging.h"
 #include "../lib-header/fat32.h"
 
-extern TSSEntry tss;
+extern struct TSSEntry tss;
 
 // TODO: Review
 
@@ -18,11 +18,11 @@ extern TSSEntry tss;
 // Algorithm for tasking is round robin
 // Most of this gets slow because of static memory, very recommended to create a dedicated kernel heap for tasking
 // Task 0 is always the kernel
-PCB tasks[MAX_TASKS] = {0};
+struct PCB tasks[MAX_TASKS] = {0};
 uint8_t tasks_active[MAX_TASKS] = {0};
-PageDirectory tasks_page_dir[MAX_TASKS] = {0};
+struct PageDirectory tasks_page_dir[MAX_TASKS] = {0};
 uint32_t num_task = 0;
-PCB* current_task;
+struct PCB* current_task;
 uint32_t last_task_pid;
 
 void task_initialize(){
@@ -38,7 +38,7 @@ void task_initialize(){
     current_task->name[5] = 'l';
     current_task->name[6] = 0;
 
-    current_task->cr3 = (PageDirectory*)((uint32_t) &tasks_page_dir[0] - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
+    current_task->cr3 = (struct PageDirectory*)((uint32_t) &tasks_page_dir[0] - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
     current_task->state = RUNNING;
     current_task->parent = current_task;
 
@@ -53,7 +53,7 @@ void task_initialize(){
     last_task_pid = 0;
 }
 
-void task_get_info(task_info* tinfo, PCB task){
+void task_get_info(struct task_info* tinfo, struct PCB task){
     tinfo->name[0] = task.name[0];
     tinfo->name[1] = task.name[1];
     tinfo->name[2] = task.name[2];
@@ -68,7 +68,7 @@ void task_get_info(task_info* tinfo, PCB task){
     tinfo->state = task.state;
 }
 
-void task_generate_list(task_list* list){
+void task_generate_list(struct task_list* list){
     uint32_t idx = 0;
     uint32_t next_pid = 0;
 
@@ -100,7 +100,7 @@ uint32_t task_generate_pid(){
     return i;
 }
 
-uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags){
+uint8_t task_create(struct FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags){
     __asm__ volatile ("cli");   // Stop interrupts when creating a task
 
     if(num_task == MAX_TASKS) {
@@ -126,7 +126,7 @@ uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t efl
     tasks[pid].resource_amount = resource_amount;
 
     // Initialize with kernel's paging directory
-    PageDirectory* page_dir = &tasks_page_dir[pid];
+    struct PageDirectory* page_dir = &tasks_page_dir[pid];
 
     paging_dirtable_init(page_dir);
 
@@ -137,7 +137,7 @@ uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t efl
     uint32_t k_stack = resource_allocate_kernel(pid, page_dir);
 
     // Initialize task paging data
-    tasks[pid].cr3 = (PageDirectory*) ((uint32_t) page_dir - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
+    tasks[pid].cr3 = (struct PageDirectory*) ((uint32_t) page_dir - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
 
     for (uint8_t i = 0; i < 8; i++){
         tasks[pid].name[i] = request.name[i];
@@ -165,9 +165,9 @@ uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t efl
 
     // Set TrapFrame to be at the bottom of the given kernel stack
     uint8_t* k_esp = (uint8_t*) k_stack;
-    k_esp -= sizeof(TrapFrame);
-    TrapFrame* tf = (TrapFrame*) k_esp;
-    memset(tf, 0, sizeof(TrapFrame));
+    k_esp -= sizeof(struct TrapFrame);
+    struct TrapFrame* tf = (struct TrapFrame*) k_esp;
+    memset(tf, 0, sizeof(struct TrapFrame));
 
     // Prepare new task environment
     uint32_t cs = stack_type == STACKTYPE_KERNEL ? GDT_KERNEL_CODE_SEGMENT_SELECTOR : (GDT_USER_CODE_SEGMENT_SELECTOR | PRIVILEGE_USER);
@@ -183,8 +183,8 @@ uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t efl
     // Note: entry is assumed to be always set at 0 when linking a program
     tf->eip = (uint32_t) request.buf;
 
-    k_esp -= sizeof(Context);
-    Context* context = (Context*) k_esp;
+    k_esp -= sizeof(struct Context);
+    struct Context* context = (struct Context*) k_esp;
     context->edi = 0;
     context->esi = 0;
     context->ebx = 0;
@@ -238,7 +238,7 @@ void task_clean(uint32_t pid){
     resource_deallocate(pid, tasks[pid].resource_amount);
     winmgr_clean_window(pid);
 
-    PCB task = tasks[pid];
+    struct PCB task = tasks[pid];
 
     tasks[task.next_pid].previous_pid = tasks[pid].previous_pid;
     tasks[task.previous_pid].next_pid = tasks[pid].next_pid;
@@ -262,8 +262,8 @@ void task_schedule(){
         next_pid = tasks[next_pid].next_pid;
     }    
 
-    PCB* new = &tasks[next_pid];
-    PCB* old = current_task;
+    struct PCB* new = &tasks[next_pid];
+    struct PCB* old = current_task;
     if(new == old) return; // Will break if not switching due to asm code
 
     current_task = new;

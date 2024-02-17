@@ -29,7 +29,7 @@ void ls(uint32_t currentCluster);
  * 
  * @return      If in is empty, returns 1. 0 otherwise
  */
-void cd(char* pathname, directory_info* directory_info);
+void cd(char* pathname, struct directory_info* directory_info);
 
 void rm(uint32_t currentCluster);
 
@@ -39,8 +39,8 @@ void cp(uint32_t currentCluster);
 
 void mv(uint32_t currentCluster);
 
-void copy1Folder(FAT32DriverRequest src, FAT32DriverRequest dest);
-void copy1File(FAT32DriverRequest src, FAT32DriverRequest dest);
+void copy1Folder(struct FAT32DriverRequest src, struct FAT32DriverRequest dest);
+void copy1File(struct FAT32DriverRequest src, struct FAT32DriverRequest dest);
 
 /**
  * Creates new folder
@@ -48,7 +48,7 @@ void copy1File(FAT32DriverRequest src, FAT32DriverRequest dest);
 void mkdir(char *dirname, uint32_t currentCluster);
 
 void whereis(uint16_t current_cluster, char* filename, char* path);
-void exec(FAT32DriverRequest* req);
+void exec(struct FAT32DriverRequest* req);
 void ps();
 void kill(__attribute__((unused)) uint32_t pid);
 

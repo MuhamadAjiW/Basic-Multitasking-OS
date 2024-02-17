@@ -23,7 +23,7 @@ extern struct PageDirectory _paging_kernel_page_directory;
  * @param dirty                 Indicate whether this entry has been written into. This flag should only be set by the CPU
  * @param use_pagesize_4_mb     Indicate whether this entry is using 4mb page size
  */
-typedef struct PageDirectoryEntryFlag {
+struct PageDirectoryEntryFlag {
     uint8_t present_bit        : 1;
     uint8_t write_bit          : 1;
     uint8_t user_supervisor    : 1;
@@ -32,7 +32,7 @@ typedef struct PageDirectoryEntryFlag {
     uint8_t accessed           : 1;
     uint8_t dirty              : 1;
     uint8_t use_pagesize_4_mb  : 1;
-} __attribute__((packed)) PageDirectoryEntryFlag;
+} __attribute__((packed));
 
 /**
  * Page Directory Entry, for page size 4 MB.
@@ -46,15 +46,15 @@ typedef struct PageDirectoryEntryFlag {
  * @param RSVD            Indicates whether a reserved bit was set in some page-structure entry
  * @param lower_address   31-22 bits of paged address
  */
-typedef struct PageDirectoryEntry {
-    PageDirectoryEntryFlag flag;
+struct PageDirectoryEntry {
+    struct PageDirectoryEntryFlag flag;
     uint16_t global_page    : 1;
     uint16_t AVL            : 3;
     uint16_t PAT            : 1;
     uint16_t higher_address : 8;
     uint16_t RSVD           : 1;
     uint16_t lower_address  : 10;
-} __attribute__((packed)) PageDirectoryEntry;
+} __attribute__((packed));
 
 /**
  * Page Directory, contain array of PageDirectoryEntry.
@@ -65,9 +65,9 @@ typedef struct PageDirectoryEntry {
  * 
  * @param table Fixed-width array of PageDirectoryEntry with size PAGE_ENTRY_COUNT
  */
-typedef struct PageDirectory {
+struct PageDirectory {
     struct PageDirectoryEntry table[PAGE_ENTRY_COUNT];
-} __attribute__((aligned(0x1000))) PageDirectory;
+} __attribute__((aligned(0x1000)));
 
 /**
  * update_page_directory,
@@ -78,7 +78,7 @@ typedef struct PageDirectory {
  * @param flag          Page entry flags
  * @param page_dir      Page directory to update
  */
-void paging_dir_update(void *physical_addr, void *virtual_addr, PageDirectoryEntryFlag flag, PageDirectory* page_dir);
+void paging_dir_update(void *physical_addr, void *virtual_addr, struct PageDirectoryEntryFlag flag, struct PageDirectory* page_dir);
 
 /**
  * paging_flush_tlb_single, 
@@ -90,8 +90,8 @@ void paging_flush_tlb_single(void *virtual_addr);
 
 //TODO: Document
 void paging_flush_tlb_range(void *start_addr, void *end_addr);
-void paging_use_page_dir(PageDirectory* page_dir); //Page dir must be physical address and aligned to 0x1000
-void paging_dirtable_init(PageDirectory* dest);
-void paging_clone_kernel_stack(PCB src, PCB dest);
+void paging_use_page_dir(struct PageDirectory* page_dir); //Page dir must be physical address and aligned to 0x1000
+void paging_dirtable_init(struct PageDirectory* dest);
+void paging_clone_kernel_stack(struct PCB src, struct PCB dest);
 
 #endif

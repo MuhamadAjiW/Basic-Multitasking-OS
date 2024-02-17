@@ -15,7 +15,7 @@
 #include "../lib-header/shell.h"
 #include "../lib-header/commands-util.h"
 
-extern shell_app shell;
+extern struct shell_app shell;
 extern parser_t sh_parser;
 
 void delay(uint32_t ms){
@@ -30,12 +30,12 @@ void delay(uint32_t ms){
 }
 
 void dir(uint32_t currentCluster){
-    FAT32DirectoryReader directory_reader;
+    struct FAT32DirectoryReader directory_reader;
 
     directory_reader = get_dir_info(currentCluster);
     char char_buffer[9];
     uint32_t counter = 1;
-    DirectoryEntry read_entry;
+    struct DirectoryEntry read_entry;
 
     string_t string = str_new("\n    No   Name        Ext    Size      Creation time");
     for(uint32_t i = 0; i < directory_reader.cluster_count; i++){
@@ -86,7 +86,7 @@ void dir(uint32_t currentCluster){
                 int_to_string(read_entry.creation_time_month, char_buffer);
                 str_add(&string, char_buffer);
                 str_addc(&string, '/');
-                time current_time = get_time();
+                struct time current_time = get_time();
                 int_to_string((read_entry.creation_time_year) + current_time.century * 100, char_buffer);
                 str_add(&string, char_buffer);
 
@@ -116,7 +116,7 @@ void mkdir(char *dirname, uint32_t currentCluster){
         counter = 1;
     } 
 
-    FAT32DirectoryReader read;
+    struct FAT32DirectoryReader read;
     char emptyString[9] = {0};
     char string[9] = {0};
 
@@ -155,7 +155,7 @@ void mkdir(char *dirname, uint32_t currentCluster){
     }
     else{
         while (counter < pathparser.word_count){
-            FAT32DriverRequest req = {0};
+            struct FAT32DriverRequest req = {0};
             req.parent_cluster_number = current_cluster;
             req.buffer_size = 0;
 
@@ -175,7 +175,7 @@ void mkdir(char *dirname, uint32_t currentCluster){
             writef(req);
             
             read = get_dir_info(current_cluster);
-            DirectoryEntry self;
+            struct DirectoryEntry self;
             for(uint32_t i = 0; i < read.cluster_count; i++){
                 for(uint32_t j = 0; j < ENTRY_COUNT; j++){
                     if(memcmp(&read.content[i].entry[j].filename, req.name, 8) == 0 &&
@@ -198,7 +198,7 @@ void mkdir(char *dirname, uint32_t currentCluster){
     parser_clear(&pathparser);
 }
 
-DirectoryEntry emptyEntry = {0};
+struct DirectoryEntry emptyEntry = {0};
 
 void whereis(uint16_t current_cluster, char* filename, char* path){
     char fileName[8] = {0};
@@ -248,7 +248,7 @@ void whereis(uint16_t current_cluster, char* filename, char* path){
         }
     }
 
-    FAT32DirectoryReader read;
+    struct FAT32DirectoryReader read;
     char emptyString[9] = {0};
     char string[9] = {0};
     char extstring[4] = {0};
@@ -303,12 +303,10 @@ void whereis(uint16_t current_cluster, char* filename, char* path){
 }
 
 void ls(uint32_t currentCluster){
-    FAT32DirectoryReader directory_reader;
+    struct FAT32DirectoryReader directory_reader;
 
     directory_reader = get_dir_info(currentCluster);
-    // char char_buffer[9];
-    // uint32_t counter = 1;
-    DirectoryEntry read_entry;
+    struct DirectoryEntry read_entry;
 
     string_t string = str_new("\nfiles and directories: \n");
     for(uint32_t i = 0; i < directory_reader.cluster_count; i++){
@@ -354,7 +352,7 @@ void ls(uint32_t currentCluster){
     sout_clear(&sout);
 }
 
-void cd(char* pathname, directory_info* current_dir){
+void cd(char* pathname, struct directory_info* current_dir){
     current_dir->cluster_number = path_to_cluster(pathname, current_dir->cluster_number);
     
     uint32_t startleng = 0;
@@ -472,7 +470,7 @@ void cp(uint32_t currentCluster) {
         uint8_t hasR = 0;
         uint8_t hasDir = 0;
 
-        FAT32DriverRequest srcs[len - 2]; // create arr of sources
+        struct FAT32DriverRequest srcs[len - 2]; // create arr of sources
         uint8_t isFile[len - 2]; 
 
         int nSrc = 0;
@@ -521,18 +519,18 @@ void cp(uint32_t currentCluster) {
             }
             else if (isdir) {
                 for (int i = 0; i < nSrc; i++) {
-                    FAT32DriverRequest src = srcs[i];
+                    struct FAT32DriverRequest src = srcs[i];
                     if (isFile[i]) { // aman
                         uint32_t destCluster = path_to_cluster(sh_parser.content[len - 1], currentCluster);
-                        FAT32DriverRequest dest = {
+                        struct FAT32DriverRequest dest = {
                             .parent_cluster_number = destCluster
                         };
                         memcpy(dest.name, src.name, 8);
                         memcpy(dest.ext, src.ext, 3);
                         copy1File(src, dest);
                     } else {
-                        FAT32DriverRequest dest = path_to_dir_request(sh_parser.content[len - 1], currentCluster);
-                        DirectoryEntry srcInfo = get_info(src);
+                        struct FAT32DriverRequest dest = path_to_dir_request(sh_parser.content[len - 1], currentCluster);
+                        struct DirectoryEntry srcInfo = get_info(src);
                         if (check_contain(dest.parent_cluster_number, srcInfo.cluster_number)){
                             print("\ncp: Cannnot copy into itself\n");
                         }
@@ -551,10 +549,10 @@ void cp(uint32_t currentCluster) {
             }
             else if (isdir) {
                 if (hasDir && hasR) {
-                    FAT32DriverRequest src = srcs[0];
-                    FAT32DriverRequest dest = path_to_dir_request(sh_parser.content[len - 1], currentCluster);
-                    DirectoryEntry srcInfo = get_info(src);
-                    DirectoryEntry destInfo = get_info(dest);
+                    struct FAT32DriverRequest src = srcs[0];
+                    struct FAT32DriverRequest dest = path_to_dir_request(sh_parser.content[len - 1], currentCluster);
+                    struct DirectoryEntry srcInfo = get_info(src);
+                    struct DirectoryEntry destInfo = get_info(dest);
                     if (srcInfo.cluster_number == destInfo.cluster_number || check_contain(dest.parent_cluster_number, srcInfo.cluster_number)){
                         print("\ncp: Cannnot copy into itself\n");
                     }
@@ -564,9 +562,9 @@ void cp(uint32_t currentCluster) {
                 } else if (hasDir) { // aman
                     print("\ncp: Source is a directory\n");
                 } else { // aman
-                    FAT32DriverRequest src = srcs[0];
+                    struct FAT32DriverRequest src = srcs[0];
                     uint32_t destCluster = path_to_cluster(sh_parser.content[len - 1], currentCluster);
-                    FAT32DriverRequest dest = {
+                    struct FAT32DriverRequest dest = {
                         .parent_cluster_number = destCluster
                     };
                     memcpy(dest.name, src.name, 8);
@@ -583,10 +581,10 @@ void cp(uint32_t currentCluster) {
                     uint8_t status = copy_create_folders(sh_parser.content[len - 1], currentCluster, 0);
                     if(status != 0) return;
 
-                    FAT32DriverRequest src = srcs[0];
-                    FAT32DriverRequest dest = path_to_dir_request(sh_parser.content[len - 1], currentCluster);
-                    DirectoryEntry srcInfo = get_info(src);
-                    DirectoryEntry destInfo = get_info(dest);
+                    struct FAT32DriverRequest src = srcs[0];
+                    struct FAT32DriverRequest dest = path_to_dir_request(sh_parser.content[len - 1], currentCluster);
+                    struct DirectoryEntry srcInfo = get_info(src);
+                    struct DirectoryEntry destInfo = get_info(dest);
                     if (srcInfo.cluster_number == destInfo.cluster_number || check_contain(dest.parent_cluster_number, srcInfo.cluster_number)){
                         print("\ncp: Cannnot copy into itself\n");
                     }
@@ -598,8 +596,8 @@ void cp(uint32_t currentCluster) {
                     print("\ncp: Source is a directory\n");
                 }
                 else { // aman
-                    FAT32DriverRequest src = srcs[0];
-                    FAT32DriverRequest dest = {0};
+                    struct FAT32DriverRequest src = srcs[0];
+                    struct FAT32DriverRequest dest = {0};
                     if(!is_filename(sh_parser.content[len - 1])) {
                         uint8_t status = copy_create_folders(sh_parser.content[len - 1], currentCluster, 0);
                         if(status != 0) return;
@@ -630,7 +628,7 @@ void mv(uint32_t currentCluster) {
         uint8_t hasR = 1; // karna ga perlu flag r
         uint8_t hasDir = 0;
 
-        FAT32DriverRequest srcs[len - 2]; // create arr of sources
+        struct FAT32DriverRequest srcs[len - 2]; // create arr of sources
         uint8_t isFile[len - 2]; 
 
         int nSrc = 0;
@@ -665,19 +663,19 @@ void mv(uint32_t currentCluster) {
             } else if (isdir) {
                 // FAT32DriverRequest dest = path_to_dir_request(sh_parser.content[len - 1], currentCluster);
                 for (int i = 0; i < nSrc; i++) {
-                    FAT32DriverRequest src = srcs[i];
+                    struct FAT32DriverRequest src = srcs[i];
                     if (isFile[i]) { // aman
                         uint32_t destCluster = path_to_cluster(sh_parser.content[len - 1], currentCluster);
-                        FAT32DriverRequest dest = {
+                        struct FAT32DriverRequest dest = {
                             .parent_cluster_number = destCluster
                         };
                         memcpy(dest.name, src.name, 8);
                         memcpy(dest.ext, src.ext, 3);
                         copy1File(src, dest);
                     } else {
-                        FAT32DriverRequest dest = path_to_dir_request(sh_parser.content[len - 1], currentCluster);
-                        DirectoryEntry srcInfo = get_info(src);
-                        DirectoryEntry destInfo = get_info(dest);
+                        struct FAT32DriverRequest dest = path_to_dir_request(sh_parser.content[len - 1], currentCluster);
+                        struct DirectoryEntry srcInfo = get_info(src);
+                        struct DirectoryEntry destInfo = get_info(dest);
                         if (srcInfo.cluster_number == destInfo.cluster_number || check_contain(dest.parent_cluster_number, srcInfo.cluster_number)){
                             print("\ncp: Cannnot copy into itself\n");
                         }
@@ -696,10 +694,10 @@ void mv(uint32_t currentCluster) {
                 return;
             } else if (isdir) {
                 if (hasDir && hasR) {
-                    FAT32DriverRequest src = srcs[0];
-                    FAT32DriverRequest dest = path_to_dir_request(sh_parser.content[len - 1], currentCluster);
-                    DirectoryEntry srcInfo = get_info(src);
-                    DirectoryEntry destInfo = get_info(dest);
+                    struct FAT32DriverRequest src = srcs[0];
+                    struct FAT32DriverRequest dest = path_to_dir_request(sh_parser.content[len - 1], currentCluster);
+                    struct DirectoryEntry srcInfo = get_info(src);
+                    struct DirectoryEntry destInfo = get_info(dest);
                     if (srcInfo.cluster_number == destInfo.cluster_number || check_contain(dest.parent_cluster_number, srcInfo.cluster_number)){
                         print("\ncp: Cannnot copy into itself\n");
                     }
@@ -711,9 +709,9 @@ void mv(uint32_t currentCluster) {
                     return;
                 } else { // aman
                     //print("\nmasuksini");
-                    FAT32DriverRequest src = srcs[0];
+                    struct FAT32DriverRequest src = srcs[0];
                     uint32_t destCluster = path_to_cluster(sh_parser.content[len - 1], currentCluster);
-                    FAT32DriverRequest dest = {
+                    struct FAT32DriverRequest dest = {
                         .parent_cluster_number = destCluster
                     };
                     memcpy(dest.name, src.name, 8);
@@ -729,10 +727,10 @@ void mv(uint32_t currentCluster) {
                     uint8_t status = copy_create_folders(sh_parser.content[len - 1], currentCluster, 0);
                     if(status != 0) return;
 
-                    FAT32DriverRequest src = srcs[0];
-                    FAT32DriverRequest dest = path_to_dir_request(sh_parser.content[len - 1], currentCluster);
-                    DirectoryEntry srcInfo = get_info(src);
-                    DirectoryEntry destInfo = get_info(dest);
+                    struct FAT32DriverRequest src = srcs[0];
+                    struct FAT32DriverRequest dest = path_to_dir_request(sh_parser.content[len - 1], currentCluster);
+                    struct DirectoryEntry srcInfo = get_info(src);
+                    struct DirectoryEntry destInfo = get_info(dest);
                     if (srcInfo.cluster_number == destInfo.cluster_number || check_contain(dest.parent_cluster_number, srcInfo.cluster_number)){
                         print("\ncp: Cannnot copy into itself\n");
                     }
@@ -750,9 +748,9 @@ void mv(uint32_t currentCluster) {
                     uint8_t status = copy_create_folders(sh_parser.content[len - 1], currentCluster, 0);
                     if(status != 0) return;
                     // write file baru
-                    FAT32DriverRequest src = srcs[0];
+                    struct FAT32DriverRequest src = srcs[0];
                     // ini bisa tapi gabisa loncat folder, ex: [ada]/gaada.txt, gabisa kek [ada]/[gaada]/gaada.txt
-                    FAT32DriverRequest dest = path_to_file_request(sh_parser.content[len - 1], currentCluster);
+                    struct FAT32DriverRequest dest = path_to_file_request(sh_parser.content[len - 1], currentCluster);
                     copy1File(src, dest);
                 }
             }
@@ -768,11 +766,11 @@ void mv(uint32_t currentCluster) {
     }
 }
 
-void copy1Folder(FAT32DriverRequest src, FAT32DriverRequest dest) {
+void copy1Folder(struct FAT32DriverRequest src, struct FAT32DriverRequest dest) {
     dest.buffer_size = 0;
 
-    DirectoryEntry destination = get_info(dest);
-    FAT32DriverRequest selfReq = src;
+    struct DirectoryEntry destination = get_info(dest);
+    struct FAT32DriverRequest selfReq = src;
     selfReq.parent_cluster_number = destination.cluster_number;
     uint8_t code = writef(selfReq);
     if (code == 1){
@@ -785,10 +783,10 @@ void copy1Folder(FAT32DriverRequest src, FAT32DriverRequest dest) {
     }
     //dir(dest.parent_cluster_number);
 
-    DirectoryEntry self = get_info(selfReq);
-    DirectoryEntry source = get_info(src);
+    struct DirectoryEntry self = get_info(selfReq);
+    struct DirectoryEntry source = get_info(src);
 
-    FAT32DirectoryReader read = readf_dir(src);
+    struct FAT32DirectoryReader read = readf_dir(src);
     for(uint32_t i = 0; i < read.cluster_count; i++){
         for(uint32_t j = 0; j < ENTRY_COUNT; j++){
             // read.content[i].entry[j];
@@ -797,12 +795,12 @@ void copy1Folder(FAT32DriverRequest src, FAT32DriverRequest dest) {
             }
 
             if(read.content[i].entry[j].directory){
-                FAT32DriverRequest newDest = {0};
+                struct FAT32DriverRequest newDest = {0};
 
                 memcpy(newDest.name, self.filename, 8);
                 newDest.parent_cluster_number = destination.cluster_number;
 
-                FAT32DriverRequest newSrc = {0};
+                struct FAT32DriverRequest newSrc = {0};
                 memcpy(newSrc.name, read.content[i].entry[j].filename, 8);
                 newSrc.parent_cluster_number = source.cluster_number;
                 newSrc.buffer_size = 0;
@@ -810,7 +808,7 @@ void copy1Folder(FAT32DriverRequest src, FAT32DriverRequest dest) {
                 copy1Folder(newSrc, newDest);
             }
             else{
-                FAT32DriverRequest newDest = {
+                struct FAT32DriverRequest newDest = {
                     .parent_cluster_number = self.cluster_number,
                     .buffer_size = read.content[i].entry[j].size
                 };
@@ -818,7 +816,7 @@ void copy1Folder(FAT32DriverRequest src, FAT32DriverRequest dest) {
                 memcpy(newDest.name, read.content[i].entry[j].filename, 8);
                 memcpy(newDest.ext, read.content[i].entry[j].extension, 3);
 
-                FAT32DriverRequest newSrc = {
+                struct FAT32DriverRequest newSrc = {
                     .parent_cluster_number = source.cluster_number,
                     .buffer_size = read.content[i].entry[j].size
                 };
@@ -835,8 +833,8 @@ void copy1Folder(FAT32DriverRequest src, FAT32DriverRequest dest) {
     closef_dir(read);
 }
 
-void copy1File(FAT32DriverRequest src, FAT32DriverRequest dest) {
-    FAT32FileReader read = readf(src);
+void copy1File(struct FAT32DriverRequest src, struct FAT32DriverRequest dest) {
+    struct FAT32FileReader read = readf(src);
     dest.buffer_size = read.size;
     dest.buf = read.content;
     closef(read);
@@ -854,9 +852,9 @@ void copy1File(FAT32DriverRequest src, FAT32DriverRequest dest) {
 
 void cat(uint32_t currentCluster) {
     // prekondisi: path sudah valid, dan adalah path ke file
-    FAT32DriverRequest req = path_to_file_request(sh_parser.content[1], currentCluster);
+    struct FAT32DriverRequest req = path_to_file_request(sh_parser.content[1], currentCluster);
     
-    FAT32FileReader result = readf(req);
+    struct FAT32FileReader result = readf(req);
     string_t string = str_new("\n");
     for (uint32_t j = 0; j < result.size; j++) {
         str_addc(&string, *(((char*)result.content) + j));
@@ -871,12 +869,12 @@ void cat(uint32_t currentCluster) {
 
 
 // TODO: Review
-void exec(FAT32DriverRequest* req){
+void exec(struct FAT32DriverRequest* req){
     syscall(SYSCALL_TASK_START, (uint32_t) req, 0, 0);
 }
 
 void ps(){
-    task_list list = {0};
+    struct task_list list = {0};
     syscall(SYSCALL_TASK_INFO, (uint32_t) &list, 0, 0);
     
     string_t string = str_new("\n    No   Name      PID  PPID  RES   STATE");
