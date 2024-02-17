@@ -27,14 +27,10 @@ struct Context {
 
 struct PCB
 {
-    uint32_t size;                  // process size
+    uint32_t pid;                   // id
     struct PageDirectory* cr3;             // virtual address space
     uint32_t k_stack;               // kernel stack address
     enum ProcState state;           // state
-    uint32_t pid;                   // id
-    struct PCB* parent;             // parent id
-
-    struct TrapFrame* tf;                  // TrapFrame for current syscall
     struct Context* context;               // Context to switch to
     
     // Extras for process management purposes

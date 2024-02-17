@@ -40,7 +40,6 @@ void process_initialize(){
 
     current_process->cr3 = (struct PageDirectory*)((uint32_t) &process_page_dir[0] - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
     current_process->state = RUNNING;
-    current_process->parent = current_process;
 
     current_process->resource_amount = KERNEL_PAGE_COUNT;
     current_process->previous_pid = 0;
@@ -64,7 +63,6 @@ void process_get_info(struct process_info* tinfo, struct PCB process){
     tinfo->name[7] = process.name[7];
     tinfo->resource_amount = process.resource_amount;
     tinfo->pid = process.pid;
-    tinfo->ppid = process.parent->pid;
     tinfo->state = process.state;
 }
 
@@ -121,7 +119,6 @@ uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, ui
     // Initialize process base data
     uint32_t pid = process_generate_pid();
     process_array[pid].pid = pid;
-    process_array[pid].parent = current_process;
     process_array[pid].state = NEW;
     process_array[pid].resource_amount = resource_amount;
 
@@ -195,8 +192,6 @@ uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, ui
     // Save the data on our process list
     process_array[pid].k_stack = k_stack;
     process_array[pid].context = context;
-    process_array[pid].tf = tf;
-    process_array[pid].state = READY;
 
     paging_use_page_dir(current_process->cr3);
 
@@ -273,7 +268,6 @@ void process_schedule(){
     if(old->state == RUNNING) old->state = READY;
     new->state = RUNNING;
 
-    
     // We need to get old process's kernel stack before switching page tables
     // Doesn't need to clear it when a process is done
     // It doesn't matter since we are copying and reloading them each time
