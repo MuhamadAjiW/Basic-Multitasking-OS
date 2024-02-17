@@ -19,8 +19,9 @@ extern bool paging_phys_memory_used[PAGE_PHYS_COUNT];
 // Most of this gets slow because of static memory, very recommended to create a dedicated kernel heap for processing
 // Task 0 is always the kernel
 struct PCB process_array[MAX_PROCESS] = {0};
-uint8_t process_active[MAX_PROCESS] = {0};
 struct PageDirectory process_page_dir[MAX_PROCESS] = {0};
+uint8_t process_active[MAX_PROCESS] = {0};
+
 uint32_t num_process = 0;
 struct PCB* current_process;
 uint32_t last_process_pid;
@@ -101,57 +102,62 @@ uint32_t process_generate_pid(){
 uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags){
     __asm__ volatile ("cli");   // Stop interrupts when creating a process
 
-    if(num_process == MAX_PROCESS) {
-        __asm__ volatile ("sti");   // reenable interrupts
-        return 0;
-    }
+    //TODO: check process and resource availability
+        
+        // Kunjaw:
+        if(num_process == MAX_PROCESS) {
+            __asm__ volatile ("sti");   // reenable interrupts
+            return 0;
+        }
 
-    // TODO: optimize, using a whole page for stack is really excessive
-    // Allocate resources with ceiling division with at least 1MB of user stack and always 1 extra page for kernel stack
-    uint32_t frame_amount = ((0x100000 + request.buffer_size + PAGE_FRAME_SIZE - 1) / PAGE_FRAME_SIZE) + 1;
-    
-    // Check resource availability
-    if (!paging_allocate_check(frame_amount) || frame_amount > MAX_PROCESS_FRAMES){
-        __asm__ volatile ("sti");   // reenable interrupts
-        return 0;
-    }
+        // Allocate resources with ceiling division with at least 1MB of user stack and always 1 extra page for kernel stack
+        uint32_t frame_amount = ((0x100000 + request.buffer_size + PAGE_FRAME_SIZE - 1) / PAGE_FRAME_SIZE) + 1;
+        
+        // Check resource availability
+        if (!paging_allocate_check(frame_amount) || frame_amount > MAX_PROCESS_FRAMES){
+            __asm__ volatile ("sti");   // reenable interrupts
+            return 0;
+        }
     
     // Initialize process base data
     uint32_t pid = process_generate_pid();
     process_array[pid].pid = pid;
-    process_array[pid].state = NEW;
-
-    // Initialize with kernel's paging directory
-    struct PageDirectory* page_dir = &process_page_dir[pid];
-
-    paging_dirtable_init(page_dir);
-
-    // Also copy the current kernel stack in case the caller is not the kernel
-    paging_clone_directory_entry((void*)(current_process->k_stack - PAGE_FRAME_SIZE), &process_page_dir[current_process->pid], &process_page_dir[pid]);
-
-    // Allocate frames
-    process_array[pid].frame_amount = frame_amount;
-
-    // user stack
-    uint32_t u_stack = (frame_amount - 1) * PAGE_FRAME_SIZE;
-    uint32_t virt_addr = 0;
-    for(uint32_t i = 0; i < frame_amount - 1; i++){
-        virt_addr = i * PAGE_FRAME_SIZE;
-        process_array[pid].frame[i].virtual_addr = (void*) virt_addr;
-        process_array[pid].frame[i].physical_addr = paging_allocate_page_frame((void*) virt_addr, page_dir);
-    }
-
-    // kernel stack
-    uint32_t k_stack = (pid + 1) * PAGE_FRAME_SIZE + KERNEL_VMEMORY_OFFSET;
-    process_array[pid].frame[frame_amount - 1].virtual_addr = (void*) k_stack;
-    process_array[pid].frame[frame_amount - 1].physical_addr = paging_allocate_page_frame((void*) k_stack - PAGE_FRAME_SIZE, page_dir);
-
-    // Initialize process paging data
-    process_array[pid].cr3 = (struct PageDirectory*) ((uint32_t) page_dir - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
-
     for (uint8_t i = 0; i < 8; i++){
         process_array[pid].name[i] = request.name[i];
     }
+    // process_array[pid].state = NEW;
+
+    // Initialize paging directory
+    struct PageDirectory* page_dir = &process_page_dir[pid];
+    process_array[pid].cr3 = (struct PageDirectory*) ((uint32_t) page_dir - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
+    paging_dirtable_init(page_dir);
+    paging_clone_directory_entry((void*)(current_process->k_stack - PAGE_FRAME_SIZE), &process_page_dir[current_process->pid], &process_page_dir[pid]);
+
+
+    // TODO: Allocate frames
+    // uint32_t frame_amount;
+    // uint32_t u_stack;
+    // uint32_t k_stack;
+
+        // Kunjaw:
+        process_array[pid].frame_amount = frame_amount;
+
+        // user stack
+        uint32_t u_stack = (frame_amount - 1) * PAGE_FRAME_SIZE;
+        uint32_t virt_addr = 0;
+        for(uint32_t i = 0; i < frame_amount - 1; i++){
+            virt_addr = i * PAGE_FRAME_SIZE;
+            process_array[pid].frame[i].virtual_addr = (void*) virt_addr;
+            process_array[pid].frame[i].physical_addr = paging_allocate_page_frame((void*) virt_addr, page_dir);
+        }
+
+        // kernel stack
+        uint32_t k_stack = (pid + 1) * PAGE_FRAME_SIZE + KERNEL_VMEMORY_OFFSET;
+        process_array[pid].frame[frame_amount - 1].virtual_addr = (void*) k_stack;
+        process_array[pid].frame[frame_amount - 1].physical_addr = paging_allocate_page_frame((void*) k_stack - PAGE_FRAME_SIZE, page_dir);
+
+    // Initialize process paging data
+
     
     // Assign process as the last entry on the linked list
     process_array[pid].previous_pid = last_process_pid;
@@ -164,9 +170,8 @@ uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, ui
     // Prepare the entry for new process
     paging_use_page_dir(process_array[pid].cr3);
 
-    // Flush user stack pages
+    // Flush pages stack pages
     paging_flush_tlb_range((void*) 0, (void*) ((frame_amount - 1) * PAGE_FRAME_SIZE));
-    // Flush kernel stack pages
     paging_flush_tlb_single((void*)k_stack);
 
     // Load file into memory at 0
@@ -208,9 +213,8 @@ uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, ui
 
     paging_use_page_dir(current_process->cr3);
 
-    // Flush user stack pages
+    // Flush pages
     paging_flush_tlb_range((void*) 0, (void*) ((frame_amount - 1) * PAGE_FRAME_SIZE));
-    // Flush kernel stack pages
     paging_flush_tlb_single((void*)k_stack);    
 
     num_process++;

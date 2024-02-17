@@ -12,7 +12,6 @@
 #define EFLAGS_PARITY       0x4
 #define EFLAGS_INTERRUPT    0x200
 
-
 #define MAX_PROCESS 64
 #define MAX_PROCESS_NAME 8
 #define MAX_PROCESS_FRAMES 4
@@ -45,7 +44,7 @@ struct PCB
     // Linked list purposes
     uint32_t previous_pid;
     uint32_t next_pid;
-};
+}; // Not packed because of alignment
 
 // To pass to shell
 struct process_info
@@ -55,20 +54,16 @@ struct process_info
     uint32_t frame_amount;       // Amount of resources used
     enum ProcState state;           // state
     char name[MAX_PROCESS_NAME];
-
-};
+} __attribute__((packed));
 
 struct process_list
 {
     struct process_info info[MAX_PROCESS];
     uint32_t num_process;
-};
-
-// Not packed because of alignment
+} __attribute__((packed));
 
 void switch_context(struct Context** old_process, struct Context* new_process);
 void restore_context();
-void isr_exit();
 
 void process_initialize();
 void process_get_info(struct process_info* tinfo, struct PCB process);
