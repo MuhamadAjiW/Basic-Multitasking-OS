@@ -11,9 +11,6 @@
 // Operating system page directory, using page size PAGE_FRAME_SIZE (4 MiB)
 extern struct PageDirectory _paging_kernel_page_directory;
 
-// External struct from process.h
-struct PCB;
-
 /**
  * Page Directory Entry Flag, only first 8 bit
  * 
@@ -73,7 +70,7 @@ struct PageDirectory {
 } __attribute__((aligned(0x1000)));
 
 /**
- * update_page_directory,
+ * paging_dir_update,
  * Edit _paging_kernel_page_directory with respective parameter
  * 
  * @param physical_addr Physical address to map
@@ -91,18 +88,83 @@ void paging_dir_update(void *physical_addr, void *virtual_addr, struct PageDirec
  */
 void paging_flush_tlb_single(void *virtual_addr);
 
-//TODO: Document
+
+/**
+ * paging_flush_tlb_range, 
+ * invalidate page that is in range of virtual address in parameter
+ * 
+ * @param start_addr    Start of Virtual address range to flush
+ * @param end_addr      End of Virtual address range to flush
+ */
+void paging_flush_tlb_range(void *start_addr, void *end_addr);
+
+/**
+ * paging_use_page_dir, 
+ * change active Page Directory to the inserted address value
+ * 
+ * @param page_dir      Physical address of page directory to be used
+ */
+void paging_use_page_dir(struct PageDirectory* page_dir); //Page dir must be physical address and aligned to 0x1000
+
+/**
+ * paging_dirtable_init, 
+ * initialize a new page table by copying kernel page directory entries to it
+ * 
+ * @param dest          address of page directory to be initialized
+ */
+void paging_dirtable_init(struct PageDirectory* dest);
+
+/**
+ * paging_allocate_page_frame, 
+ * allocate a physical address to a virtual address in a certain page directory
+ * 
+ * @param virt_addr           address of virtual address page to be allocated
+ * @param page_dir            address of page directory to be given physical frame
+ * @return                    address of given physical frame
+ */
+void* paging_allocate_page_frame(void *virt_addr, struct PageDirectory* page_dir);
+
+/**
+ * paging_allocate_page_frame, 
+ * deallocate a physical frame from a virtual address in a certain page directory
+ * 
+ * @param virt_addr           address of virtual address page to be allocated
+ * @param phys_addr           address of physical address page to be allocated
+ * @param page_dir            address of page directory to be given physical frame
+ * @return                    success state of function with TRUE being page is freed successfully
+ */
+bool paging_free_page_frame(void *virt_addr, void* phys_addr, struct PageDirectory* page_dir);
+
+
+/**
+ * paging_allocate_check, 
+ * check whether a certain amount of physical frames are available
+ * 
+ * @param amount              requested amount of physical frames 
+ * @return                    availability of physical frame with TRUE being amount of available physical frame is more than requested amount 
+ */
+bool paging_allocate_check(uint32_t amount);
+
+
+/**
+ * Page Frame, map of virtual address and physical address
+ * 
+ * @param virtual_addr           Mapped virtual address of physical address
+ * @param physical_addr          Mapped physical address of virtual address
+ */
 struct PageFrame {
    void *virtual_addr;
    void *physical_addr;
 };
 
-void paging_flush_tlb_range(void *start_addr, void *end_addr);
-void paging_use_page_dir(struct PageDirectory* page_dir); //Page dir must be physical address and aligned to 0x1000
-void paging_dirtable_init(struct PageDirectory* dest);
+/**
+ * paging_clone_directory_entry
+ * copy the entry of a particular virtual address of a page directory to another
+ *  
+ * @param virt_addr              Mapped virtual address of entry to be copied
+ * @param src                    Origin page directory of virtual address to be copied
+ * @param dest                   Destination page directory of virtual address to be copied to
+ */
 void paging_clone_directory_entry(void *virt_addr, struct PageDirectory* src, struct PageDirectory* dest);
-bool paging_allocate_check(uint32_t amount);
-void* paging_allocate_page_frame(void *virt_addr, struct PageDirectory* page_dir);
-bool paging_free_page_frame(void *virt_addr, void* phys_addr, struct PageDirectory* page_dir);
 
 #endif

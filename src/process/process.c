@@ -91,12 +91,15 @@ void process_generate_list(struct process_list* list){
 }
 
 uint32_t process_generate_pid(){
-    uint32_t i = 1;
-    while (process_active[i]){
-        i++;
-    }
+    // TODO: implement generation algorithm
 
-    return i;
+        // Template, ga kunjaw sih ini bebas aja mau implementasinya
+        uint32_t pid = 1;
+        while (process_active[pid]){
+            pid++;
+        }
+
+    return pid;
 }
 
 uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags){
@@ -289,20 +292,23 @@ void process_switch(struct PCB* old, struct PCB* new){
 
 
 void process_schedule(){
-    int next_pid = current_process->next_pid;
+    // TODO: implement scheduling algorithm
 
-    while (process_array[next_pid].state == TERMINATED){
-        next_pid = process_array[next_pid].next_pid;
-    }    
+        // Template, ga kunjaw sih ini bebas aja mau implementasinya
+        int next_pid = current_process->next_pid;
 
-    struct PCB* new = &process_array[next_pid];
-    struct PCB* old = current_process;
-    if(new == old) return; // Will break if not switching due to asm code
+        while (process_array[next_pid].state == TERMINATED){
+            next_pid = process_array[next_pid].next_pid;
+        }    
 
-    current_process = new;
+        struct PCB* new = &process_array[next_pid];
+        struct PCB* old = current_process;
+        if(new == old) return; // Will break if not switching due to asm code
 
-    if(old->state == RUNNING) old->state = READY;
-    new->state = RUNNING;
+        current_process = new;
+
+        if(old->state == RUNNING) old->state = READY;
+        new->state = RUNNING;
 
     process_switch(old, new);
 }
