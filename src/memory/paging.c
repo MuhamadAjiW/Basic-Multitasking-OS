@@ -90,12 +90,12 @@ void* paging_allocate_page_frame(void *virt_addr, struct PageDirectory* page_dir
 
 bool paging_free_page_frame(void *virt_addr, void* phys_addr, struct PageDirectory* page_dir){
     uint32_t index = (uint32_t) phys_addr / PAGE_FRAME_SIZE;
-    if(!paging_phys_memory_used[index]) return 0;
+    if(!paging_phys_memory_used[index]) return FALSE;
 
     struct PageDirectoryEntryFlag flag ={0};
     paging_dir_update((void*) phys_addr, (void*) virt_addr, flag, page_dir);
     paging_phys_memory_used[index] = 0;
     paging_phys_memory_used_amount--;
 
-    return 1;
+    return TRUE;
 }

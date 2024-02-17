@@ -142,7 +142,7 @@ uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, ui
     }
 
     // kernel stack
-    uint32_t k_stack = _linker_kernel_virtual_addr_end + (pid + 1) * PAGE_FRAME_SIZE + KERNEL_VMEMORY_OFFSET;
+    uint32_t k_stack = (pid + 1) * PAGE_FRAME_SIZE + KERNEL_VMEMORY_OFFSET;
     process_array[pid].frame[frame_amount - 1].virtual_addr = (void*) k_stack;
     process_array[pid].frame[frame_amount - 1].physical_addr = paging_allocate_page_frame((void*) k_stack - PAGE_FRAME_SIZE, page_dir);
 

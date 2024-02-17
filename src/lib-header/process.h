@@ -29,20 +29,20 @@ struct Context {
 
 struct PCB
 {
-    uint32_t size;                          // process size
+    uint32_t pid;                           // id
     struct PageDirectory* cr3;              // virtual address space
     uint32_t k_stack;                       // kernel stack address
-    enum ProcState state;                   // state
-    uint32_t pid;                           // id
     struct Context* context;                // Context to switch to
     
     // Extras for process management purposes
     char name[MAX_PROCESS_NAME];
-    uint32_t frame_amount;                  // Amount of resources used
+    uint32_t frame_amount;                  // Amount of frames used
     struct PageFrame frame[MAX_PROCESS_FRAMES];
     
-    // Linked list purposes
+    enum ProcState state;                   // state
     struct PCB* parent;                     // parent
+    
+    // Linked list purposes
     uint32_t previous_pid;
     uint32_t next_pid;
 };
