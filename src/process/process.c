@@ -265,6 +265,24 @@ void process_clean(uint32_t pid){
     __asm__ volatile ("sti");   // reenable interrupts
 }
 
+void process_switch(struct PCB* old, struct PCB* new){
+    tss.esp0 = new->k_stack;
+
+    // We need to get old process's kernel stack before switching page tables
+    // Doesn't need to clear it when a process is done
+    // It doesn't matter since we are copying and reloading them each time
+    paging_clone_directory_entry((void*)(old->k_stack - PAGE_FRAME_SIZE), &process_page_dir[old->pid], &process_page_dir[new->pid]);
+
+    // Switching page tables
+    paging_use_page_dir(new->cr3);
+
+    // flush pages
+    paging_flush_tlb_single((void*) old->k_stack);
+    paging_flush_tlb_range((void*) 0, (void*) (new->frame_amount * PAGE_FRAME_SIZE));
+
+    switch_context(&(old->context), new->context);
+}
+
 
 void process_schedule(){
     int next_pid = current_process->next_pid;
@@ -279,22 +297,8 @@ void process_schedule(){
 
     current_process = new;
 
-    tss.esp0 = new->k_stack;
-
     if(old->state == RUNNING) old->state = READY;
     new->state = RUNNING;
 
-    // We need to get old process's kernel stack before switching page tables
-    // Doesn't need to clear it when a process is done
-    // It doesn't matter since we are copying and reloading them each time
-    paging_clone_directory_entry((void*)(old->k_stack - PAGE_FRAME_SIZE), &process_page_dir[old->pid], &process_page_dir[new->pid]);
-    
-    // Switching page tables
-    paging_use_page_dir(new->cr3);
-
-    // flush pages
-    paging_flush_tlb_single((void*) old->k_stack);
-    paging_flush_tlb_range((void*) 0, (void*) (new->frame_amount * PAGE_FRAME_SIZE));
-
-    switch_context(&(old->context), new->context);
+    process_switch(old, new);
 }
