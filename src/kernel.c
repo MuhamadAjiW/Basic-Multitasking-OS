@@ -14,7 +14,7 @@
 #include "lib-header/paging.h"
 #include "lib-header/memory_manager.h"
 
-#include "lib-header/task.h"
+#include "lib-header/process.h"
 #include "lib-header/window_manager.h"
 
 void kernel_setup(void) {
@@ -29,7 +29,7 @@ void kernel_setup(void) {
     gdt_install_tss();
     set_tss_register_kernel();
     set_tss_kernel_current_stack();
-    task_initialize();
+    process_initialize();
 
     activate_interrupts();
     enable_system_calls();
@@ -53,7 +53,7 @@ void kernel_setup(void) {
         .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
         .buffer_size           = 0x100000,
     };
-    task_create(shell, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+    process_create(shell, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
 
     struct FAT32DriverRequest clock = {
         .buf                   = (void*) 0,
@@ -62,10 +62,10 @@ void kernel_setup(void) {
         .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
         .buffer_size           = 0x100000,
     };
-    task_create(clock, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+    process_create(clock, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
 
     // the kernel acts as a garbage collector afterwards
     while (TRUE){
-        task_clean_scan();
+        process_clean_scan();
     }
 }

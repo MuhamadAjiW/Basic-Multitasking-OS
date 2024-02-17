@@ -3,7 +3,7 @@
 #define _PAGING_H
 
 #include "stdtype.h"
-#include "task.h"
+#include "process.h"
 
 #define PAGE_ENTRY_COUNT 1024
 #define PAGE_FRAME_SIZE  0x400000

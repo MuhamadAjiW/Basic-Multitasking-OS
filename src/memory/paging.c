@@ -1,9 +1,9 @@
 #include "../lib-header/paging.h"
 #include "../lib-header/resource.h"
-#include "../lib-header/task.h"
+#include "../lib-header/process.h"
 
 extern struct Resource resource_table[RESOURCE_AMOUNT];
-extern struct PageDirectory tasks_page_dir[MAX_TASKS];
+extern struct PageDirectory process_page_dir[MAX_PROCESS];
 
 struct PageDirectory _paging_kernel_page_directory = {
     .table = {
@@ -59,5 +59,5 @@ void paging_dirtable_init(struct PageDirectory* dest) {
 
 void paging_clone_kernel_stack(struct PCB src, struct PCB dest){
     uint32_t index = (uint32_t) (src.k_stack - PAGE_FRAME_SIZE) / PAGE_FRAME_SIZE;
-    tasks_page_dir[dest.pid].table[index] = tasks_page_dir[src.pid].table[index];
+    process_page_dir[dest.pid].table[index] = process_page_dir[src.pid].table[index];
 }

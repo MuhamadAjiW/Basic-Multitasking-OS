@@ -1,7 +1,7 @@
 // Had to take a source: https://course.ccs.neu.edu/cs3650/unix-xv6/HTML/
 
-#ifndef _TASK_H
-#define _TASK_H
+#ifndef _PROCESS_H
+#define _PROCESS_H
 
 #include "stdtype.h"
 #include "cpu.h"
@@ -12,13 +12,13 @@
 #define EFLAGS_INTERRUPT    0x200
 
 
-#define MAX_TASKS 64
-#define MAX_TASKS_PNAME 8
+#define MAX_PROCESS 64
+#define MAX_PROCESS_NAME 8
 
 #define STACKTYPE_KERNEL 0
 #define STACKTYPE_USER 3
 
-enum ProcState { NULL_TASK, NEW, READY, RUNNING, WAITING, TERMINATED };
+enum ProcState { NULL_PROCESS, NEW, READY, RUNNING, WAITING, TERMINATED };
 
 //TODO: Document
 struct Context {
@@ -39,7 +39,7 @@ struct PCB
     
     // Extras for process management purposes
     uint32_t resource_amount;       // Amount of resources used
-    char name[MAX_TASKS_PNAME];
+    char name[MAX_PROCESS_NAME];
     
     // Linked list purposes
     uint32_t previous_pid;
@@ -48,38 +48,38 @@ struct PCB
 };
 
 // To pass to shell
-struct task_info
+struct process_info
 {
     uint32_t pid;                   // id
     uint32_t ppid;                  // parent id    
     uint32_t resource_amount;       // Amount of resources used
     enum ProcState state;           // state
-    char name[MAX_TASKS_PNAME];
+    char name[MAX_PROCESS_NAME];
 
 };
 
-struct task_list
+struct process_list
 {
-    struct task_info info[MAX_TASKS];
-    uint32_t num_task;
+    struct process_info info[MAX_PROCESS];
+    uint32_t num_process;
 
 };
 
 // Not packed because of alignment
 
-void switch_context(struct Context** old_task, struct Context* new_task);
+void switch_context(struct Context** old_process, struct Context* new_process);
 void restore_context();
 void isr_exit();
 
-void task_initialize();
-void task_get_info(struct task_info* tinfo, struct PCB task);
-void task_generate_list(struct task_list* list);
-uint32_t task_generate_pid();
-uint8_t task_create(struct FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags);
-void task_terminate_current();
-void task_terminate(uint32_t pid);
-void task_clean_scan();
-void task_clean(uint32_t pid);
-void task_schedule();
+void process_initialize();
+void process_get_info(struct process_info* tinfo, struct PCB process);
+void process_generate_list(struct process_list* list);
+uint32_t process_generate_pid();
+uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags);
+void process_terminate_current();
+void process_terminate(uint32_t pid);
+void process_clean_scan();
+void process_clean(uint32_t pid);
+void process_schedule();
 
 #endif

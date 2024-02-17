@@ -1,7 +1,7 @@
 #include "../lib-header/idt.h"
 #include "../lib-header/interrupt.h"
 #include "../lib-header/portio.h"
-#include "../lib-header/task.h"
+#include "../lib-header/process.h"
 
 uint32_t tick = 0;
 
@@ -11,7 +11,7 @@ void tick_counter(){
 
 void pit_isr(){
     tick_counter();
-    task_schedule();
+    process_schedule();
 }
 
 void set_pit_freq(uint32_t freq){

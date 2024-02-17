@@ -8,7 +8,7 @@
 #include "../lib-header/cmos.h"
 #include "../lib-header/window_manager.h"
 #include "../lib-header/memory_manager.h"
-#include "../lib-header/task.h"
+#include "../lib-header/process.h"
 
 extern InterruptHandler syscall_handlers[];
 
@@ -63,17 +63,17 @@ void sys_winmgr_close(struct TrapFrame cpu){
 }
 
 // Tasking syscall
-void sys_task_start(struct TrapFrame cpu){
-    task_create(*(struct FAT32DriverRequest*) cpu.registers.ebx, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+void sys_process_start(struct TrapFrame cpu){
+    process_create(*(struct FAT32DriverRequest*) cpu.registers.ebx, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
 }
-void sys_task_stop(struct TrapFrame cpu){
-    task_terminate(cpu.registers.ebx);
+void sys_process_stop(struct TrapFrame cpu){
+    process_terminate(cpu.registers.ebx);
 }
-void sys_task_exit(__attribute__((unused))struct TrapFrame cpu){
-    task_terminate_current();
+void sys_process_exit(__attribute__((unused))struct TrapFrame cpu){
+    process_terminate_current();
 }
-void sys_task_info(struct TrapFrame cpu){
-    task_generate_list((struct task_list*) cpu.registers.ebx);
+void sys_process_info(struct TrapFrame cpu){
+    process_generate_list((struct process_list*) cpu.registers.ebx);
 }
 
 // Filesystem syscall
@@ -119,10 +119,10 @@ void enable_system_calls(){
     register_syscall_response(SYSCALL_WINMGR_UPDATE, sys_winmgr_update);
     register_syscall_response(SYSCALL_WINMGR_CLOSE, sys_winmgr_close);
 
-    register_syscall_response(SYSCALL_TASK_START, sys_task_start);
-    register_syscall_response(SYSCALL_TASK_STOP, sys_task_stop);
-    register_syscall_response(SYSCALL_TASK_EXIT, sys_task_exit);
-    register_syscall_response(SYSCALL_TASK_INFO, sys_task_info);
+    register_syscall_response(SYSCALL_PROCESS_START, sys_process_start);
+    register_syscall_response(SYSCALL_PROCESS_STOP, sys_process_stop);
+    register_syscall_response(SYSCALL_PROCESS_EXIT, sys_process_exit);
+    register_syscall_response(SYSCALL_PROCESS_INFO, sys_process_info);
 
     register_syscall_response(SYSCALL_READ_FILE, sys_read);
     register_syscall_response(SYSCALL_READ_DIR, sys_read_directory);

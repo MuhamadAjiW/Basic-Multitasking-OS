@@ -28,6 +28,6 @@ void close_window(uint32_t id){
 }
 
 void exit(){
-    syscall(SYSCALL_TASK_EXIT, 0, 0, 0);
+    syscall(SYSCALL_PROCESS_EXIT, 0, 0, 0);
     while (TRUE); // wait for pit interrupt
 }

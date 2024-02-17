@@ -9,7 +9,7 @@
         "keyboard.h": "c",
         "kernel_loader.h": "c",
         "memory_manager.h": "c",
-        "task.h": "c",
+        "process.h": "c",
         "gdt.h": "c",
         "fat32.h": "c",
         "tss.h": "c",
@@ -23,6 +23,7 @@
         "string.h": "c",
         "shell.h": "c",
         "stdlib.h": "c",
-        "typeinfo": "c"
+        "typeinfo": "c",
+        "task.h": "c"
     },
 }

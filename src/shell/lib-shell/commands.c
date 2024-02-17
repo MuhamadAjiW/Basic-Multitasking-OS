@@ -9,7 +9,7 @@
 #include "../lib-header/syscall.h"
 #include "../lib-header/commands-util.h"
 #include "../lib-header/iostream.h"
-#include "../lib-header/task.h"
+#include "../lib-header/process.h"
 
 #include "../lib-header/parser.h"
 #include "../lib-header/shell.h"
@@ -870,17 +870,17 @@ void cat(uint32_t currentCluster) {
 
 // TODO: Review
 void exec(struct FAT32DriverRequest* req){
-    syscall(SYSCALL_TASK_START, (uint32_t) req, 0, 0);
+    syscall(SYSCALL_PROCESS_START, (uint32_t) req, 0, 0);
 }
 
 void ps(){
-    struct task_list list = {0};
-    syscall(SYSCALL_TASK_INFO, (uint32_t) &list, 0, 0);
+    struct process_list list = {0};
+    syscall(SYSCALL_PROCESS_INFO, (uint32_t) &list, 0, 0);
     
     string_t string = str_new("\n    No   Name      PID  PPID  RES   STATE");
     char char_buffer[9];
 
-    for (uint32_t i = 0; i < list.num_task; i++){
+    for (uint32_t i = 0; i < list.num_process; i++){
         str_add(&string, "\n    ");
         int_to_string(i + 1, char_buffer);
         str_add(&string, char_buffer);
@@ -914,7 +914,7 @@ void ps(){
         }
 
         switch (list.info[i].state){
-        case NULL_TASK: str_add(&string, "NULL"); break;
+        case NULL_PROCESS: str_add(&string, "NULL"); break;
         case NEW: str_add(&string, "NEW"); break;
         case WAITING: str_add(&string, "WAITING"); break;
         case TERMINATED: str_add(&string, "TERMINATED"); break;
@@ -937,5 +937,5 @@ void ps(){
 }
 
 void kill(uint32_t pid){
-    syscall(SYSCALL_TASK_STOP, pid, 0, 0);
+    syscall(SYSCALL_PROCESS_STOP, pid, 0, 0);
 }
