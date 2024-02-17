@@ -5,13 +5,13 @@
 #include "../lib-header/stdmem.h"
 #include "../lib-header/memory_manager.h"
 #include "../lib-header/window_manager.h"
-#include "../lib-header/resource.h"
 #include "../lib-header/paging.h"
 #include "../lib-header/fat32.h"
 
 extern struct TSSEntry tss;
 
 // TODO: Review
+extern bool paging_phys_memory_used[PAGE_PHYS_COUNT];
 
 // Note: Would be interesting to make process with dynamic
 // Process is managed like a linked list for performance reasons with indices as pointers because static memory (check PCB structure)
@@ -41,7 +41,7 @@ void process_initialize(){
     current_process->cr3 = (struct PageDirectory*)((uint32_t) &process_page_dir[0] - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
     current_process->state = RUNNING;
 
-    current_process->resource_amount = KERNEL_PAGE_COUNT;
+    current_process->frame_amount = KERNEL_PAGE_COUNT;
     current_process->previous_pid = 0;
     current_process->next_pid = 0;
 
@@ -61,7 +61,7 @@ void process_get_info(struct process_info* tinfo, struct PCB process){
     tinfo->name[5] = process.name[5];
     tinfo->name[6] = process.name[6];
     tinfo->name[7] = process.name[7];
-    tinfo->resource_amount = process.resource_amount;
+    tinfo->frame_amount = process.frame_amount;
     tinfo->pid = process.pid;
     tinfo->state = process.state;
 }
@@ -108,10 +108,10 @@ uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, ui
 
     // TODO: optimize, using a whole page for stack is really excessive
     // Allocate resources with ceiling division with at least 1MB of user stack and always 1 extra page for kernel stack
-    uint32_t resource_amount = ((0x100000 + request.buffer_size + PAGE_FRAME_SIZE - 1) / PAGE_FRAME_SIZE) + 1;
+    uint32_t frame_amount = ((0x100000 + request.buffer_size + PAGE_FRAME_SIZE - 1) / PAGE_FRAME_SIZE) + 1;
     
     // Check resource availability
-    if (!resource_check(resource_amount)){
+    if (!paging_allocate_check(frame_amount) || frame_amount > MAX_PROCESS_FRAMES){
         __asm__ volatile ("sti");   // reenable interrupts
         return 0;
     }
@@ -120,7 +120,6 @@ uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, ui
     uint32_t pid = process_generate_pid();
     process_array[pid].pid = pid;
     process_array[pid].state = NEW;
-    process_array[pid].resource_amount = resource_amount;
 
     // Initialize with kernel's paging directory
     struct PageDirectory* page_dir = &process_page_dir[pid];
@@ -128,10 +127,24 @@ uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, ui
     paging_dirtable_init(page_dir);
 
     // Also copy the current kernel stack in case the caller is not the kernel
-    paging_clone_kernel_stack(*current_process, process_array[pid]);
+    paging_clone_directory_entry((void*)(current_process->k_stack - PAGE_FRAME_SIZE), &process_page_dir[current_process->pid], &process_page_dir[pid]);
 
-    uint32_t u_stack = resource_allocate(resource_amount - 1, pid, page_dir);
-    uint32_t k_stack = resource_allocate_kernel(pid, page_dir);
+    // Allocate frames
+    process_array[pid].frame_amount = frame_amount;
+
+    // user stack
+    uint32_t u_stack = (frame_amount - 1) * PAGE_FRAME_SIZE;
+    uint32_t virt_addr = 0;
+    for(uint32_t i = 0; i < frame_amount - 1; i++){
+        virt_addr = i * PAGE_FRAME_SIZE;
+        process_array[pid].frame[i].virtual_addr = (void*) virt_addr;
+        process_array[pid].frame[i].physical_addr = paging_allocate_page_frame((void*) virt_addr, page_dir);
+    }
+
+    // kernel stack
+    uint32_t k_stack = _linker_kernel_virtual_addr_end + (pid + 1) * PAGE_FRAME_SIZE + KERNEL_VMEMORY_OFFSET;
+    process_array[pid].frame[frame_amount - 1].virtual_addr = (void*) k_stack;
+    process_array[pid].frame[frame_amount - 1].physical_addr = paging_allocate_page_frame((void*) k_stack - PAGE_FRAME_SIZE, page_dir);
 
     // Initialize process paging data
     process_array[pid].cr3 = (struct PageDirectory*) ((uint32_t) page_dir - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
@@ -152,7 +165,7 @@ uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, ui
     paging_use_page_dir(process_array[pid].cr3);
 
     // Flush user stack pages
-    paging_flush_tlb_range((void*) 0, (void*) ((resource_amount - 1) * PAGE_FRAME_SIZE));
+    paging_flush_tlb_range((void*) 0, (void*) ((frame_amount - 1) * PAGE_FRAME_SIZE));
     // Flush kernel stack pages
     paging_flush_tlb_single((void*)k_stack);
 
@@ -196,7 +209,7 @@ uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, ui
     paging_use_page_dir(current_process->cr3);
 
     // Flush user stack pages
-    paging_flush_tlb_range((void*) 0, (void*) ((resource_amount - 1) * PAGE_FRAME_SIZE));
+    paging_flush_tlb_range((void*) 0, (void*) ((frame_amount - 1) * PAGE_FRAME_SIZE));
     // Flush kernel stack pages
     paging_flush_tlb_single((void*)k_stack);    
 
@@ -230,7 +243,10 @@ void process_clean_scan(){
 void process_clean(uint32_t pid){
     __asm__ volatile ("cli");   // Stop interrupts
     
-    resource_deallocate(pid, process_array[pid].resource_amount);
+    for (uint32_t i = 0; i < process_array[pid].frame_amount; i++){
+        paging_free_page_frame(process_array[pid].frame[i].virtual_addr, process_array[pid].frame[i].physical_addr, &process_page_dir[pid]);
+    }
+    
     winmgr_clean_window(pid);
 
     struct PCB process = process_array[pid];
@@ -271,14 +287,14 @@ void process_schedule(){
     // We need to get old process's kernel stack before switching page tables
     // Doesn't need to clear it when a process is done
     // It doesn't matter since we are copying and reloading them each time
-    paging_clone_kernel_stack(*old, *new);
+    paging_clone_directory_entry((void*)(old->k_stack - PAGE_FRAME_SIZE), &process_page_dir[old->pid], &process_page_dir[new->pid]);
     
     // Switching page tables
     paging_use_page_dir(new->cr3);
 
     // flush pages
     paging_flush_tlb_single((void*) old->k_stack);
-    paging_flush_tlb_range((void*) 0, (void*) (new->resource_amount * PAGE_FRAME_SIZE));
+    paging_flush_tlb_range((void*) 0, (void*) (new->frame_amount * PAGE_FRAME_SIZE));
 
     switch_context(&(old->context), new->context);
 }

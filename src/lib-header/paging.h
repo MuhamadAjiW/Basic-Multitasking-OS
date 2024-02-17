@@ -3,13 +3,16 @@
 #define _PAGING_H
 
 #include "stdtype.h"
-#include "process.h"
 
 #define PAGE_ENTRY_COUNT 1024
 #define PAGE_FRAME_SIZE  0x400000
+#define PAGE_PHYS_COUNT 32
 
 // Operating system page directory, using page size PAGE_FRAME_SIZE (4 MiB)
 extern struct PageDirectory _paging_kernel_page_directory;
+
+// External struct from process.h
+struct PCB;
 
 /**
  * Page Directory Entry Flag, only first 8 bit
@@ -89,9 +92,17 @@ void paging_dir_update(void *physical_addr, void *virtual_addr, struct PageDirec
 void paging_flush_tlb_single(void *virtual_addr);
 
 //TODO: Document
+struct PageFrame {
+   void *virtual_addr;
+   void *physical_addr;
+};
+
 void paging_flush_tlb_range(void *start_addr, void *end_addr);
 void paging_use_page_dir(struct PageDirectory* page_dir); //Page dir must be physical address and aligned to 0x1000
 void paging_dirtable_init(struct PageDirectory* dest);
-void paging_clone_kernel_stack(struct PCB src, struct PCB dest);
+void paging_clone_directory_entry(void *virt_addr, struct PageDirectory* src, struct PageDirectory* dest);
+bool paging_allocate_check(uint32_t amount);
+void* paging_allocate_page_frame(void *virt_addr, struct PageDirectory* page_dir);
+bool paging_free_page_frame(void *virt_addr, void* phys_addr, struct PageDirectory* page_dir);
 
 #endif

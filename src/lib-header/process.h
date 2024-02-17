@@ -6,6 +6,7 @@
 #include "stdtype.h"
 #include "cpu.h"
 #include "fat32.h"
+#include "paging.h"
 
 #define EFLAGS_BASE         0x2
 #define EFLAGS_PARITY       0x4
@@ -14,6 +15,7 @@
 
 #define MAX_PROCESS 64
 #define MAX_PROCESS_NAME 8
+#define MAX_PROCESS_FRAMES 4
 
 #define STACKTYPE_KERNEL 0
 #define STACKTYPE_USER 3
@@ -27,20 +29,22 @@ struct Context {
 
 struct PCB
 {
-    uint32_t pid;                   // id
-    struct PageDirectory* cr3;             // virtual address space
-    uint32_t k_stack;               // kernel stack address
-    enum ProcState state;           // state
-    struct Context* context;               // Context to switch to
+    uint32_t size;                          // process size
+    struct PageDirectory* cr3;              // virtual address space
+    uint32_t k_stack;                       // kernel stack address
+    enum ProcState state;                   // state
+    uint32_t pid;                           // id
+    struct Context* context;                // Context to switch to
     
     // Extras for process management purposes
-    uint32_t resource_amount;       // Amount of resources used
     char name[MAX_PROCESS_NAME];
+    uint32_t frame_amount;                  // Amount of resources used
+    struct PageFrame frame[MAX_PROCESS_FRAMES];
     
     // Linked list purposes
+    struct PCB* parent;                     // parent
     uint32_t previous_pid;
     uint32_t next_pid;
-
 };
 
 // To pass to shell
@@ -48,7 +52,7 @@ struct process_info
 {
     uint32_t pid;                   // id
     uint32_t ppid;                  // parent id    
-    uint32_t resource_amount;       // Amount of resources used
+    uint32_t frame_amount;       // Amount of resources used
     enum ProcState state;           // state
     char name[MAX_PROCESS_NAME];
 
@@ -58,7 +62,6 @@ struct process_list
 {
     struct process_info info[MAX_PROCESS];
     uint32_t num_process;
-
 };
 
 // Not packed because of alignment

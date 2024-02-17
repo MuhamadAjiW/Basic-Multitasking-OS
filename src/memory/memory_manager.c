@@ -1,6 +1,5 @@
 
 #include "../lib-header/memory_manager.h"
-#include "../lib-header/resource.h"
 #include "../lib-header/stdtype.h"
 #include "../lib-header/stdmem.h"
 #include "../lib-header/paging.h"
@@ -10,7 +9,8 @@ static uint32_t heap_start = 0;
 static uint32_t heap_end = 0;
 
 static uint32_t dynamic_pointers = 0;
-extern struct Resource resource_table[RESOURCE_AMOUNT];
+extern bool paging_phys_memory_used[PAGE_PHYS_COUNT];
+extern uint32_t paging_phys_memory_used_amount;
 
 // Note:
 // heap is placed under kernel space
@@ -19,9 +19,7 @@ extern struct Resource resource_table[RESOURCE_AMOUNT];
 void memory_initialize(){
     // Assign pages used by the kernel, kernel is assumed to always start at 0
     for (uint16_t i = 0; i < KERNEL_PAGE_COUNT; i++){
-        resource_table[i].used = 1;
-        resource_table[i].pid = 0;
-        resource_table[i].type = KERNEL;
+        paging_phys_memory_used[i] = 1;
     }
 
     struct PageDirectoryEntryFlag flags ={
@@ -38,9 +36,8 @@ void memory_initialize(){
             flags, &_paging_kernel_page_directory);
         
         uint32_t resource_index = KERNEL_PAGE_COUNT + i;
-        resource_table[resource_index].used = 1;
-        resource_table[resource_index].pid = 0;
-        resource_table[resource_index].type = HEAP;
+        paging_phys_memory_used[resource_index] = 1;
+        paging_phys_memory_used_amount++;
     }
 
     last_alloc = HEAP_VMEMORY_OFFSET; //start alignment

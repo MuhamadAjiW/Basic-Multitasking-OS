@@ -7,6 +7,13 @@
 #define HEAP_PAGE_COUNT          4
 #define KERNEL_PAGE_COUNT        1
 
+extern uint32_t _linker_kernel_virtual_addr_start;
+extern uint32_t _linker_kernel_virtual_addr_end;
+extern uint32_t _linker_kernel_physical_addr_start;
+extern uint32_t _linker_kernel_physical_addr_end;
+extern uint32_t _linker_kernel_stack_top;
+
+
 #define KERNEL_PMEMORY_OFFSET    0
 #define KERNEL_VMEMORY_OFFSET    0xc0000000
 #define HEAP_PMEMORY_OFFSET      KERNEL_PAGE_COUNT * PAGE_FRAME_SIZE
