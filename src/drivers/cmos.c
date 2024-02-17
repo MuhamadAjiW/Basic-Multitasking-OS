@@ -2,8 +2,6 @@
 #include "../lib-header/stdtype.h"
 #include "../lib-header/portio.h"
 
-//referensi https://wiki.osdev.org/CMOS
-
 /**
  * Static struct to store time information from CMOS
  * Reading should always be done to this variable
@@ -20,22 +18,19 @@ static cmos_reader cmos_data = {
 };
 
 void cmos_initialize(){
-    //intinya ngeset mode 24 jam, itu doang
-    out(CMOS_ADDR, 0x0b);
-    uint8_t former = in(CMOS_DATA);
-    out(CMOS_DATA, former | 0x02 | 0x04);
+    out(CMOS_ADDR, 0x0b);                   // check if register is busy
+    uint8_t former = in(CMOS_DATA);         // get old register values
+    out(CMOS_DATA, former | 0x02 | 0x04);   // tick 24h flag
 }
 
 bool cmos_check_update(){
-    //cek running
-    out(CMOS_ADDR, 0x0A);
-    return (in(CMOS_DATA) & 0x80);
+    out(CMOS_ADDR, 0x0A);                   //check if register is busy
+    return (in(CMOS_DATA) & 0x80);          //retrieve update flag from register
 }
  
 uint8_t cmos_get_reg(int reg){
-    //cek running
-    out(CMOS_ADDR, reg);
-    return in(CMOS_DATA);
+    out(CMOS_ADDR, reg);                    //check if register is busy
+    return in(CMOS_DATA);                   //register data
 }
  
 void cmos_read_rtc(){
