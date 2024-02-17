@@ -46,7 +46,7 @@ void task_initialize(){
     current_task->previous_pid = 0;
     current_task->next_pid = 0;
 
-    paging_dir_copy(_paging_kernel_page_directory, &tasks_page_dir[0]);
+    paging_dirtable_init(&tasks_page_dir[0]);
     
     tasks_active[0] = 1;
     num_task = 1;
@@ -118,25 +118,26 @@ uint8_t task_create(FAT32DriverRequest request, uint8_t stack_type, uint32_t efl
         return 0;
     }
     
+    // Initialize task base data
     uint32_t pid = task_generate_pid();
+    tasks[pid].pid = pid;
+    tasks[pid].parent = current_task;
+    tasks[pid].state = NEW;
+    tasks[pid].resource_amount = resource_amount;
 
     // Initialize with kernel's paging directory
     PageDirectory* page_dir = &tasks_page_dir[pid];
 
-    paging_dir_copy(_paging_kernel_page_directory, page_dir);
+    paging_dirtable_init(page_dir);
 
     // Also copy the current kernel stack in case the caller is not the kernel
-    paging_dir_copy_single(tasks_page_dir[current_task->pid], page_dir, (void*) current_task->k_stack - PAGE_FRAME_SIZE);
+    paging_clone_kernel_stack(*current_task, tasks[pid]);
 
     uint32_t u_stack = resource_allocate(resource_amount - 1, pid, page_dir);
     uint32_t k_stack = resource_allocate_kernel(pid, page_dir);
 
-    // Initialize task
-    tasks[pid].pid = pid;
-    tasks[pid].parent = current_task;
-    tasks[pid].state = NEW;
+    // Initialize task paging data
     tasks[pid].cr3 = (PageDirectory*) ((uint32_t) page_dir - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
-    tasks[pid].resource_amount = resource_amount;
 
     for (uint8_t i = 0; i < 8; i++){
         tasks[pid].name[i] = request.name[i];
@@ -276,7 +277,7 @@ void task_schedule(){
     // We need to get old process's kernel stack before switching page tables
     // Doesn't need to clear it when a task is done
     // It doesn't matter since we are copying and reloading them each time
-    paging_dir_copy_single(tasks_page_dir[old->pid], &tasks_page_dir[new->pid], (void*) old->k_stack - PAGE_FRAME_SIZE);
+    paging_clone_kernel_stack(*old, *new);
     
     // Switching page tables
     paging_use_page_dir(new->cr3);

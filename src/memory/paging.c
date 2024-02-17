@@ -1,7 +1,9 @@
 #include "../lib-header/paging.h"
 #include "../lib-header/resource.h"
+#include "../lib-header/task.h"
 
 extern Resource resource_table[RESOURCE_AMOUNT];
+extern PageDirectory tasks_page_dir[MAX_TASKS];
 
 struct PageDirectory _paging_kernel_page_directory = {
     .table = {
@@ -19,17 +21,6 @@ struct PageDirectory _paging_kernel_page_directory = {
         },
     }
 };
-
-void paging_dir_copy(PageDirectory origin, PageDirectory* target) {
-    for (uint32_t i = 0; i < PAGE_ENTRY_COUNT; i++){
-        target->table[i] = origin.table[i];
-    }
-}
-
-void paging_dir_copy_single(PageDirectory origin, PageDirectory* target, void* virtual_address) {
-    uint32_t index = (uint32_t) virtual_address / PAGE_FRAME_SIZE;
-    target->table[index] = origin.table[index];
-}
 
 void paging_dir_update(void *physical_addr, void *virtual_addr, struct PageDirectoryEntryFlag flag, PageDirectory* page_dir) {
     if(resource_table[(uint32_t) physical_addr / PAGE_FRAME_SIZE].used) return;     // Physical address is already used
@@ -57,4 +48,16 @@ void paging_flush_tlb_range(void *start_addr, void *end_addr) {
 
 void paging_use_page_dir(PageDirectory* page_dir) {
     __asm__ volatile("mov %0, %%cr3" : /* <Empty> */ : "r"(page_dir): "memory");
+}
+
+
+void paging_dirtable_init(PageDirectory* dest) {
+    for (uint32_t i = 0; i < PAGE_ENTRY_COUNT; i++){
+        dest->table[i] = _paging_kernel_page_directory.table[i];
+    }
+}
+
+void paging_clone_kernel_stack(PCB src, PCB dest){
+    uint32_t index = (uint32_t) (src.k_stack - PAGE_FRAME_SIZE) / PAGE_FRAME_SIZE;
+    tasks_page_dir[dest.pid].table[index] = tasks_page_dir[src.pid].table[index];
 }

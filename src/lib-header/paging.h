@@ -3,6 +3,7 @@
 #define _PAGING_H
 
 #include "stdtype.h"
+#include "task.h"
 
 #define PAGE_ENTRY_COUNT 1024
 #define PAGE_FRAME_SIZE  0x400000
@@ -88,9 +89,9 @@ void paging_dir_update(void *physical_addr, void *virtual_addr, PageDirectoryEnt
 void paging_flush_tlb_single(void *virtual_addr);
 
 //TODO: Document
-void paging_dir_copy(PageDirectory origin, PageDirectory* target);
-void paging_dir_copy_single(PageDirectory origin, PageDirectory* target, void* virtual_address);
 void paging_flush_tlb_range(void *start_addr, void *end_addr);
 void paging_use_page_dir(PageDirectory* page_dir); //Page dir must be physical address and aligned to 0x1000
+void paging_dirtable_init(PageDirectory* dest);
+void paging_clone_kernel_stack(PCB src, PCB dest);
 
 #endif

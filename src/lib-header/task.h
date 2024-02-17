@@ -5,7 +5,6 @@
 
 #include "stdtype.h"
 #include "cpu.h"
-#include "paging.h"
 #include "fat32.h"
 
 #define EFLAGS_BASE         0x2
@@ -29,7 +28,7 @@ typedef struct Context {
 typedef struct PCB
 {
     uint32_t size;                  // process size
-    PageDirectory* cr3;             // virtual address space
+    struct PageDirectory* cr3;             // virtual address space
     uint32_t k_stack;               // kernel stack address
     enum ProcState state;           // state
     uint32_t pid;                   // id
