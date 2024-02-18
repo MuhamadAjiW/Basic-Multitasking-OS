@@ -36,7 +36,7 @@ struct PCB
     // Extras for process management purposes
     char name[MAX_PROCESS_NAME];
     uint32_t frame_amount;                  // Amount of frames used
-    struct PageFrame frame[MAX_PROCESS_FRAMES];
+    void* virt_addr_used[MAX_PROCESS_FRAMES];
     
     enum ProcState state;                   // state
     struct PCB* parent;                     // parent

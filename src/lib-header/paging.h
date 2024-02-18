@@ -6,10 +6,23 @@
 
 #define PAGE_ENTRY_COUNT 1024
 #define PAGE_FRAME_SIZE  0x400000
-#define PAGE_PHYS_COUNT 32
+#define PAGE_FRAME_MAX_COUNT 32
 
 // Operating system page directory, using page size PAGE_FRAME_SIZE (4 MiB)
 extern struct PageDirectory _paging_kernel_page_directory;
+
+/**
+ * Containing page manager states.
+ * 
+ * @param page_frame_map            Keeping track empty space on the physical frame
+ * @param free_page_frame_count     Keeping track empty space amount left
+ * ...
+ */
+struct PageManagerState {
+    bool     page_frame_map[PAGE_FRAME_MAX_COUNT];
+    uint32_t free_page_frame_count;
+    // TODO: Add if needed ...
+} __attribute__((packed));
 
 /**
  * Page Directory Entry Flag, only first 8 bit
@@ -122,18 +135,17 @@ void paging_dirtable_init(struct PageDirectory* dest);
  * @param page_dir            address of page directory to be given physical frame
  * @return                    address of given physical frame
  */
-void* paging_allocate_page_frame(void *virt_addr, struct PageDirectory* page_dir);
+void paging_allocate_page_frame(void *virt_addr, struct PageDirectory* page_dir);
 
 /**
  * paging_allocate_page_frame, 
  * deallocate a physical frame from a virtual address in a certain page directory
  * 
  * @param virt_addr           address of virtual address page to be allocated
- * @param phys_addr           address of physical address page to be allocated
  * @param page_dir            address of page directory to be given physical frame
  * @return                    success state of function with TRUE being page is freed successfully
  */
-bool paging_free_page_frame(void *virt_addr, void* phys_addr, struct PageDirectory* page_dir);
+bool paging_free_page_frame(void *virt_addr, struct PageDirectory* page_dir);
 
 
 /**

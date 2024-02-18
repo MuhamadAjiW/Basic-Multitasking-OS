@@ -2,11 +2,10 @@
 #include "../lib-header/process.h"
 
 // Map for used physical frames, TRUE means a physical frame is used
-bool paging_phys_memory_used[PAGE_PHYS_COUNT];
-
-// Amount of physical memory already used, initialized with 1 being the number of frames used for the kernel
-uint32_t paging_phys_memory_used_amount = 1;
-
+struct PageManagerState page_manager_state = {
+    .page_frame_map = {[0 ... PAGE_FRAME_MAX_COUNT-1] = FALSE},
+    .free_page_frame_count = PAGE_FRAME_MAX_COUNT
+};
 extern struct PageDirectory process_page_dir[MAX_PROCESS];
 
 struct PageDirectory _paging_kernel_page_directory = {
@@ -27,7 +26,7 @@ struct PageDirectory _paging_kernel_page_directory = {
 };
 
 void paging_dir_update(void *physical_addr, void *virtual_addr, struct PageDirectoryEntryFlag flag, struct PageDirectory* page_dir) {
-    if(paging_phys_memory_used[(uint32_t) physical_addr / PAGE_FRAME_SIZE]) return;     // Physical address is already used
+    if(page_manager_state.page_frame_map[(uint32_t) physical_addr / PAGE_FRAME_SIZE]) return;     // Physical address is already used
 
     uint32_t page_index = ((uint32_t) virtual_addr >> 22) & 0x3FF;
 
@@ -76,10 +75,10 @@ bool paging_allocate_check(uint32_t amount){
     // TODO: check whether requested amount is available
 
         // Kunjaw
-        return amount + paging_phys_memory_used_amount < PAGE_PHYS_COUNT;
+        return page_manager_state.free_page_frame_count >= amount;
 }
 
-void* paging_allocate_page_frame(void *virt_addr, struct PageDirectory* page_dir){
+void paging_allocate_page_frame(void *virt_addr, struct PageDirectory* page_dir){
     // Assumed that the user will always check beforehand
     // TODO: allocate a physical frame; find free physical frame and mark it as used
 
@@ -92,28 +91,26 @@ void* paging_allocate_page_frame(void *virt_addr, struct PageDirectory* page_dir
         };
 
         uint32_t i = 0;
-        while (i < PAGE_PHYS_COUNT && paging_phys_memory_used[i]) i++;
+        while (i < PAGE_FRAME_MAX_COUNT && page_manager_state.page_frame_map[i]) i++;
 
         void* phys_addr = (void*) (i * PAGE_FRAME_SIZE);
 
-        paging_dir_update(phys_addr, virt_addr, flag, page_dir);    
-        paging_phys_memory_used[i] = 1;
-        paging_phys_memory_used_amount++;
-
-        return phys_addr;
+        paging_dir_update(phys_addr, virt_addr, flag, page_dir);
+        page_manager_state.page_frame_map[i] = TRUE;
+        page_manager_state.free_page_frame_count--;
 }
 
-bool paging_free_page_frame(void *virt_addr, void* phys_addr, struct PageDirectory* page_dir){
+bool paging_free_page_frame(void *virt_addr, struct PageDirectory* page_dir){
     // TODO: deallocate a physical frame; mark it as unused and remove it from the page directory
         
         // Kunjaw:
-        uint32_t index = (uint32_t) phys_addr / PAGE_FRAME_SIZE;
-        if(!paging_phys_memory_used[index]) return FALSE;
+        uint32_t index = page_dir->table[(uint32_t) virt_addr / PAGE_FRAME_SIZE].lower_address;
+        if(!page_manager_state.page_frame_map[index]) return FALSE;
 
         struct PageDirectoryEntryFlag flag ={0};
-        paging_dir_update((void*) phys_addr, (void*) virt_addr, flag, page_dir);
-        paging_phys_memory_used[index] = 0;
-        paging_phys_memory_used_amount--;
+        paging_dir_update(0, (void*) virt_addr, flag, page_dir);
+        page_manager_state.page_frame_map[index] = FALSE;
+        page_manager_state.free_page_frame_count++;
 
         return TRUE;
 }

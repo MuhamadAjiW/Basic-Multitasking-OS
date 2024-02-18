@@ -9,8 +9,7 @@ static uint32_t heap_start = 0;
 static uint32_t heap_end = 0;
 
 static uint32_t dynamic_pointers = 0;
-extern bool paging_phys_memory_used[PAGE_PHYS_COUNT];
-extern uint32_t paging_phys_memory_used_amount;
+extern struct PageManagerState page_manager_state;
 
 // Note:
 // heap is placed under kernel space
@@ -19,7 +18,8 @@ extern uint32_t paging_phys_memory_used_amount;
 void memory_initialize(){
     // Assign pages used by the kernel, kernel is assumed to always start at 0
     for (uint16_t i = 0; i < KERNEL_PAGE_COUNT; i++){
-        paging_phys_memory_used[i] = 1;
+        page_manager_state.page_frame_map[i] = TRUE;
+        page_manager_state.free_page_frame_count--;
     }
 
     struct PageDirectoryEntryFlag flags ={
@@ -36,8 +36,8 @@ void memory_initialize(){
             flags, &_paging_kernel_page_directory);
         
         uint32_t resource_index = KERNEL_PAGE_COUNT + i;
-        paging_phys_memory_used[resource_index] = 1;
-        paging_phys_memory_used_amount++;
+        page_manager_state.page_frame_map[resource_index] = TRUE;
+        page_manager_state.free_page_frame_count--;
     }
 
     last_alloc = HEAP_VMEMORY_OFFSET; //start alignment

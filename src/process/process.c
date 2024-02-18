@@ -11,8 +11,6 @@
 extern struct TSSEntry tss;
 
 // TODO: Review
-extern bool paging_phys_memory_used[PAGE_PHYS_COUNT];
-
 // Note: Would be interesting to make process with dynamic
 // Process is managed like a linked list for performance reasons with indices as pointers because static memory (check PCB structure)
 // Algorithm for processing is round robin
@@ -150,14 +148,14 @@ uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, ui
         uint32_t virt_addr = 0;
         for(uint32_t i = 0; i < frame_amount - 1; i++){
             virt_addr = i * PAGE_FRAME_SIZE;
-            process_array[pid].frame[i].virtual_addr = (void*) virt_addr;
-            process_array[pid].frame[i].physical_addr = paging_allocate_page_frame((void*) virt_addr, page_dir);
+            process_array[pid].virt_addr_used[i] = (void*) virt_addr;
+            paging_allocate_page_frame((void*) virt_addr, page_dir);
         }
 
         // kernel stack
         uint32_t k_stack = (pid + 1) * PAGE_FRAME_SIZE + KERNEL_VMEMORY_OFFSET;
-        process_array[pid].frame[frame_amount - 1].virtual_addr = (void*) k_stack;
-        process_array[pid].frame[frame_amount - 1].physical_addr = paging_allocate_page_frame((void*) k_stack - PAGE_FRAME_SIZE, page_dir);
+        process_array[pid].virt_addr_used[frame_amount - 1] = (void*) k_stack;
+        paging_allocate_page_frame((void*) k_stack - PAGE_FRAME_SIZE, page_dir);
 
     // Initialize process paging data
 
@@ -251,7 +249,7 @@ void process_clean(uint32_t pid){
     __asm__ volatile ("cli");   // Stop interrupts
     
     for (uint32_t i = 0; i < process_array[pid].frame_amount; i++){
-        paging_free_page_frame(process_array[pid].frame[i].virtual_addr, process_array[pid].frame[i].physical_addr, &process_page_dir[pid]);
+        paging_free_page_frame(process_array[pid].virt_addr_used[i], &process_page_dir[pid]);
     }
     
     winmgr_clean_window(pid);
