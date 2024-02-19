@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #define DEFAULT_FREQUENCY 1000          //every ms so it is easily translateable to other time units
 

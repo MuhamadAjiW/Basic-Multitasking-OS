@@ -1,6 +1,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "../lib-header/string.h"
 #include "../lib-header/memory_manager.h"

@@ -1,6 +1,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "../lib-header/gdt.h"
 #include "../lib-header/tss.h"

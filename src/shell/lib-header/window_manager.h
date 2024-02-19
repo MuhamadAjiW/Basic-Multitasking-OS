@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #define MAX_WINDOW_NUM 64
 #define SCREEN_WIDTH 80

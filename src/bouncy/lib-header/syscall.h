@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 // Macros for system call codes, should always be synchronized with the kernel side
 #define SYSCALL_NULL 0

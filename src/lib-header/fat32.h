@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 // Necessary filesystem related macros
 #define END_OF_FILE 0xfffffff8

@@ -1,6 +1,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "../lib-header/framebuffer.h"
 #include "../lib-header/window_manager.h"

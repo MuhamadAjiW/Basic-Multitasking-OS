@@ -2,6 +2,7 @@
 #include <time.h>
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #include "../src/lib-header/fat32.h"
 #include "../src/lib-header/stdmem.h"

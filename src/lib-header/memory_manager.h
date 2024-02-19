@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 #define HEAP_PAGE_COUNT          4
 #define KERNEL_PAGE_COUNT        1

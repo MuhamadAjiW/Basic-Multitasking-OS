@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 /**
  * TSSEntry, Task State Segment. Used when jumping back to ring 0 / kernel

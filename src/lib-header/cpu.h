@@ -4,6 +4,7 @@
 
 #include <stdint.h>
 #include <stdbool.h>
+#include <stddef.h>
 
 /**
  * CPURegister, store CPU registers that can be used for interrupt handler / ISRs
