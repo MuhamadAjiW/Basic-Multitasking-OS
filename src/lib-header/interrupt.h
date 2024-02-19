@@ -64,30 +64,6 @@
 #define IRQ_PRIMARY_ATA  14
 #define IRQ_SECOND_ATA   15
 
-/**
- * InterruptInfo, data pushed by CPU when interrupt / exception is raised.
- * Refer to Intel x86 Vol 3a: Figure 6-4 Stack usage on transfer to Interrupt.
- * 
- * Note, when returning from interrupt handler with iret, esp must be pointing to eip pushed before 
- * or in other words, CPURegister, int_number and error_code should be pop-ed from stack.
- * 
- * @param error_code Error code that pushed with the exception
- * @param eip        Instruction pointer where interrupt is raised
- * @param cs         Code segment selector where interrupt is raised
- * @param eflags     CPU eflags register when interrupt is raised
- */
-struct InterruptStack {
-    uint32_t error_code;
-    uint32_t eip;
-    uint32_t cs;
-    uint32_t eflags;
-} __attribute__((packed));
-
-
-
-
-
-
 // I/O port wait, around 1-4 microsecond, for I/O synchronization purpose
 void io_wait(void);
 
@@ -107,11 +83,11 @@ void pic_remap(void);
  * Again, this function is not for normal function call, all parameter will be automatically set when interrupt is called.
  * @param cpu        CPU information when interrupt is raised
  */
-void main_interrupt_handler(struct TrapFrame cpu);
+void main_interrupt_handler(struct InterruptFrame cpu);
 
 
 //TODO: Document
-typedef void (*InterruptHandler)(struct TrapFrame cpu);
+typedef void (*InterruptHandler)(struct InterruptFrame cpu);
 void register_irq_handler(uint16_t int_no, InterruptHandler handler);
 void activate_interrupts();
 void activate_irq(uint8_t irq);

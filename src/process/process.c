@@ -179,25 +179,29 @@ uint8_t process_create_user_proc(struct FAT32DriverRequest request){
     request.buf = (void*) 0;
     load(request);
 
-    // Set TrapFrame to be at the bottom of the given kernel stack
-    uint8_t* k_esp = (uint8_t*) k_stack;
-    k_esp -= sizeof(struct TrapFrame);
-    struct TrapFrame* tf = (struct TrapFrame*) k_esp;
-    memset(tf, 0, sizeof(struct TrapFrame));
 
     // Prepare new process environment
     uint32_t cs = GDT_USER_CODE_SEGMENT_SELECTOR | PRIVILEGE_USER;
     uint32_t ds = GDT_USER_DATA_SEGMENT_SELECTOR | PRIVILEGE_USER;
 
-    tf->cs = cs;
-    tf->segments.ds = ds;
+    // Set InterruptFrame to be at the bottom of the given kernel stack
+    volatile uint32_t* userss = (uint32_t*)( k_stack - 4);
+    *userss = ds;
+    volatile uint32_t* useresp = userss - 1;
+    *useresp = u_stack;
+    uint8_t* k_esp = (uint8_t*) useresp;
+    // uint8_t* k_esp = (uint8_t*) k_stack;
 
-    tf->userss = ds;
-    tf->useresp = u_stack;
-    tf->eflags = EFLAGS_USER_PROC;
+    k_esp -= sizeof(struct InterruptFrame);
+    struct InterruptFrame* tf = (struct InterruptFrame*) k_esp;
+    memset(tf, 0, sizeof(struct InterruptFrame));
+
+    tf->int_stack.cs = cs;
+    tf->cpu.segment.ds = ds;
+    tf->int_stack.eflags = EFLAGS_USER_PROC;
 
     // Note: entry is assumed to be always set at 0 when linking a program
-    tf->eip = (uint32_t) request.buf;
+    tf->int_stack.eip = (uint32_t) request.buf;
 
     k_esp -= sizeof(struct Context);
     struct Context* context = (struct Context*) k_esp;

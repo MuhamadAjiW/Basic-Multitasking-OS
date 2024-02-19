@@ -82,21 +82,21 @@ void pic_remap(void) {
     out(PIC2_DATA, a2);
 }
 
-void main_interrupt_handler(struct TrapFrame cpu) {
-    if(cpu.int_no < 0x20){
+void main_interrupt_handler(struct InterruptFrame iframe) {
+    if(iframe.int_number < 0x20){
         // Error, message is exception_msg[int_number]
         __asm__ volatile("hlt");
     }
     else{
-        uint8_t irq_num = cpu.int_no - IRQ_OFFSET;
+        uint8_t irq_num = iframe.int_number - IRQ_OFFSET;
         // IRQs or Syscalls
         InterruptHandler handler = {0};
-        if (cpu.int_no < 0x30)
+        if (iframe.int_number < 0x30)
             handler = irq_handlers[irq_num];
-        else if (cpu.int_no == 0x30)
-            handler = syscall_handlers[cpu.registers.eax];
+        else if (iframe.int_number == 0x30)
+            handler = syscall_handlers[iframe.cpu.general.eax];
         
-        if(handler) handler(cpu);
+        if(handler) handler(iframe);
 
         // Refresh PIC
         pic_ack(irq_num);

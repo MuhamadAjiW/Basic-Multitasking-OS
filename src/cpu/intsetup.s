@@ -11,8 +11,12 @@ call_generic_handler:
     ; [esp + 4  ] error code
     ; [esp + 0  ] int_no
 
-    ; CPURegister
-    pushad
+    ; save segment registers
+    push ds
+	push es
+	push fs
+	push gs
+
     ; Pushad is actually equal to these below
     ; push    eax
     ; push    ecx
@@ -22,12 +26,7 @@ call_generic_handler:
     ; push    esp
     ; push    esi
     ; push    edi
-
-    ; save segment registers
-    push ds
-	push es
-	push fs
-	push gs
+    pushad
 
     ; set segment registers to kernel_code before handling interrupt
 	push eax
@@ -42,15 +41,9 @@ call_generic_handler:
     ; call the C function
     call    main_interrupt_handler
 
-    ; restore segment registers
-	pop gs
-	pop fs
-	pop es
-	pop ds
-
     ; restore the registers
-    ; push    edi
-    ; push    esi
+    ; pop     edi
+    ; pop     esi
     ; pop     esp
     ; pop     ebp
     ; pop     ebx
@@ -59,6 +52,13 @@ call_generic_handler:
     ; pop     eax
     ; Pushad is actually equal to these above
     popad
+
+    ; restore segment registers
+	pop gs
+	pop fs
+	pop es
+	pop ds
+
 
     ; restore the esp (interrupt number & error code)
     add     esp, 8

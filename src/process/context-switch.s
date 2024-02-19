@@ -25,12 +25,12 @@ switch_context:
 
 ;Basically restores state of all registers
 restore_context:
+	popad
 	pop gs
 	pop fs
 	pop es
 	pop ds
 
-	popad
 	add esp, 8
 
 	sti
