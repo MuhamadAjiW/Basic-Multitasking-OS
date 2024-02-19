@@ -24,6 +24,7 @@
         "shell.h": "c",
         "stdlib.h": "c",
         "typeinfo": "c",
-        "task.h": "c"
+        "task.h": "c",
+        "stdbool.h": "c"
     },
 }

@@ -1,7 +1,8 @@
 #ifndef _STDMEMUSER_H
 #define _STDMEMUSER_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 /**
  * C standard memset, check man memset or

@@ -2,9 +2,10 @@
 #ifndef _COMMANDS_H
 #define _COMMANDS_H
 
-#include "stdtype.h"
-#include "stdio.h"
+#include <stdint.h>
+#include <stdbool.h>
 
+#include "stdio.h"
 #include "shell.h"
 
 /**

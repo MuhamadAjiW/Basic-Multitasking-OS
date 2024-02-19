@@ -2,7 +2,8 @@
 #ifndef _IDT_H
 #define _IDT_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 // IDT hard limit, see Intel x86 manual 3a - 6.10 Interrupt Descriptor Table
 #define IDT_MAX_ENTRY_COUNT    256

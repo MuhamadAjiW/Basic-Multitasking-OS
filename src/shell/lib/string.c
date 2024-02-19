@@ -1,6 +1,9 @@
+
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "../lib-header/string.h"
 #include "../lib-header/stdlib.h"
-#include "../lib-header/stdtype.h"
 
 
 void int_to_string(int x, char str[]){

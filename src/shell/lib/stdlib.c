@@ -1,5 +1,6 @@
 
-#include "../lib-header/stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
 #include "../lib-header/stdlib.h"
 #include "../lib-header/syscall.h"
 

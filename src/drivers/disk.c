@@ -1,5 +1,7 @@
 
-#include "../lib-header/stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "../lib-header/portio.h"
 
 void read_blocks(uint32_t target_address, uint32_t lba, uint8_t sector_count){

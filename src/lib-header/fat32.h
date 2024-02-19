@@ -2,7 +2,8 @@
 #ifndef _FAT32_H
 #define _FAT32_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 // Necessary filesystem related macros
 #define END_OF_FILE 0xfffffff8

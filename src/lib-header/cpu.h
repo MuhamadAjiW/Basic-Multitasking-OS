@@ -2,7 +2,8 @@
 #ifndef _CPU_H
 #define _CPU_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 /**
  * CPURegister, store CPU registers that can be used for interrupt handler / ISRs

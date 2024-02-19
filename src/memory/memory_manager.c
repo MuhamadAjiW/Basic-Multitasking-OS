@@ -1,6 +1,8 @@
 
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "../lib-header/memory_manager.h"
-#include "../lib-header/stdtype.h"
 #include "../lib-header/stdmem.h"
 #include "../lib-header/paging.h"
 
@@ -18,7 +20,7 @@ extern struct PageManagerState page_manager_state;
 void memory_initialize(){
     // Assign pages used by the kernel, kernel is assumed to always start at 0
     for (uint16_t i = 0; i < KERNEL_PAGE_COUNT; i++){
-        page_manager_state.page_frame_map[i] = TRUE;
+        page_manager_state.page_frame_map[i] = true;
         page_manager_state.free_page_frame_count--;
     }
 
@@ -36,7 +38,7 @@ void memory_initialize(){
             flags, &_paging_kernel_page_directory);
         
         uint32_t resource_index = KERNEL_PAGE_COUNT + i;
-        page_manager_state.page_frame_map[resource_index] = TRUE;
+        page_manager_state.page_frame_map[resource_index] = true;
         page_manager_state.free_page_frame_count--;
     }
 

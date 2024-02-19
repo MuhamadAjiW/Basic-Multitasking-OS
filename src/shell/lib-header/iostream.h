@@ -1,7 +1,9 @@
 #ifndef _IOSTREAM_H
 #define _IOSTREAM_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "string.h"
 
 //TODO: Document

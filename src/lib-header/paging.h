@@ -2,7 +2,8 @@
 #ifndef _PAGING_H
 #define _PAGING_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 #define PAGE_ENTRY_COUNT 1024
 #define PAGE_FRAME_SIZE  0x400000
@@ -143,7 +144,7 @@ void paging_allocate_page_frame(void *virt_addr, struct PageDirectory* page_dir)
  * 
  * @param virt_addr           address of virtual address page to be allocated
  * @param page_dir            address of page directory to be given physical frame
- * @return                    success state of function with TRUE being page is freed successfully
+ * @return                    success state of function with true being page is freed successfully
  */
 bool paging_free_page_frame(void *virt_addr, struct PageDirectory* page_dir);
 
@@ -153,7 +154,7 @@ bool paging_free_page_frame(void *virt_addr, struct PageDirectory* page_dir);
  * check whether a certain amount of physical frames are available
  * 
  * @param amount              requested amount of physical frames 
- * @return                    availability of physical frame with TRUE being amount of available physical frame is more than requested amount 
+ * @return                    availability of physical frame with true being amount of available physical frame is more than requested amount 
  */
 bool paging_allocate_check(uint32_t amount);
 

@@ -1,5 +1,8 @@
+
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "../lib-header/fat32.h"
-#include "../lib-header/stdtype.h"
 #include "../lib-header/stdmem.h"
 #include "../lib-header/disk.h"
 #include "../lib-header/cmos.h"

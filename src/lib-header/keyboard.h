@@ -2,8 +2,10 @@
 #ifndef _KEYBOARD_H
 #define _KEYBOARD_H
 
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "interrupt.h"
-#include "stdtype.h"
 
 #define KEYBOARD_DATA_PORT     0x60
 #define EXTENDED_SCANCODE_BYTE 0xE0

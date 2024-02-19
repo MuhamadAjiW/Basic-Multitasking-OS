@@ -1,9 +1,10 @@
 #ifndef COMMANDS_UTIL
 #define COMMANDS_UTIL
 
-#include "stdtype.h"
-#include "stdio.h"
+#include <stdint.h>
+#include <stdbool.h>
 
+#include "stdio.h"
 #include "shell.h"
 
 /**

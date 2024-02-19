@@ -2,7 +2,8 @@
 #ifndef _MEMMNG_H
 #define _MEMMNG_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 #define HEAP_PAGE_COUNT          4
 #define KERNEL_PAGE_COUNT        1

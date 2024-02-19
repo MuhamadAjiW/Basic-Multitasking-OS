@@ -1,5 +1,8 @@
+
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "../lib-header/cmos.h"
-#include "../lib-header/stdtype.h"
 #include "../lib-header/portio.h"
 
 //referensi https://wiki.osdev.org/CMOS

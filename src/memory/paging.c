@@ -1,9 +1,9 @@
 #include "../lib-header/paging.h"
 #include "../lib-header/process.h"
 
-// Map for used physical frames, TRUE means a physical frame is used
+// Map for used physical frames, true means a physical frame is used
 struct PageManagerState page_manager_state = {
-    .page_frame_map = {[0 ... PAGE_FRAME_MAX_COUNT-1] = FALSE},
+    .page_frame_map = {[0 ... PAGE_FRAME_MAX_COUNT-1] = false},
     .free_page_frame_count = PAGE_FRAME_MAX_COUNT
 };
 extern struct PageDirectory process_page_dir[MAX_PROCESS];
@@ -96,7 +96,7 @@ void paging_allocate_page_frame(void *virt_addr, struct PageDirectory* page_dir)
         void* phys_addr = (void*) (i * PAGE_FRAME_SIZE);
 
         paging_dir_update(phys_addr, virt_addr, flag, page_dir);
-        page_manager_state.page_frame_map[i] = TRUE;
+        page_manager_state.page_frame_map[i] = true;
         page_manager_state.free_page_frame_count--;
 }
 
@@ -105,12 +105,12 @@ bool paging_free_page_frame(void *virt_addr, struct PageDirectory* page_dir){
         
         // Kunjaw:
         uint32_t index = page_dir->table[(uint32_t) virt_addr / PAGE_FRAME_SIZE].lower_address;
-        if(!page_manager_state.page_frame_map[index]) return FALSE;
+        if(!page_manager_state.page_frame_map[index]) return false;
 
         struct PageDirectoryEntryFlag flag ={0};
         paging_dir_update(0, (void*) virt_addr, flag, page_dir);
-        page_manager_state.page_frame_map[index] = FALSE;
+        page_manager_state.page_frame_map[index] = false;
         page_manager_state.free_page_frame_count++;
 
-        return TRUE;
+        return true;
 }

@@ -2,7 +2,8 @@
 #ifndef _PORTIO_H
 #define _PORTIO_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 /** out:
  *  Sends the given data to the given I/O port

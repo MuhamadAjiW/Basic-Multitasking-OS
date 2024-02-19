@@ -1,7 +1,10 @@
+
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "../lib-header/iostream.h"
 #include "../lib-header/stdio.h"
 #include "../lib-header/stdlib.h"
-#include "../lib-header/stdtype.h"
 #include "../lib-header/string.h"
 #include "../lib-header/shell.h"
 

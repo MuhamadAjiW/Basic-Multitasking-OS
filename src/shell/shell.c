@@ -1,4 +1,3 @@
-#include "lib-header/stdtype.h"
 #include "lib-header/syscall.h"
 #include "lib-header/stdio.h"
 #include "lib-header/stdlib.h"
@@ -449,7 +448,7 @@ int main(void) {
     app_initialize();
     
     char buf[2] = {0};
-    while (TRUE){
+    while (true){
         buf[0] = sys_keyboard_get_char();
 
         switch (buf[0]){

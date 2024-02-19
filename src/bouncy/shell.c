@@ -1,4 +1,3 @@
-#include "lib-header/stdtype.h"
 #include "lib-header/stdlib.h"
 #include "lib-header/syscall.h"
 #include "lib-header/window_manager.h"

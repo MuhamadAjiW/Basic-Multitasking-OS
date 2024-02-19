@@ -2,7 +2,8 @@
 #ifndef _SYSCALL_H
 #define _SYSCALL_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 // Macros for system call codes, should always be synchronized with the kernel side
 #define SYSCALL_NULL 0

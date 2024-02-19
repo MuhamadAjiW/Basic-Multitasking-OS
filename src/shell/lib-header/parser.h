@@ -2,7 +2,8 @@
 #ifndef _PARSER_H
 #define _PARSER_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 //TODO: Document
 typedef struct parser_t{

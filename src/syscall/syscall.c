@@ -1,7 +1,8 @@
-#include "../lib-header/syscall.h"
-#include "../lib-header/stdtype.h"
-#include "../lib-header/interrupt.h"
+#include <stdint.h>
+#include <stdbool.h>
 
+#include "../lib-header/syscall.h"
+#include "../lib-header/interrupt.h"
 #include "../lib-header/keyboard.h"
 #include "../lib-header/framebuffer.h"
 #include "../lib-header/pit.h"

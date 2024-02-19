@@ -1,4 +1,7 @@
-#include "../lib-header/stdtype.h"
+
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "../lib-header/gdt.h"
 #include "../lib-header/tss.h"
 

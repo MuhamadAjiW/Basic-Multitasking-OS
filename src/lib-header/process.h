@@ -3,7 +3,9 @@
 #ifndef _PROCESS_H
 #define _PROCESS_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "cpu.h"
 #include "fat32.h"
 #include "paging.h"

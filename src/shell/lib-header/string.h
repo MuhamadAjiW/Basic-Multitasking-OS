@@ -1,7 +1,8 @@
 #ifndef _STRING_H
 #define _STRING_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 /**
  * Convert integer to a null terminated string

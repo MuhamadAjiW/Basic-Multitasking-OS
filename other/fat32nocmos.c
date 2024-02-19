@@ -1,8 +1,9 @@
 
 #include <time.h>
+#include <stdint.h>
+#include <stdbool.h>
 
 #include "../src/lib-header/fat32.h"
-#include "../src/lib-header/stdtype.h"
 #include "../src/lib-header/stdmem.h"
 #include "../src/lib-header/disk.h"
 #include "../src/lib-header/cmos.h"

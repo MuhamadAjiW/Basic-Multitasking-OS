@@ -2,7 +2,8 @@
 #ifndef _CMOS_H
 #define _CMOS_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 /**
  * Struct to store time information from CMOS

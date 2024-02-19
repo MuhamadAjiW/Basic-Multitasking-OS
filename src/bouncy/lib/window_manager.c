@@ -1,6 +1,9 @@
+
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "../lib-header/stdlib.h"
 #include "../lib-header/syscall.h"
-#include "../lib-header/stdtype.h"
 #include "../lib-header/window_manager.h"
 
 // Note: Would be interesting to make this a dynamically linked library 

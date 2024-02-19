@@ -1,5 +1,7 @@
 
-#include "../lib-header/stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "../lib-header/framebuffer.h"
 #include "../lib-header/window_manager.h"
 #include "../lib-header/process.h"
@@ -23,7 +25,7 @@ void winmgr_set_window(struct window_info* winfo, uint8_t row, uint8_t col, uint
 }
 uint8_t winmgr_generate_window_id(){
     uint8_t given_id = 0;
-    while (given_id < MAX_WINDOW_NUM && winmgr.windows_exist[given_id] == TRUE){
+    while (given_id < MAX_WINDOW_NUM && winmgr.windows_exist[given_id] == true){
         given_id++;
     }
 
@@ -42,7 +44,7 @@ void winmgr_show_window(struct window_info* winfo){
     while (yloc + j < SCREEN_HEIGHT && j < ylen){
         uint16_t i = 0;
         while (xloc + i < SCREEN_WIDTH && i < xlen){
-            winmgr_set_window(winfo, j, i, screen_buffer[(SCREEN_WIDTH * (yloc + j)) + (xloc + i)], FALSE);
+            winmgr_set_window(winfo, j, i, screen_buffer[(SCREEN_WIDTH * (yloc + j)) + (xloc + i)], false);
             framebuffer_set(yloc + j, xloc + i, winfo->mainBuffer[(xlen * j) + i]);
             i++;
         }
@@ -134,7 +136,7 @@ void winmgr_update_window(struct window_info* winfo){
 
         for (int8_t j = 0; j < MAX_WINDOW_NUM; j++){
             if(winmgr.windows_exist[j] && j != id){
-                winmgr.windows_ref[j]->active = FALSE;
+                winmgr.windows_ref[j]->active = false;
             }
         }
     }

@@ -2,7 +2,8 @@
 #ifndef _PROCESS_H
 #define _PROCESS_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 #define MAX_PROCESS 64
 #define MAX_PROCESS_PNAME 8

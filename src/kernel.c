@@ -1,5 +1,4 @@
 #include "lib-header/portio.h"
-#include "lib-header/stdtype.h"
 #include "lib-header/stdmem.h"
 #include "lib-header/gdt.h"
 #include "lib-header/framebuffer.h"
@@ -65,7 +64,7 @@ void kernel_setup(void) {
     process_create_user_proc(clock);
 
     // the kernel acts as a garbage collector afterwards
-    while (TRUE){
+    while (true){
         process_clean_scan();
     }
 }

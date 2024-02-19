@@ -2,7 +2,8 @@
 #ifndef _STDIO_H
 #define _STDIO_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 
 //----Screen I/O

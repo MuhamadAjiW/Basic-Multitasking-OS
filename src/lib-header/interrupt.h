@@ -2,7 +2,9 @@
 #ifndef _INTERRUPT_H
 #define _INTERRUPT_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
+
 #include "cpu.h"
 
 /* -- PIC constants -- */

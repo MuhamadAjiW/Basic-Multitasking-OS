@@ -2,7 +2,8 @@
 #ifndef _CMOS_H
 #define _CMOS_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 #define CMOS_ADDR 0x70
 #define CMOS_DATA 0x71

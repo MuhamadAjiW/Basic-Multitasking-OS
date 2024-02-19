@@ -2,7 +2,8 @@
 #ifndef _TIMER_H
 #define _TIMER_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 #define DEFAULT_FREQUENCY 1000          //every ms so it is easily translateable to other time units
 

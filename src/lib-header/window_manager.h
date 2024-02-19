@@ -2,7 +2,8 @@
 #ifndef _WINMNGR_H
 #define _WINMNGR_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 #define MAX_WINDOW_NUM 64
 

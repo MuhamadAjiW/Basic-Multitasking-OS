@@ -2,7 +2,8 @@
 #ifndef _TIME_H
 #define _TIME_H
 
-#include "stdtype.h"
+#include <stdint.h>
+#include <stdbool.h>
 
 /**
  * Struct to store time information

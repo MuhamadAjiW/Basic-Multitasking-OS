@@ -1,4 +1,3 @@
-#include "lib-header/stdtype.h"
 #include "lib-header/stdlib.h"
 #include "lib-header/syscall.h"
 #include "lib-header/window_manager.h"
@@ -41,7 +40,7 @@ int main(void) {
     write_time();
     window_register(&winfo);
 
-    while (TRUE){
+    while (true){
         time_new = get_time();
         if (time_current.second != time_new.second){
             time_current = time_new;
