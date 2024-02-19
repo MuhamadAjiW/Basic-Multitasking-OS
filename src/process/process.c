@@ -186,15 +186,15 @@ uint8_t process_create_user_proc(struct FAT32DriverRequest request){
     uint8_t* k_esp = (uint8_t*) useresp;
 
     k_esp -= sizeof(struct InterruptFrame);
-    struct InterruptFrame* tf = (struct InterruptFrame*) k_esp;
-    memset(tf, 0, sizeof(struct InterruptFrame));
+    struct InterruptFrame* iframe = (struct InterruptFrame*) k_esp;
+    memset(iframe, 0, sizeof(struct InterruptFrame));
 
-    tf->int_stack.cs = cs;
-    tf->cpu.segment.ds = ds;
-    tf->int_stack.eflags = EFLAGS_USER_PROC;
+    iframe->int_stack.cs = cs;
+    iframe->cpu.segment.ds = ds;
+    iframe->int_stack.eflags = EFLAGS_USER_PROC;
 
     // Note: entry is assumed to be always set at 0 when linking a program
-    tf->int_stack.eip = (uint32_t) request.buf;
+    iframe->int_stack.eip = (uint32_t) request.buf;
 
     k_esp -= sizeof(struct Context);
     struct Context* context = (struct Context*) k_esp;
