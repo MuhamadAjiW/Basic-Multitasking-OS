@@ -868,7 +868,6 @@ void cat(uint32_t currentCluster) {
 } 
 
 
-// TODO: Review
 void exec(struct FAT32DriverRequest* req){
     syscall(SYSCALL_PROCESS_START, (uint32_t) req, 0, 0);
 }
@@ -919,7 +918,6 @@ void ps(){
         case WAITING: str_add(&string, "WAITING"); break;
         case TERMINATED: str_add(&string, "TERMINATED"); break;
 
-        // TODO: Review
         // Ready and running is treated as the same for the user to create illusion of parallelization
         case READY: /* fall through */
         case RUNNING: str_add(&string, "RUNNING"); break;

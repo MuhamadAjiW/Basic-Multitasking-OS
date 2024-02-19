@@ -10,7 +10,6 @@
 
 extern struct TSSEntry tss;
 
-// TODO: Review
 // Note: Would be interesting to make process with dynamic
 // Process is managed like a linked list for performance reasons with indices as pointers because static memory (check PCB structure)
 // Algorithm for processing is round robin
@@ -126,14 +125,13 @@ uint8_t process_create_user_proc(struct FAT32DriverRequest request){
     for (uint8_t i = 0; i < 8; i++){
         process_array[pid].name[i] = request.name[i];
     }
-    // process_array[pid].state = NEW;
+    process_array[pid].state = NEW;
 
     // Initialize paging directory
     struct PageDirectory* page_dir = &process_page_dir[pid];
     process_array[pid].cr3 = (struct PageDirectory*) ((uint32_t) page_dir - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
     paging_dirtable_init(page_dir);
     paging_clone_directory_entry((void*)(current_process->k_stack), &process_page_dir[current_process->pid], &process_page_dir[pid]);
-
 
     // TODO: Allocate frames
     // uint32_t frame_amount;
@@ -157,9 +155,6 @@ uint8_t process_create_user_proc(struct FAT32DriverRequest request){
         process_array[pid].virt_addr_used[frame_amount - 1] = (void*) k_stack;
         paging_allocate_page_frame((void*) k_stack, page_dir);
 
-    // Initialize process paging data
-
-    
     // Assign process as the last entry on the linked list
     process_array[pid].previous_pid = last_process_pid;
     process_array[pid].next_pid = 0;
@@ -179,7 +174,6 @@ uint8_t process_create_user_proc(struct FAT32DriverRequest request){
     request.buf = (void*) 0;
     load(request);
 
-
     // Prepare new process environment
     uint32_t cs = GDT_USER_CODE_SEGMENT_SELECTOR | PRIVILEGE_USER;
     uint32_t ds = GDT_USER_DATA_SEGMENT_SELECTOR | PRIVILEGE_USER;
@@ -190,7 +184,6 @@ uint8_t process_create_user_proc(struct FAT32DriverRequest request){
     volatile uint32_t* useresp = userss - 1;
     *useresp = u_stack;
     uint8_t* k_esp = (uint8_t*) useresp;
-    // uint8_t* k_esp = (uint8_t*) k_stack;
 
     k_esp -= sizeof(struct InterruptFrame);
     struct InterruptFrame* tf = (struct InterruptFrame*) k_esp;
@@ -211,11 +204,11 @@ uint8_t process_create_user_proc(struct FAT32DriverRequest request){
     context->ebp = 0;
     context->eip = (uint32_t) restore_context;
 
-
     // Save the data on our process list
     process_array[pid].k_stack = k_stack;
     process_array[pid].context = context;
 
+    // Return to initial task space
     paging_use_page_dir(current_process->cr3);
 
     // Flush pages
