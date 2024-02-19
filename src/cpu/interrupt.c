@@ -101,8 +101,6 @@ void main_interrupt_handler(struct TrapFrame cpu) {
         // Refresh PIC
         pic_ack(irq_num);
     }
-    
-
 }
 
 void activate_interrupts(){

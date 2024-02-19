@@ -11,13 +11,12 @@
 #define EFLAGS_BASE         0x2
 #define EFLAGS_PARITY       0x4
 #define EFLAGS_INTERRUPT    0x200
+#define EFLAGS_IOPL_USER    0x3000
+#define EFLAGS_USER_PROC    EFLAGS_BASE | EFLAGS_PARITY | EFLAGS_INTERRUPT | EFLAGS_IOPL_USER
 
 #define MAX_PROCESS 64
 #define MAX_PROCESS_NAME 8
 #define MAX_PROCESS_FRAMES 4
-
-#define STACKTYPE_KERNEL 0
-#define STACKTYPE_USER 3
 
 enum ProcState { NULL_PROCESS, NEW, READY, RUNNING, WAITING, TERMINATED };
 
@@ -69,7 +68,7 @@ void process_initialize();
 void process_get_info(struct process_info* tinfo, struct PCB process);
 void process_generate_list(struct process_list* list);
 uint32_t process_generate_pid();
-uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags);
+uint8_t process_create_user_proc(struct FAT32DriverRequest request);
 void process_terminate_current();
 void process_terminate(uint32_t pid);
 void process_clean_scan();

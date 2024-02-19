@@ -5,10 +5,11 @@ global isr_stub_table
 call_generic_handler:
     ; Before interrupt_handler_n is called (caller of this generic handler section), 
     ; stack will have these value that pushed automatically by CPU
-    ; [esp + 12] eflags
-    ; [esp + 8 ] cs
-    ; [esp + 4 ] eip
-    ; [esp + 0 ] error code
+    ; [esp + 16 ] eflags
+    ; [esp + 12 ] cs
+    ; [esp + 8  ] eip
+    ; [esp + 4  ] error code
+    ; [esp + 0  ] int_no
 
     ; CPURegister
     pushad

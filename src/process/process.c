@@ -27,7 +27,7 @@ uint32_t last_process_pid;
 void process_initialize(){
     current_process = &process_array[0];
     current_process->pid = 0;
-    current_process->k_stack = KERNEL_VMEMORY_OFFSET + PAGE_FRAME_SIZE;
+    current_process->k_stack = KERNEL_VMEMORY_OFFSET;
     
     current_process->name[0] = 'k';
     current_process->name[1] = 'e';
@@ -100,7 +100,7 @@ uint32_t process_generate_pid(){
     return pid;
 }
 
-uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, uint32_t eflags){
+uint8_t process_create_user_proc(struct FAT32DriverRequest request){
     __asm__ volatile ("cli");   // Stop interrupts when creating a process
 
     //TODO: check process and resource availability
@@ -132,7 +132,7 @@ uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, ui
     struct PageDirectory* page_dir = &process_page_dir[pid];
     process_array[pid].cr3 = (struct PageDirectory*) ((uint32_t) page_dir - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
     paging_dirtable_init(page_dir);
-    paging_clone_directory_entry((void*)(current_process->k_stack - PAGE_FRAME_SIZE), &process_page_dir[current_process->pid], &process_page_dir[pid]);
+    paging_clone_directory_entry((void*)(current_process->k_stack), &process_page_dir[current_process->pid], &process_page_dir[pid]);
 
 
     // TODO: Allocate frames
@@ -153,9 +153,9 @@ uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, ui
         }
 
         // kernel stack
-        uint32_t k_stack = (pid + 1) * PAGE_FRAME_SIZE + KERNEL_VMEMORY_OFFSET;
+        uint32_t k_stack = (pid + 1) * PAGE_FRAME_SIZE + KERNEL_VMEMORY_OFFSET - 4;
         process_array[pid].virt_addr_used[frame_amount - 1] = (void*) k_stack;
-        paging_allocate_page_frame((void*) k_stack - PAGE_FRAME_SIZE, page_dir);
+        paging_allocate_page_frame((void*) k_stack, page_dir);
 
     // Initialize process paging data
 
@@ -186,15 +186,15 @@ uint8_t process_create(struct FAT32DriverRequest request, uint8_t stack_type, ui
     memset(tf, 0, sizeof(struct TrapFrame));
 
     // Prepare new process environment
-    uint32_t cs = stack_type == STACKTYPE_KERNEL ? GDT_KERNEL_CODE_SEGMENT_SELECTOR : (GDT_USER_CODE_SEGMENT_SELECTOR | PRIVILEGE_USER);
-    uint32_t ds = stack_type == STACKTYPE_KERNEL ? GDT_KERNEL_DATA_SEGMENT_SELECTOR : (GDT_USER_DATA_SEGMENT_SELECTOR | PRIVILEGE_USER);
+    uint32_t cs = GDT_USER_CODE_SEGMENT_SELECTOR | PRIVILEGE_USER;
+    uint32_t ds = GDT_USER_DATA_SEGMENT_SELECTOR | PRIVILEGE_USER;
 
     tf->cs = cs;
     tf->segments.ds = ds;
 
     tf->userss = ds;
     tf->useresp = u_stack;
-    tf->eflags = eflags;
+    tf->eflags = EFLAGS_USER_PROC;
 
     // Note: entry is assumed to be always set at 0 when linking a program
     tf->eip = (uint32_t) request.buf;
@@ -276,7 +276,7 @@ void process_switch(struct PCB* old, struct PCB* new){
     // We need to get old process's kernel stack before switching page tables
     // Doesn't need to clear it when a process is done
     // It doesn't matter since we are copying and reloading them each time
-    paging_clone_directory_entry((void*)(old->k_stack - PAGE_FRAME_SIZE), &process_page_dir[old->pid], &process_page_dir[new->pid]);
+    paging_clone_directory_entry((void*)(old->k_stack), &process_page_dir[old->pid], &process_page_dir[new->pid]);
 
     // Switching page tables
     paging_use_page_dir(new->cr3);

@@ -64,7 +64,7 @@ void sys_winmgr_close(struct TrapFrame cpu){
 
 // Tasking syscall
 void sys_process_start(struct TrapFrame cpu){
-    process_create(*(struct FAT32DriverRequest*) cpu.registers.ebx, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+    process_create_user_proc(*(struct FAT32DriverRequest*) cpu.registers.ebx);
 }
 void sys_process_stop(struct TrapFrame cpu){
     process_terminate(cpu.registers.ebx);

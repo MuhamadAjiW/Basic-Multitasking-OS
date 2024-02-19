@@ -53,7 +53,7 @@ void kernel_setup(void) {
         .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
         .buffer_size           = 0x100000,
     };
-    process_create(shell, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+    process_create_user_proc(shell);
 
     struct FAT32DriverRequest clock = {
         .buf                   = (void*) 0,
@@ -62,7 +62,7 @@ void kernel_setup(void) {
         .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
         .buffer_size           = 0x100000,
     };
-    process_create(clock, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY);
+    process_create_user_proc(clock);
 
     // the kernel acts as a garbage collector afterwards
     while (TRUE){
