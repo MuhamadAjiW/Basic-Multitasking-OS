@@ -48,10 +48,28 @@ void framebuffer_set_cursor(uint8_t r, uint8_t c);
  */
 void framebuffer_clear(void);
 
-// TODO: Document
+/** 
+ * Displays the double buffer to the primary graphics memory
+ */
 void framebuffer_display();
+
+/** 
+ * Enables the built in cursor from the VGA
+ */
 void framebuffer_enable_cursor();
+
+/** 
+ * Disables the built in cursor from the VGA
+ */
 void framebuffer_disable_cursor();
+
+/**
+ * framebuffer_set, Sets the secondary buffer with a certain value
+ * 
+ * @param row           Y coordinate of buffer to be written
+ * @param col           X coordinate of buffer to be written
+ * @param info          information of word to be written to the buffer
+ */
 void framebuffer_set(uint8_t row, uint8_t col, uint16_t info);
 
 #endif

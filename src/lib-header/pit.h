@@ -36,7 +36,9 @@ void sleep(uint32_t duration);
  */
 uint32_t get_tick();
 
-//TODO: Document
+/**
+ *  Adds current tick since default timer interrupt is activated
+ */
 void tick_counter();
 
 

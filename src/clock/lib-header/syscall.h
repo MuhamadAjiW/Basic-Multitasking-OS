@@ -43,9 +43,24 @@
 */
 void syscall(uint32_t eax, uint32_t ebx, uint32_t ecx, uint32_t edx);
 
-// TODO: Document
+/**
+ *  blocks current process for a certain amount of ticks
+ *  
+ *  @param tick time in PIT interrupt (value depends on frequency set)
+ */
 void delay(uint32_t tick);
+
+/**
+ *  Closes the process window
+ *  
+ *  @param id designated id for a window, received when a window is registered
+ */
 void close_window(uint32_t id);
+
+/**
+ *  Syscall to terminate current process
+ *  
+ */
 void exit();
 
 #endif

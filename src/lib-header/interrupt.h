@@ -64,6 +64,13 @@
 #define IRQ_PRIMARY_ATA  14
 #define IRQ_SECOND_ATA   15
 
+/**
+ * InterruptHandler, Pointer to a function for an interrupt handler
+ * 
+ * @param cpu        CPU information when interrupt is raised
+ */
+typedef void (*InterruptHandler)(struct InterruptFrame cpu);
+
 // I/O port wait, around 1-4 microsecond, for I/O synchronization purpose
 void io_wait(void);
 
@@ -85,11 +92,24 @@ void pic_remap(void);
  */
 void main_interrupt_handler(struct InterruptFrame cpu);
 
-
-//TODO: Document
-typedef void (*InterruptHandler)(struct InterruptFrame cpu);
+/**
+ * Registers a function as an interrupt handler.
+ * 
+ * @param int_no        interrupt number to be handled
+ * @param handler       function to be registered as a handler
+ */
 void register_irq_handler(uint16_t int_no, InterruptHandler handler);
+
+/**
+ * Activates interrupts by masking PIC registers, both master and slave
+ */
 void activate_interrupts();
+
+/**
+ * Activates an IRQ by unmasking PIC registers
+ * 
+ * @param irq           irq number to be activated
+ */
 void activate_irq(uint8_t irq);
 
 #endif

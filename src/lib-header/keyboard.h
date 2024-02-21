@@ -78,8 +78,18 @@ bool keyboard_is_blocking(void);
 void keyboard_isr();
 
 
-// TODO: Document
+/**
+ * Clears the keyboard buffer to the target buffer
+ * 
+ * @param buf       Target buffer to flush keyboard buffer to
+ */
 void keyboard_flush_buffer(char *buf);
+
+/**
+ * Maps the keyboard scancode to ASCII and store it in the buffer
+ * 
+ * @param input     Scancode received from the keyboard
+ */
 void keyboard_process_input(uint8_t input);
 
 

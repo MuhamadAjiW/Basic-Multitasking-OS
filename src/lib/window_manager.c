@@ -7,10 +7,14 @@
 #include "../lib-header/window_manager.h"
 #include "../lib-header/process.h"
 
-// TODO: Document
 // Note: Would be interesting to make this a separate program if we have inter-process communication 
+// Information needed for the window manager
 struct window_manager winmgr = {0};
+
+// Double buffered screen from framebuffer, to avoid screen tearing and smoothens the overall experience
 extern uint16_t screen_buffer[];
+
+// Currently active process
 extern struct PCB* current_process;
 
 void winmgr_initalilze(){
