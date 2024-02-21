@@ -4,7 +4,7 @@
 #include "lib-header/cmos.h"
 
 struct window_info winfo = {
-    .mainBuffer = (uint16_t*) 1,
+    .main_buffer = (uint16_t*) 1,
     .xloc = SCREEN_WIDTH - 8,
     .yloc = SCREEN_HEIGHT - 1,
     .xlen = 8,

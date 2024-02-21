@@ -6,7 +6,7 @@
 const uint8_t window_size = 2;
 
 struct window_info winfo = {
-    .mainBuffer = (uint16_t*) 1,
+    .main_buffer = (uint16_t*) 1,
     .xloc = 1,
     .yloc = 1,
     .xlen = window_size,

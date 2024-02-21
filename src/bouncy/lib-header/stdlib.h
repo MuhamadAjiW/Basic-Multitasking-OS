@@ -36,7 +36,11 @@ void* realloc(void* ptr, uint32_t size);
 void free(void* ptr);
 
 
-//TODO: Document
+/**
+ *  system call to get current time from kernel
+ *  
+ *  @return current time retrieved from CMOS
+ */
 struct cmos_reader get_time();
 
 #endif

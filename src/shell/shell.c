@@ -23,7 +23,7 @@ struct shell_app sh = {
     .cursor_on = 1,
 
     .winfo = {
-        .mainBuffer = (uint16_t*) 1,
+        .main_buffer = (uint16_t*) 1,
         .xloc = 0,
         .yloc = 0,
         .xlen = SCREEN_WIDTH,
