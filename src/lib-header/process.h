@@ -22,11 +22,34 @@
 
 enum ProcState { NULL_PROCESS, NEW, READY, RUNNING, WAITING, TERMINATED };
 
-//TODO: Document
+/**
+ * Context, Saved registers on the stack.
+ * Other registers are handled by the CPU or implicitly in the asm code
+ */
 struct Context {
     uint32_t edi, esi, ebx, ebp, eip;
 } __attribute__((packed));
 
+/**
+ * PCB, Process Control Block. Used to save information about a process
+ * 
+ * @param pid               process id
+ * @param cr3               pointer to physical address of page table
+ * @param k_stack           kernel stack address, integer type to match esp0 in tss
+ * @param context           address of context to switch to
+ * 
+ * Process management purposes
+ * @param name              process name
+ * @param frame_amount      amount of frames used by the process
+ * @param virt_addr_used    array of virtual addresses mapped in the page table
+ * 
+ * @param state             state of the current process
+ * @param parent            pointer to the parent process
+ * 
+ * Process scheduling purposes, linked list structure
+ * @param previous_pid      pid of the previously executed task
+ * @param next_pid          pid of the to be executed task next
+ */
 struct PCB
 {
     uint32_t pid;                           // id
@@ -47,7 +70,16 @@ struct PCB
     uint32_t next_pid;
 }; // Not packed because of alignment
 
-// To pass to shell
+// To pass to shell during ps
+/**
+ * process_info, basically PCB with sensitive information removed
+ * 
+ * @param pid               process id
+ * @param ppid              pointer to physical address of page table
+ * @param frame_amount      amount of frames used by the process
+ * @param state             state of the current process
+ * @param name              process name
+ */
 struct process_info
 {
     uint32_t pid;                   // id
@@ -57,24 +89,99 @@ struct process_info
     char name[MAX_PROCESS_NAME];
 } __attribute__((packed));
 
+/**
+ * process_list, array of process_info to be passed during ps
+ * 
+ * @param info              process_info array
+ * @param num_process       number of process shown
+ */
 struct process_list
 {
     struct process_info info[MAX_PROCESS];
     uint32_t num_process;
 } __attribute__((packed));
 
+/**
+ *  External assembly code for context switching,
+ *  
+ *  @param old_process             pointer of pointer to context of currently running process
+ *  @param new_process             pointer to context of process to switch to
+ */
 void switch_context(struct Context** old_process, struct Context* new_process);
+
+/**
+ *  External assembly code for context switching, basically retrieves context and system state from the stack
+ *  Only used in process creation, not used in general context switching because it is already done by default during interrupt exit
+ */
 void restore_context();
 
+/**
+ *  Initializes multi-processing, assigns kernel as task 0
+ */
 void process_initialize();
-void process_get_info(struct process_info* tinfo, struct PCB process);
-void process_generate_list(struct process_list* list);
+
+/**
+ *  process_generate_pid,
+ *  Generates pid for the process, algorithm may vary
+ *  
+ *  @return             the generated pid
+ */
 uint32_t process_generate_pid();
+
+/**
+ *  process_create,
+ *  Create a user process to jump to
+ *  
+ *  @param request      executable file information
+ *  @return             success state of process creation with true being process successfully created
+ */
 uint8_t process_create_user_proc(struct FAT32DriverRequest request);
+
+/**
+ *  Terminates current process
+ */
 void process_terminate_current();
+
+/**
+ *  process_terminate,
+ *  Terminate a currently running process. May or may not include the cleaning
+ *  
+ *  @param pid process identifier
+ */
 void process_terminate(uint32_t pid);
+
+/**
+ *  Garbage collecting scan, detects a terminated task and executes process_clean
+ */
 void process_clean_scan();
+
+/**
+ *  Garbage collecting function, deallocates resources used by a terminated process
+ * 
+ *  @param pid          pid of a terminated process
+ */
 void process_clean(uint32_t pid);
+
+/**
+ *  Contains the main Scheduling algorithm
+ *  Also hooked as the callback to PIT IRQ
+ */
 void process_schedule();
+
+// PS purposes
+/**
+ *  Generates info from a PCB to a process_info
+ * 
+ *  @param tinfo        address to process_info to be generated
+ *  @param process      PCB of process
+ */
+void process_get_info(struct process_info* tinfo, struct PCB process);
+
+/**
+ *  Generates list of info from currently active tasks
+ * 
+ *  @param list         address to process_list to be generated
+ */
+void process_generate_list(struct process_list* list);
 
 #endif
