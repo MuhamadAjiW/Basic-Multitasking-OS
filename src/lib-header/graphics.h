@@ -2,64 +2,53 @@
 #define _GRAPHICS_H
 
 #include "stdtype.h"
+#include "lib-header/paging.h"
 
-/* further reading: 
-    https://wiki.osdev.org/VGA_Hardware#Memory_Layout_in_256-color_graphics_modes
-    http://www.osdever.net/FreeVGA/home.htm
-*/
+// Vesa driver
+// https://wiki.osdev.org/Bochs_VBE_Extensions
+// https://cvs.savannah.nongnu.org/viewvc/*checkout*/vgabios/vgabios/vbe_display_api.txt
+#define VBE_DISPI_BANK_ADDRESS          0xA0000
+#define VBE_DISPI_BANK_SIZE_KB          64
 
-/* VGA Port Macros */
-#define MISC_OUT_REG 0x3c2
-#define FEAT_CONT_REG 0x3ca
+#define VBE_DISPI_MAX_XRES              1024
+#define VBE_DISPI_MAX_YRES              768
 
-#define ATTR_ADDR_REG 0x3c0
-#define ATTR_DATA_REG 0x3c1
+#define VBE_DISPI_IOPORT_INDEX          0x01CE
+#define VBE_DISPI_IOPORT_DATA           0x01CF
 
-#define CRT_ADDR_REG 0x3d4
-#define CRT_DATA_REG 0x3d5
+#define VBE_DISPI_INDEX_ID              0x0
+#define VBE_DISPI_INDEX_XRES            0x1
+#define VBE_DISPI_INDEX_YRES            0x2
+#define VBE_DISPI_INDEX_BPP             0x3
+#define VBE_DISPI_INDEX_ENABLE          0x4
+#define VBE_DISPI_INDEX_BANK            0x5
+#define VBE_DISPI_INDEX_VIRT_WIDTH      0x6
+#define VBE_DISPI_INDEX_VIRT_HEIGHT     0x7
+#define VBE_DISPI_INDEX_X_OFFSET        0x8
+#define VBE_DISPI_INDEX_Y_OFFSET        0x9
 
-#define MEM_MODE_REG 0x3c4
+#define VBE_DISPI_ID0                   0xB0C0
+#define VBE_DISPI_ID1                   0xB0C1
+#define VBE_DISPI_ID2                   0xB0C2
+#define VBE_DISPI_ID3                   0xB0C3
+#define VBE_DISPI_ID4                   0xB0C4
 
-#define DAC_MASK_REG 0x3c6
-#define DAC_READ_REG 0x3c7
-#define DAC_WRITE_REG 0x3c8
-#define DAC_DATA_REG 0x3c9
-#define DAC_STATE_REG 0x3c7
+#define VBE_DISPI_DISABLED              0x00
+#define VBE_DISPI_ENABLED               0x01
+#define VBE_DISPI_LFB_ENABLED           0x40
+#define VBE_DISPI_NOCLEARMEM            0x80
 
-#define GRAP_ADDR_REG 0x3ce
-#define GRAP_DATA_REG 0x3cf
-
-#define INPUT_STATUS_1 0x3da
-
-/* Graphics Attributes */
-#define SCREEN_WIDTH 320
-#define SCREEN_HEIGHT 200
-
-
-#define BLOCK_WIDTH 5
-#define BLOCK_HEIGHT 8
-
-#define BUFFER_HEIGHT 25
-#define BUFFER_WIDTH 64
+#define VBE_DISPI_LFB_PHYSICAL_ADDRESS  (uint32_t *) 0xFD000000
 
 
-#define DEFAULT_COLOR_FG 0x1
-#define DEFAULT_COLOR_INPUT 0x2
-#define DEFAULT_COLOR_BG 0x3
-#define DEFAULT_CURSOR_COLOR 0x4
-
-// #define DEFAULT_COLOR_BG 84
-// #define DEFAULT_COLOR_FG 15
-// #define DEFAULT_CURSOR_COLOR 13
-
-#define MEMORY_GRAPHICS (uint8_t *) 0xC00A0000 //0xA0000 before remapping
+// Personal defines
+#define DEFAULT_COLOR_BG 0xFFFFFFFF
+#define DEFAULT_COLOR_FG 0x00000000
 
 /**
- * Configures VGA to use mode 13h
- * Also loads necessary palette for the system
- * 
+ * Configures VESA
  */
-void graphics_initialize();
+void graphics_initialize(uint32_t width, uint32_t height, uint32_t colorbits, uint8_t linear_framebuffer, uint8_t clear);
 
 /**
  * Overwrites every pixel with current given background image
@@ -80,10 +69,17 @@ void graphics_display();
  * @param row       vertical coordinate of pixel
  * @param color     index of color palette
  */
-void graphics_set(uint16_t row, uint16_t col, uint8_t color);
+void graphics_set(uint16_t row, uint16_t col, uint32_t color);
 
 //TODO: Document
-void graphics_palette_update(void* palette, uint32_t len, uint32_t offset);
-void graphics_palette_reset();
+typedef struct graphics_info{
+    uint16_t width;
+    uint16_t height;
+    uint16_t color_depth;
+    uint32_t* buffer;
+    uint32_t size;
+} graphics_info;
+void vesa_write_register(uint16_t index, uint16_t data);
+uint16_t vesa_read_register(uint16_t index);
 
 #endif

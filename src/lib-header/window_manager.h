@@ -8,8 +8,8 @@
 
 //TODO: Document
 typedef struct window_info{
-    uint8_t* main_buffer;
-    uint8_t* rear_buffer;
+    uint32_t* main_buffer;
+    uint32_t* rear_buffer;
     uint16_t  xloc;
     uint16_t  xlen;
     uint16_t  yloc;

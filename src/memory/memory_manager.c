@@ -40,14 +40,10 @@ void memory_initialize(){
     
     for (uint16_t i = 0; i < HEAP_PAGE_COUNT; i++)    {
         paging_dir_update(
-            (void *)((KERNEL_PAGE_COUNT + i) * PAGE_FRAME_SIZE),
+            (void *)(HEAP_PMEMORY_OFFSET + (i * PAGE_FRAME_SIZE)),
             (void *)(HEAP_VMEMORY_OFFSET + (i * PAGE_FRAME_SIZE)),
             flags, &_paging_kernel_page_directory);
         
-        uint32_t resource_index = KERNEL_PAGE_COUNT + i;
-        resource_table[resource_index].used = 1;
-        resource_table[resource_index].pid = 0;
-        resource_table[resource_index].type = HEAP;
     }
 
     last_alloc = HEAP_VMEMORY_OFFSET; //start alignment

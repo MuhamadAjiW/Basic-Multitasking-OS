@@ -21,16 +21,19 @@ void kernel_setup(void) {
     enter_protected_mode(&_gdt_gdtr);
     pic_remap();
     initialize_idt();
-    graphics_initialize();
+    activate_interrupts();
 
+    task_initialize();
     memory_initialize();
+
+    graphics_initialize(1920, 1080, 32, 1, 0);
+    graphics_clear();
+    graphics_display();
 
     gdt_install_tss();
     set_tss_register_kernel();
     set_tss_kernel_current_stack();
-    task_initialize();
 
-    activate_interrupts();
     enable_system_calls();
     activate_irq(IRQ_KEYBOARD);
     activate_irq(IRQ_PRIMARY_ATA);
@@ -54,17 +57,17 @@ void kernel_setup(void) {
     };
     task_create(shell, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY, 0);
 
-    FAT32DriverRequest clock = {
-        .buf                   = (void*) 0,
-        .name                  = "sysclock",
-        .ext                   = "prg",
-        .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
-        .buffer_size           = 0x100000,
-    };
-    task_create(clock, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY, 0);
+    // FAT32DriverRequest clock = {
+    //     .buf                   = (void*) 0,
+    //     .name                  = "sysclock",
+    //     .ext                   = "prg",
+    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
+    //     .buffer_size           = 0x100000,
+    // };
+    // task_create(clock, STACKTYPE_USER, EFLAGS_BASE | EFLAGS_INTERRUPT | EFLAGS_PARITY, 0);
 
     // the kernel acts as a garbage collector afterwards
     while (TRUE){
-        task_clean_scan();
+        // task_clean_scan();
     }
 }

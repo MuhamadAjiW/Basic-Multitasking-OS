@@ -36,7 +36,7 @@ shell_app sh = {
     .cursor_blocked_2 = 0,
 
     .winfo = {
-        .main_buffer = (uint8_t*) 1,
+        .main_buffer = (uint32_t*) 1,
         .xloc = 0,
         .yloc = 0,
         .xlen = SCREEN_WIDTH,
@@ -70,15 +70,16 @@ void app_initialize(){
 
     app_load_background("system/bg/stdbg1.imp");
     app_draw_background(&(sh.winfo), sh.background);
+    window_update(&(sh.winfo));
+
     reader_initialize();
 
-    app_play_animation("system/stdanim.anm");
+    // app_play_animation("system/stdanim.anm");
 
     shell_newline();
 }
 void app_load_background(char* path){
     image_load(&(sh.background), path, sh.dir.cluster_number);
-    image_change_palette(sh.background);
 }
 void app_draw_background(window_info* winfo, image_info imginfo){
     uint16_t min_width;

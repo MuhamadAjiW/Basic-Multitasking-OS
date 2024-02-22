@@ -5,9 +5,9 @@
 #include "../lib-header/task.h"
 
 // TODO: Document
-// Note: Would be interesting to make this a separate program if we have inter-process communication 
+// Note: Would be interesting to make this a separate program if we have inter-process communication
+extern graphics_info graphics; 
 window_manager winmgr = {0};
-extern uint8_t screen_buffer[];
 extern PCB* current_task;
 
 void winmgr_initalilze(){
@@ -17,7 +17,7 @@ void winmgr_initalilze(){
     }
 }
 void winmgr_set_window(window_info* winfo, uint8_t row, uint8_t col, uint16_t info, bool main_buffer){    
-    volatile uint8_t * where = main_buffer? winfo->main_buffer : winfo->rear_buffer;
+    volatile uint32_t * where = main_buffer? winfo->main_buffer : winfo->rear_buffer;
     where +=  (row * winfo->xlen + col);
     *where = info;
 }
@@ -39,10 +39,10 @@ void winmgr_show_window(window_info* winfo){
     uint16_t yloc = winfo->yloc;
     uint16_t ylen = winfo->ylen;
 
-    while (yloc + j < SCREEN_HEIGHT && j < ylen){
+    while (yloc + j < graphics.height && j < ylen){
         uint16_t i = 0;
-        while (xloc + i < SCREEN_WIDTH && i < xlen){
-            winmgr_set_window(winfo, j, i, screen_buffer[(SCREEN_WIDTH * (yloc + j)) + (xloc + i)], FALSE);
+        while (xloc + i < graphics.width && i < xlen){
+            winmgr_set_window(winfo, j, i, graphics.buffer[(graphics.width * (yloc + j)) + (xloc + i)], FALSE);
             graphics_set(yloc + j, xloc + i, winfo->main_buffer[(xlen * j) + i]);
             i++;
         }
@@ -51,9 +51,9 @@ void winmgr_show_window(window_info* winfo){
 }
 void winmgr_show_window_flat(window_info winfo){
     uint16_t j = 0;
-    while (winfo.yloc + j < SCREEN_HEIGHT && j < winfo.ylen){
+    while (winfo.yloc + j < graphics.height && j < winfo.ylen){
         uint16_t i = 0;
-        while (winfo.xloc + i < SCREEN_WIDTH && i < winfo.xlen){
+        while (winfo.xloc + i < graphics.width && i < winfo.xlen){
             graphics_set(winfo.yloc + j, winfo.xloc + i, winfo.main_buffer[(winfo.xlen * j) + i]);
             i++;
         }
@@ -62,9 +62,9 @@ void winmgr_show_window_flat(window_info winfo){
 }
 void winmgr_hide_window(window_info winfo){
     uint16_t j = 0;
-    while (winfo.yloc + j < SCREEN_HEIGHT && j < winfo.ylen){
+    while (winfo.yloc + j < graphics.height && j < winfo.ylen){
         uint16_t i = 0;
-        while (winfo.xloc + i < SCREEN_WIDTH && i < winfo.xlen){
+        while (winfo.xloc + i < graphics.width && i < winfo.xlen){
             graphics_set(winfo.yloc + j, winfo.xloc + i, winfo.rear_buffer[(winfo.xlen * j) + i]);
             i++;
         }

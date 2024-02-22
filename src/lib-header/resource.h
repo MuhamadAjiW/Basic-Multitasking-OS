@@ -9,7 +9,7 @@
 // Max memory in qemu by default is 128 MB (changable up to 4GB)
 // Each page being 4 MB, total memory available is 32
 // On this case max memory is modified to be 1gb
-#define RESOURCE_AMOUNT 256
+#define RESOURCE_AMOUNT 252
 
 // Kernel and heap is assumed to be always at the bottom
 #define RESOURCE_KERNEL_OFFSET (KERNEL_PAGE_COUNT + HEAP_PAGE_COUNT)

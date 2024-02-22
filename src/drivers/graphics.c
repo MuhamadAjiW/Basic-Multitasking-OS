@@ -1,255 +1,69 @@
 #include "../lib-header/graphics.h"
 #include "../lib-header/window_manager.h"
+#include "../lib-header/memory_manager.h"
 #include "../lib-header/stdmem.h"
 #include "../lib-header/string.h"
 #include "../lib-header/stdtype.h"
 #include "../lib-header/portio.h"
 #include "../lib-header/pit.h"
+#include "../lib-header/resource.h"
 
 // Double buffering to avoid screen tearing
-uint8_t screen_buffer[320*200];
+// Might cause the kernel to get too big
+graphics_info graphics = {
+    .width = 800,
+    .height = 600,
+    .color_depth = 32,
+    .buffer = 0,
+    .size = 0
+};
 
-void graphics_initialize(){
-    //source
-    //https://wiki.osdev.org/VGA_Hardware#Memory_Layout_in_256-color_graphics_modes
-    //http://www.osdever.net/FreeVGA/home.htm
+extern Resource resource_table[RESOURCE_AMOUNT];
 
-    out(MISC_OUT_REG, 0x63);
-    out2(CRT_ADDR_REG, (uint16_t) ( (0x0e << 8) + 0x11));
+void vesa_write_register(uint16_t index, uint16_t data){
+    out2(VBE_DISPI_IOPORT_INDEX, index);
+    out2(VBE_DISPI_IOPORT_DATA, data);
+}
+ 
+uint16_t vesa_read_register(uint16_t index){
+    out2(VBE_DISPI_IOPORT_INDEX, index);
+    return in2(VBE_DISPI_IOPORT_DATA);
+}
 
-    out2(CRT_ADDR_REG, (uint16_t) ( (0x5f << 8) + 0x0));
-    out2(CRT_ADDR_REG, (uint16_t) ( (0x4f << 8) + 0x1));
-    out2(CRT_ADDR_REG, (uint16_t) ( (0x50 << 8) + 0x2));
-    out2(CRT_ADDR_REG, (uint16_t) ( (0x82 << 8) + 0x3));
-    out2(CRT_ADDR_REG, (uint16_t) ( (0x54 << 8) + 0x4));
-    out2(CRT_ADDR_REG, (uint16_t) ( (0x80 << 8) + 0x5));
-    out2(CRT_ADDR_REG, (uint16_t) ( (0xbf << 8) + 0x6));
-    out2(CRT_ADDR_REG, (uint16_t) ( (0x1f << 8) + 0x7));
-    out2(CRT_ADDR_REG, (uint16_t) ( (0x00 << 8) + 0x8));
-    out2(CRT_ADDR_REG, (uint16_t) ( (0x41 << 8) + 0x9));
-    out2(CRT_ADDR_REG, (uint16_t) ( (0x9c << 8) + 0x10));
-    out2(CRT_ADDR_REG, (uint16_t) ( (0x8e << 8) + 0x11));
-    out2(CRT_ADDR_REG, (uint16_t) ( (0x8f << 8) + 0x12));
-    out2(CRT_ADDR_REG, (uint16_t) ( (0x28 << 8) + 0x13));
-    out2(CRT_ADDR_REG, (uint16_t) ( (0x40 << 8) + 0x14));
-    out2(CRT_ADDR_REG, (uint16_t) ( (0x96 << 8) + 0x15));
-    out2(CRT_ADDR_REG, (uint16_t) ( (0xb9 << 8) + 0x16));
-    out2(CRT_ADDR_REG, (uint16_t) ( (0xa3 << 8) + 0x17));
-
-    out2(MEM_MODE_REG, (uint16_t) ( (0x01 << 8) + 0x01));
-    out2(MEM_MODE_REG, (uint16_t) ( (0x0f << 8) + 0x02));
-    out2(MEM_MODE_REG, (uint16_t) ( (0x00 << 8) + 0x03));
-    out2(MEM_MODE_REG, (uint16_t) ( (0x0e << 8) + 0x04));
-
-    out2(GRAP_ADDR_REG, (uint16_t) ( (0x40 << 8) + 0x05));
-    out2(GRAP_ADDR_REG, (uint16_t) ( (0x05 << 8) + 0x06));
-
-    in(INPUT_STATUS_1);
-    out(ATTR_ADDR_REG,0x10);
-    out2(ATTR_ADDR_REG,0x41);
-
-    in(INPUT_STATUS_1);
-    out(ATTR_ADDR_REG,0x11);
-    out2(ATTR_ADDR_REG,0x00);
-
-    in(INPUT_STATUS_1);
-    out(ATTR_ADDR_REG,0x12);
-    out2(ATTR_ADDR_REG,0x0f);
+void graphics_initialize(uint32_t width, uint32_t height, uint32_t colorbits, uint8_t linear_framebuffer, uint8_t clear){
+    graphics.width = width;
+    graphics.height = height;
+    graphics.color_depth = colorbits;
+    graphics.size = width * height * (colorbits / 8);
+    graphics.buffer = (uint32_t*) kmalloc (sizeof(uint8_t) * graphics.size);
     
-    in(INPUT_STATUS_1);
-    out(ATTR_ADDR_REG,0x13);
-    out2(ATTR_ADDR_REG,0x00);
+    vesa_write_register(VBE_DISPI_INDEX_ENABLE, 0);
+    vesa_write_register(VBE_DISPI_INDEX_XRES, width);
+    vesa_write_register(VBE_DISPI_INDEX_YRES, height);
+    vesa_write_register(VBE_DISPI_INDEX_BPP, colorbits);
+    vesa_write_register(VBE_DISPI_INDEX_ENABLE, 1 |
+        (linear_framebuffer ? VBE_DISPI_LFB_ENABLED : 0) |
+        (clear ? 0 : VBE_DISPI_NOCLEARMEM));
 
-    in(INPUT_STATUS_1);
-    out(ATTR_ADDR_REG,0x14);
-    out2(ATTR_ADDR_REG,0x00);
-
-    //palette
-    //array source: https://github.com/canidlogic/vgapal
-    uint8_t paletteArray[768] = {
-        0,  0,  0,   63,  63, 63,   58, 45, 63,   63, 45, 63,
-        63, 21, 63,  42,  0, 42,  42, 21,  0,  42, 42, 42,
-        21, 21, 21,  21, 21, 63,  21, 63, 21,  21, 63, 63,
-        63, 21, 21,  63, 21, 63,  63, 63, 21,  63, 63, 63,
-        0,  0,  0,   5,  5,  5,   8,  8,  8,  11, 11, 11,
-        14, 14, 14,  17, 17, 17,  20, 20, 20,  24, 24, 24,
-        28, 28, 28,  32, 32, 32,  36, 36, 36,  40, 40, 40,
-        45, 45, 45,  50, 50, 50,  56, 56, 56,  63, 63, 63,
-        0,  0, 63,  16,  0, 63,  31,  0, 63,  47,  0, 63,
-        63,  0, 63,  63,  0, 47,  63,  0, 31,  63,  0, 16,
-        63,  0,  0,  63, 16,  0,  63, 31,  0,  63, 47,  0,
-        63, 63,  0,  47, 63,  0,  31, 63,  0,  16, 63,  0,
-        0, 63,  0,   0, 63, 16,   0, 63, 31,   0, 63, 47,
-        0, 63, 63,   0, 47, 63,   0, 31, 63,   0, 16, 63,
-        31, 31, 63,  39, 31, 63,  47, 31, 63,  55, 31, 63,
-        63, 31, 63,  63, 31, 55,  63, 31, 47,  63, 31, 39,
-        63, 31, 31,  63, 39, 31,  63, 47, 31,  63, 55, 31,
-        63, 63, 31,  55, 63, 31,  47, 63, 31,  39, 63, 31,
-        31, 63, 31,  31, 63, 39,  31, 63, 47,  31, 63, 55,
-        31, 63, 63,  31, 55, 63,  31, 47, 63,  31, 39, 63,
-        45, 45, 63,  49, 45, 63,  54, 45, 63,  58, 45, 63,
-        63, 45, 63,  63, 45, 58,  63, 45, 54,  63, 45, 49,
-        63, 45, 45,  63, 49, 45,  63, 54, 45,  63, 58, 45,
-        63, 63, 45,  58, 63, 45,  54, 63, 45,  49, 63, 45,
-        45, 63, 45,  45, 63, 49,  45, 63, 54,  45, 63, 58,
-        45, 63, 63,  45, 58, 63,  45, 54, 63,  45, 49, 63,
-        0,  0, 28,   7,  0, 28,  14,  0, 28,  21,  0, 28,
-        28,  0, 28,  28,  0, 21,  28,  0, 14,  28,  0,  7,
-        28,  0,  0,  28,  7,  0,  28, 14,  0,  28, 21,  0,
-        28, 28,  0,  21, 28,  0,  14, 28,  0,   7, 28,  0,
-        0, 28,  0,   0, 28,  7,   0, 28, 14,   0, 28, 21,
-        0, 28, 28,   0, 21, 28,   0, 14, 28,   0,  7, 28,
-        14, 14, 28,  17, 14, 28,  21, 14, 28,  24, 14, 28,
-        28, 14, 28,  28, 14, 24,  28, 14, 21,  28, 14, 17,
-        28, 14, 14,  28, 17, 14,  28, 21, 14,  28, 24, 14,
-        28, 28, 14,  24, 28, 14,  21, 28, 14,  17, 28, 14,
-        14, 28, 14,  14, 28, 17,  14, 28, 21,  14, 28, 24,
-        14, 28, 28,  14, 24, 28,  14, 21, 28,  14, 17, 28,
-        20, 20, 28,  22, 20, 28,  24, 20, 28,  26, 20, 28,
-        28, 20, 28,  28, 20, 26,  28, 20, 24,  28, 20, 22,
-        28, 20, 20,  28, 22, 20,  28, 24, 20,  28, 26, 20,
-        28, 28, 20,  26, 28, 20,  24, 28, 20,  22, 28, 20,
-        20, 28, 20,  20, 28, 22,  20, 28, 24,  20, 28, 26,
-        20, 28, 28,  20, 26, 28,  20, 24, 28,  20, 22, 28,
-        0,  0, 16,   4,  0, 16,   8,  0, 16,  12,  0, 16,
-        16,  0, 16,  16,  0, 12,  16,  0,  8,  16,  0,  4,
-        16,  0,  0,  16,  4,  0,  16,  8,  0,  16, 12,  0,
-        16, 16,  0,  12, 16,  0,   8, 16,  0,   4, 16,  0,
-        0, 16,  0,   0, 16,  4,   0, 16,  8,   0, 16, 12,
-        0, 16, 16,   0, 12, 16,   0,  8, 16,   0,  4, 16,
-        8,  8, 16,  10,  8, 16,  12,  8, 16,  14,  8, 16,
-        16,  8, 16,  16,  8, 14,  16,  8, 12,  16,  8, 10,
-        16,  8,  8,  16, 10,  8,  16, 12,  8,  16, 14,  8,
-        16, 16,  8,  14, 16,  8,  12, 16,  8,  10, 16,  8,
-        8, 16,  8,   8, 16, 10,   8, 16, 12,   8, 16, 14,
-        8, 16, 16,   8, 14, 16,   8, 12, 16,   8, 10, 16,
-        11, 11, 16,  12, 11, 16,  13, 11, 16,  15, 11, 16,
-        16, 11, 16,  16, 11, 15,  16, 11, 13,  16, 11, 12,
-        16, 11, 11,  16, 12, 11,  16, 13, 11,  16, 15, 11,
-        16, 16, 11,  15, 16, 11,  13, 16, 11,  12, 16, 11,
-        11, 16, 11,  11, 16, 12,  11, 16, 13,  11, 16, 15,
-        11, 16, 16,  11, 15, 16,  11, 13, 16,  11, 12, 16,
-        0,  0,  0,   0,  0,  0,   0,  0,  0,   0,  0,  0,
-        0,  0,  0,   0,  0,  0,   0,  0,  0,   0,  0,  0
+    PageDirectoryEntryFlag flags ={
+        .present_bit       = 1,
+        .user_supervisor   = 1,
+        .write_bit         = 1,
+        .use_pagesize_4_mb = 1
     };
-
-    out(DAC_WRITE_REG, 0);
-    for(int i = 0; i < 768; i += 3){
-        out(DAC_DATA_REG, (uint8_t) paletteArray[i]);
-        out(DAC_DATA_REG, (uint8_t) paletteArray[i + 1]);
-        out(DAC_DATA_REG, (uint8_t) paletteArray[i + 2]);
+    for (uint32_t i = 0; i < 4; i++){
+        paging_dir_update((void*) VBE_DISPI_LFB_PHYSICAL_ADDRESS + (i * PAGE_FRAME_SIZE), (void*) VBE_DISPI_LFB_PHYSICAL_ADDRESS + (i * PAGE_FRAME_SIZE), flags, &_paging_kernel_page_directory);
     }
-
-    out(ATTR_ADDR_REG, 0x20);
-
-    graphics_clear();
-    graphics_display();
-}
-
-void graphics_palette_update(void* palette, uint32_t len, uint32_t offset){
-    uint8_t* paletteArray = (uint8_t*) palette;
-    uint8_t init = 256 - offset;
-
-    out(ATTR_ADDR_REG, 0x0);
-
-    out(DAC_WRITE_REG, init - len);
-    for(uint32_t i = 0; i < len * 3; i += 3){
-        out(DAC_DATA_REG, (uint8_t) paletteArray[i]);
-        out(DAC_DATA_REG, (uint8_t) paletteArray[i + 1]);
-        out(DAC_DATA_REG, (uint8_t) paletteArray[i + 2]);
-    }
-
-    out(ATTR_ADDR_REG, 0x20);
-}
-
-void graphics_palette_reset(){
-    out(ATTR_ADDR_REG, 0x0);
-
-    uint8_t paletteArray[768] = {
-        0,  0,  0,   63,  63, 63,   63, 21, 63,   63, 45, 63,
-        42,  0,  0,  42,  0, 42,  42, 21,  0,  42, 42, 42,
-        21, 21, 21,  21, 21, 63,  21, 63, 21,  21, 63, 63,
-        63, 21, 21,  63, 21, 63,  63, 63, 21,  63, 63, 63,
-        0,  0,  0,   5,  5,  5,   8,  8,  8,  11, 11, 11,
-        14, 14, 14,  17, 17, 17,  20, 20, 20,  24, 24, 24,
-        28, 28, 28,  32, 32, 32,  36, 36, 36,  40, 40, 40,
-        45, 45, 45,  50, 50, 50,  56, 56, 56,  63, 63, 63,
-        0,  0, 63,  16,  0, 63,  31,  0, 63,  47,  0, 63,
-        63,  0, 63,  63,  0, 47,  63,  0, 31,  63,  0, 16,
-        63,  0,  0,  63, 16,  0,  63, 31,  0,  63, 47,  0,
-        63, 63,  0,  47, 63,  0,  31, 63,  0,  16, 63,  0,
-        0, 63,  0,   0, 63, 16,   0, 63, 31,   0, 63, 47,
-        0, 63, 63,   0, 47, 63,   0, 31, 63,   0, 16, 63,
-        31, 31, 63,  39, 31, 63,  47, 31, 63,  55, 31, 63,
-        63, 31, 63,  63, 31, 55,  63, 31, 47,  63, 31, 39,
-        63, 31, 31,  63, 39, 31,  63, 47, 31,  63, 55, 31,
-        63, 63, 31,  55, 63, 31,  47, 63, 31,  39, 63, 31,
-        31, 63, 31,  31, 63, 39,  31, 63, 47,  31, 63, 55,
-        31, 63, 63,  31, 55, 63,  31, 47, 63,  31, 39, 63,
-        45, 45, 63,  49, 45, 63,  54, 45, 63,  58, 45, 63,
-        63, 45, 63,  63, 45, 58,  63, 45, 54,  63, 45, 49,
-        63, 45, 45,  63, 49, 45,  63, 54, 45,  63, 58, 45,
-        63, 63, 45,  58, 63, 45,  54, 63, 45,  49, 63, 45,
-        45, 63, 45,  45, 63, 49,  45, 63, 54,  45, 63, 58,
-        45, 63, 63,  45, 58, 63,  45, 54, 63,  45, 49, 63,
-        0,  0, 28,   7,  0, 28,  14,  0, 28,  21,  0, 28,
-        28,  0, 28,  28,  0, 21,  28,  0, 14,  28,  0,  7,
-        28,  0,  0,  28,  7,  0,  28, 14,  0,  28, 21,  0,
-        28, 28,  0,  21, 28,  0,  14, 28,  0,   7, 28,  0,
-        0, 28,  0,   0, 28,  7,   0, 28, 14,   0, 28, 21,
-        0, 28, 28,   0, 21, 28,   0, 14, 28,   0,  7, 28,
-        14, 14, 28,  17, 14, 28,  21, 14, 28,  24, 14, 28,
-        28, 14, 28,  28, 14, 24,  28, 14, 21,  28, 14, 17,
-        28, 14, 14,  28, 17, 14,  28, 21, 14,  28, 24, 14,
-        28, 28, 14,  24, 28, 14,  21, 28, 14,  17, 28, 14,
-        14, 28, 14,  14, 28, 17,  14, 28, 21,  14, 28, 24,
-        14, 28, 28,  14, 24, 28,  14, 21, 28,  14, 17, 28,
-        20, 20, 28,  22, 20, 28,  24, 20, 28,  26, 20, 28,
-        28, 20, 28,  28, 20, 26,  28, 20, 24,  28, 20, 22,
-        28, 20, 20,  28, 22, 20,  28, 24, 20,  28, 26, 20,
-        28, 28, 20,  26, 28, 20,  24, 28, 20,  22, 28, 20,
-        20, 28, 20,  20, 28, 22,  20, 28, 24,  20, 28, 26,
-        20, 28, 28,  20, 26, 28,  20, 24, 28,  20, 22, 28,
-        0,  0, 16,   4,  0, 16,   8,  0, 16,  12,  0, 16,
-        16,  0, 16,  16,  0, 12,  16,  0,  8,  16,  0,  4,
-        16,  0,  0,  16,  4,  0,  16,  8,  0,  16, 12,  0,
-        16, 16,  0,  12, 16,  0,   8, 16,  0,   4, 16,  0,
-        0, 16,  0,   0, 16,  4,   0, 16,  8,   0, 16, 12,
-        0, 16, 16,   0, 12, 16,   0,  8, 16,   0,  4, 16,
-        8,  8, 16,  10,  8, 16,  12,  8, 16,  14,  8, 16,
-        16,  8, 16,  16,  8, 14,  16,  8, 12,  16,  8, 10,
-        16,  8,  8,  16, 10,  8,  16, 12,  8,  16, 14,  8,
-        16, 16,  8,  14, 16,  8,  12, 16,  8,  10, 16,  8,
-        8, 16,  8,   8, 16, 10,   8, 16, 12,   8, 16, 14,
-        8, 16, 16,   8, 14, 16,   8, 12, 16,   8, 10, 16,
-        11, 11, 16,  12, 11, 16,  13, 11, 16,  15, 11, 16,
-        16, 11, 16,  16, 11, 15,  16, 11, 13,  16, 11, 12,
-        16, 11, 11,  16, 12, 11,  16, 13, 11,  16, 15, 11,
-        16, 16, 11,  15, 16, 11,  13, 16, 11,  12, 16, 11,
-        11, 16, 11,  11, 16, 12,  11, 16, 13,  11, 16, 15,
-        11, 16, 16,  11, 15, 16,  11, 13, 16,  11, 12, 16,
-        0,  0,  0,   0,  0,  0,   0,  0,  0,   0,  0,  0,
-        0,  0,  0,   0,  0,  0,   0,  0,  0,   0,  0,  0
-    };
-
-    out(DAC_WRITE_REG, 0);
-    for(int i = 0; i < 768; i += 3){
-        out(DAC_DATA_REG, (uint8_t) paletteArray[i]);
-        out(DAC_DATA_REG, (uint8_t) paletteArray[i + 1]);
-        out(DAC_DATA_REG, (uint8_t) paletteArray[i + 2]);
-    }
-
-    out(ATTR_ADDR_REG, 0x20);
 }
 
 void graphics_clear(){
-    memset(screen_buffer, DEFAULT_COLOR_BG, 0xfa00);
+    memset((void*) graphics.buffer, DEFAULT_COLOR_BG, graphics.size);
 }
 
 void graphics_display(){
-    memcpy(MEMORY_GRAPHICS, screen_buffer, 0xfa00);
+    memcpy((void*) VBE_DISPI_LFB_PHYSICAL_ADDRESS, (void*) graphics.buffer, graphics.size);
 }
 
-void graphics_set(uint16_t row, uint16_t col, uint8_t color){
-    memset(&screen_buffer[(320 * row) + col], color, 1);
+void graphics_set(uint16_t row, uint16_t col, uint32_t color){
+    memcpy((void*) &graphics.buffer[(graphics.width * row) + col], &color, 4);
 }
