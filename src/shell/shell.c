@@ -42,6 +42,9 @@ struct shell_app sh = {
     .background = 0
 };
 
+string_t recents[10] = {{.content = (char*)1, .len = 0}};
+int8_t recents_idx = -1;
+
 // App
 void app_initialize(){
     sh.dir.cluster_number = ROOT_CLUSTER_NUMBER;
@@ -233,6 +236,58 @@ void reader_move(int8_t direction){
 
 
 // Shell functionalities
+void shell_recent(int8_t direction){
+    if((direction == 1 && recents_idx < 9 && recents[recents_idx + 1].len) || (direction == -1 && recents_idx > 0)){
+        recents_idx += direction;
+
+        shell_reset();
+        
+        print(recents[recents_idx].content);
+        memcpy(sh.reader.buffer_addr, recents[recents_idx].content, recents[recents_idx].len);
+        sh.reader.max_idx = recents[recents_idx].len;
+    }
+
+    else if(recents_idx + direction == -1){
+        shell_reset();
+        recents_idx = -1;
+    };
+}
+
+void shell_reset(){
+    if(sh.reader.max_idx > 0){
+        uint16_t loc = sh.cursor_y_limit * sh.grid.xlen + sh.cursor_x_limit;
+
+        uint32_t maxidx = loc + sh.reader.max_idx;
+        uint32_t gridsize = loc + sh.grid.xlen * sh.grid.ylen;
+        uint32_t limit = maxidx > gridsize ? gridsize : maxidx;
+
+        for(uint32_t i = loc; i < limit; i++){
+            sh.grid.char_map[i] = 0;
+            sh.grid.char_color_map[i] = 0;
+        }
+        reader_clear();
+        cursor_set(sh.cursor_x_limit, sh.cursor_y_limit);
+
+        if(limit == gridsize){
+            shell_newline();
+        } else{
+            grid_write();
+        }
+    }
+}
+
+void shell_recent_save(){
+    if(recents[9].len != 0){
+        str_delete(&recents[9]);
+    }
+
+    for (uint8_t i = 9; i > 0 ; i--){
+        recents[i] = recents[i - 1];
+    }
+    recents[0] = str_new(sh.reader.buffer_addr);
+    recents_idx = -1;
+}
+
 void shell_clear(){
     uint32_t limit = sh.grid.xlen * sh.grid.ylen;
     for(uint32_t i = 0; i < limit; i++){
@@ -290,8 +345,6 @@ void shell_newline(){
 }
 
 void shell_evaluate(){
-    sh.reader.buffer_addr[sh.reader.max_idx] = 0;
-
     parser_parse(&sh_parser, sh.reader.buffer_addr, ' ');
 
     if (sh_parser.word_count > 0){
@@ -471,12 +524,22 @@ int main(void) {
                     reader_move(1);
                 }
                 break;
+
+            case UARROW_CHAR:
+                shell_recent(1);
+                break;
+
+            case DARROW_CHAR:
+                shell_recent(-1);
+                break;
             
             case BACKSPACE_CHAR:
                 shell_backspace();
                 break;
 
             case '\n':
+                sh.reader.buffer_addr[sh.reader.max_idx] = 0;
+                shell_recent_save();
                 shell_evaluate();
                 reader_clear();
                 shell_newline();

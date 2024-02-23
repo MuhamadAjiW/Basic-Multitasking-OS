@@ -86,5 +86,8 @@ void shell_clear();
 void shell_backspace();
 void shell_newline();
 void shell_evaluate();
+void shell_recent(int8_t direction);
+void shell_reset();
+void shell_recent_save();
 
 #endif
