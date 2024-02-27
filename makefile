@@ -20,7 +20,7 @@ LFLAGS        = -T $(SOURCE_FOLDER)/linker.ld -melf_i386
 
 #kernel
 run: all
-	@qemu-system-i386 -s -S -cdrom $(OUTPUT_FOLDER)/$(ISO_NAME).iso
+	@qemu-system-i386 -m 1024 -drive file=drive.img,format=raw,media=disk,id=disk -s -S -cdrom $(OUTPUT_FOLDER)/$(ISO_NAME).iso
 all: build
 build: complete
 clean:
