@@ -8,7 +8,8 @@ QEMU_IMG      = qemu-img
 # Directory
 SOURCE_FOLDER = src
 OUTPUT_FOLDER = bin
-ISO_NAME      = os2023
+ISO_NAME      = OS2023
+DISK_NAME     = drive
 
 # Flags
 WARNING_CFLAG = -Wall -Wextra -Werror
@@ -20,7 +21,7 @@ LFLAGS        = -T $(SOURCE_FOLDER)/linker.ld -melf_i386
 
 #kernel
 run: all
-	@qemu-system-i386 -m 1024 -drive file=drive.img,format=raw,media=disk,id=disk -s -S -cdrom $(OUTPUT_FOLDER)/$(ISO_NAME).iso
+	@qemu-system-i386 -m 1024 -drive file=$(OUTPUT_FOLDER)/$(DISK_NAME).img,format=raw,media=disk,id=disk -s -cdrom $(OUTPUT_FOLDER)/$(ISO_NAME).iso
 all: build
 build: complete
 clean:
