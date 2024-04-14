@@ -50,7 +50,7 @@ int main(void) {
         
     }
     
-    exit();
+    // exit();
 
     return 0;
 }

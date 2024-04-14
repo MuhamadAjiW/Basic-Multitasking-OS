@@ -74,7 +74,7 @@ int main(void) {
         delay(speed);
     }
 
-    exit();
+    // exit();
 
     return 0;
 }
