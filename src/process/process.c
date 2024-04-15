@@ -31,14 +31,7 @@ void process_initialize(){
     // current_process->k_stack = KERNEL_VMEMORY_OFFSET;
     // tss.esp0 = KERNEL_VMEMORY_OFFSET;
     
-    current_process->name[0] = 'k';
-    current_process->name[1] = 'e';
-    current_process->name[2] = 'r';
-    current_process->name[3] = 'n';
-    current_process->name[4] = 'e';
-    current_process->name[5] = 'l';
-    current_process->name[6] = 0;
-
+    memcpy(current_process->name, "kernel", 6);
     current_process->cr3 = (struct PageDirectory*)((uint32_t) &process_page_dir[0] - KERNEL_VMEMORY_OFFSET + KERNEL_PMEMORY_OFFSET);
     current_process->state = RUNNING;
 
@@ -269,7 +262,7 @@ void process_switch(struct PCB* old, struct PCB* new, struct InterruptFrame* ifr
     old->useresp = *address;
     old->userss = *(address + 1);
 
-    switch_context(&(new->cpu_state));
+    switch_context(&(new->cpu_state), new->cpu_state.int_stack.cs);
 }
 
 void process_schedule(struct InterruptFrame* iframe){

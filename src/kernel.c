@@ -54,14 +54,14 @@ void kernel_setup(void) {
     };
     process_create_user_proc(shell);
 
-    // struct FAT32DriverRequest clock = {
-    //     .buf                   = (void*) 0,
-    //     .name                  = "sysclock",
-    //     .ext                   = "prg",
-    //     .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
-    //     .buffer_size           = 0x100000,
-    // };
-    // process_create_user_proc(clock);
+    struct FAT32DriverRequest clock = {
+        .buf                   = (void*) 0,
+        .name                  = "sysclock",
+        .ext                   = "prg",
+        .parent_cluster_number = ROOT_CLUSTER_NUMBER + 1,
+        .buffer_size           = 0x100000,
+    };
+    process_create_user_proc(clock);
 
     // struct FAT32DriverRequest bounce = {
     //     .buf                   = (void*) 0,
@@ -75,8 +75,8 @@ void kernel_setup(void) {
     __asm__ volatile ("sti");   // reenable interrupts
 
     // the kernel acts as a garbage collector afterwards
-    while (true);
-    // while (true){
-    //     process_clean_scan();
-    // }
+    // while (true);
+    while (true){
+        process_clean_scan();
+    }
 }

@@ -245,6 +245,7 @@ void shell_recent(int8_t direction){
         print(recents[recents_idx].content);
         memcpy(sh.reader.buffer_addr, recents[recents_idx].content, recents[recents_idx].len);
         sh.reader.max_idx = recents[recents_idx].len;
+        sh.reader.current_idx = recents[recents_idx].len;
     }
 
     else if(recents_idx + direction == -1){

@@ -111,13 +111,7 @@ struct process_list
  *  
  *  @param new_process             pointer to context of process to switch to
  */
-void switch_context(struct InterruptFrame* new_process);
-
-/**
- *  External assembly code for context switching, basically retrieves context and system state from the stack
- *  Only used in process creation, not used in general context switching because it is already done by default during interrupt exit
- */
-void restore_context();
+void switch_context(struct InterruptFrame* new_process, uint32_t intra_privilege);
 
 /**
  *  Initializes multi-processing, assigns kernel as task 0
