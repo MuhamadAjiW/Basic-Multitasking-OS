@@ -36,7 +36,10 @@ struct Context {
  * @param pid               process id
  * @param cr3               pointer to physical address of page table
  * @param k_stack           kernel stack address, integer type to match esp0 in tss
- * @param context           address of context to switch to
+ * 
+ * @param cpu_state         saved state of task to switch to
+ * @param useresp           saved state of task useresp to switch to
+ * @param userss            saved state of task userss to switch to
  * 
  * Process management purposes
  * @param name              process name
@@ -57,7 +60,6 @@ struct PCB
     uint32_t k_stack;                       // kernel stack address
 
     // Static context to switch to    
-    struct Context context_static;              // Context to switch to
     struct InterruptFrame cpu_state;            // Saved CPU state
     uint32_t useresp;                           // Add useresp since InterruptStack doesn't include it
     uint32_t userss;                            // Add userss since InterruptStack doesn't include it
