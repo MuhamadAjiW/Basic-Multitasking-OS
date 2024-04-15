@@ -26,7 +26,7 @@ uint32_t last_process_pid;
 void process_initialize(){
     current_process = &process_array[0];
     current_process->pid = 0;
-    current_process->k_stack = KERNEL_VMEMORY_OFFSET;
+    current_process->k_stack = KERNEL_VMEMORY_OFFSET + PAGE_FRAME_SIZE - 4;
     
     current_process->name[0] = 'k';
     current_process->name[1] = 'e';
@@ -179,34 +179,43 @@ uint8_t process_create_user_proc(struct FAT32DriverRequest request){
     uint32_t ds = GDT_USER_DATA_SEGMENT_SELECTOR | PRIVILEGE_USER;
 
     // Set InterruptFrame to be at the bottom of the given kernel stack
-    volatile uint32_t* userss = (uint32_t*)( k_stack - 4);
-    *userss = ds;
-    volatile uint32_t* useresp = userss - 1;
-    *useresp = u_stack;
-    uint8_t* k_esp = (uint8_t*) useresp;
+    // volatile uint32_t* userss = (uint32_t*)( k_stack - 4);
+    // *userss = ds;
+    // volatile uint32_t* useresp = userss - 1;
+    // *useresp = u_stack;
+    // uint8_t* k_esp = (uint8_t*) useresp;
 
-    k_esp -= sizeof(struct InterruptFrame);
-    struct InterruptFrame* iframe = (struct InterruptFrame*) k_esp;
-    memset(iframe, 0, sizeof(struct InterruptFrame));
+    // k_esp -= sizeof(struct InterruptFrame);
+    // struct InterruptFrame* iframe = (struct InterruptFrame*) k_esp;
+    // memset(iframe, 0, sizeof(struct InterruptFrame));
 
-    iframe->int_stack.cs = cs;
-    iframe->cpu.segment.ds = ds;
-    iframe->int_stack.eflags = EFLAGS_USER_PROC;
+    // iframe->int_stack.cs = cs;
+    // iframe->cpu.segment.ds = ds;
+    // iframe->int_stack.eflags = EFLAGS_USER_PROC;
 
     // Note: entry is assumed to be always set at 0 when linking a program
-    iframe->int_stack.eip = (uint32_t) request.buf;
+    // iframe->int_stack.eip = (uint32_t) request.buf;
 
-    k_esp -= sizeof(struct Context);
-    struct Context* context = (struct Context*) k_esp;
-    context->edi = 0;
-    context->esi = 0;
-    context->ebx = 0;
-    context->ebp = 0;
-    context->eip = (uint32_t) restore_context;
+    // k_esp -= sizeof(struct Context);
+    // struct Context* context = (struct Context*) k_esp;
+    // context->edi = 0;
+    // context->esi = 0;
+    // context->ebx = 0;
+    // context->ebp = 0;
+    // context->eip = (uint32_t) restore_context;
 
+    struct InterruptFrame emptyFrame = {0};
+    process_array[pid].cpu_state = emptyFrame;
+    process_array[pid].cpu_state.cpu.segment.ds = ds;
+    process_array[pid].cpu_state.int_stack.cs = cs;
+    process_array[pid].cpu_state.int_stack.eflags = EFLAGS_USER_PROC;
+    process_array[pid].cpu_state.int_stack.eip = (uint32_t) request.buf;
+    process_array[pid].userss = ds;
+    process_array[pid].useresp = u_stack;
+    
     // Save the data on our process list
     process_array[pid].k_stack = k_stack;
-    process_array[pid].context = context;
+    // process_array[pid].context = context;
 
     // Return to initial task space
     paging_use_page_dir(current_process->cr3);
@@ -267,7 +276,7 @@ void process_clean(uint32_t pid){
     __asm__ volatile ("sti");   // reenable interrupts
 }
 
-void process_switch(struct PCB* old, struct PCB* new){
+void process_switch(struct PCB* old, struct PCB* new, __attribute__((unused)) struct InterruptFrame iframe){
     tss.esp0 = new->k_stack;
 
     // We need to get old process's kernel stack before switching page tables
@@ -282,11 +291,12 @@ void process_switch(struct PCB* old, struct PCB* new){
     paging_flush_tlb_single((void*) old->k_stack);
     paging_flush_tlb_range((void*) 0, (void*) (new->frame_amount * PAGE_FRAME_SIZE));
 
-    switch_context(&(old->context), new->context);
+    old->cpu_state = iframe;
+
+    switch_context(&(new->cpu_state));
 }
 
-
-void process_schedule(){
+void process_schedule(struct InterruptFrame iframe){
     // TODO: implement scheduling algorithm
 
         // Template, ga kunjaw sih ini bebas aja mau implementasinya
@@ -305,5 +315,5 @@ void process_schedule(){
         if(old->state == RUNNING) old->state = READY;
         new->state = RUNNING;
 
-    process_switch(old, new);
+    process_switch(old, new, iframe);
 }

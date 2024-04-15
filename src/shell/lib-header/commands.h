@@ -52,6 +52,6 @@ void mkdir(char *dirname, uint32_t currentCluster);
 void whereis(uint16_t current_cluster, char* filename, char* path);
 void exec(struct FAT32DriverRequest* req);
 void ps();
-void kill(__attribute__((unused)) uint32_t pid);
+void kill(uint32_t pid);
 
 #endif

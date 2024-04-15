@@ -5,6 +5,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <stddef.h>
+#include "cpu.h"
 
 #define DEFAULT_FREQUENCY 1000          //every ms so it is easily translateable to other time units
 
@@ -12,7 +13,7 @@
  *  Call assigned interrupt response
  * 
  */
-void pit_isr();
+void pit_isr(struct InterruptFrame iframe);
 
 /**
  *  Assign default interrupt response

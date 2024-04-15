@@ -9,9 +9,9 @@ void tick_counter(){
     tick++;
 }
 
-void pit_isr(){
+void pit_isr(struct InterruptFrame iframe){
     tick_counter();
-    process_schedule();
+    process_schedule(iframe);
 }
 
 void set_pit_freq(uint32_t freq){

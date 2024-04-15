@@ -68,7 +68,6 @@ call_generic_handler:
     ; [esp], [esp+4], [esp+8]
     ;   eip,   cs,    eflags
     ; improper value will cause invalid return address & register
-    sti
     iret
 
 

@@ -56,7 +56,13 @@ struct PCB
     struct PageDirectory* cr3;              // virtual address space
     uint32_t k_stack;                       // kernel stack address
     struct Context* context;                // Context to switch to
-    
+
+    // Static context to switch to    
+    struct Context context_static;              // Context to switch to
+    struct InterruptFrame cpu_state;            // Saved CPU state
+    uint32_t useresp;                           // Add useresp since InterruptStack doesn't include it
+    uint32_t userss;                            // Add userss since InterruptStack doesn't include it
+
     // Extras for process management purposes
     char name[MAX_PROCESS_NAME];
     uint32_t frame_amount;                  // Amount of frames used
@@ -104,10 +110,9 @@ struct process_list
 /**
  *  External assembly code for context switching,
  *  
- *  @param old_process             pointer of pointer to context of currently running process
  *  @param new_process             pointer to context of process to switch to
  */
-void switch_context(struct Context** old_process, struct Context* new_process);
+void switch_context(struct InterruptFrame* new_process);
 
 /**
  *  External assembly code for context switching, basically retrieves context and system state from the stack
@@ -166,7 +171,7 @@ void process_clean(uint32_t pid);
  *  Contains the main Scheduling algorithm
  *  Also hooked as the callback to PIT IRQ
  */
-void process_schedule();
+void process_schedule(struct InterruptFrame iframe);
 
 // PS purposes
 /**
