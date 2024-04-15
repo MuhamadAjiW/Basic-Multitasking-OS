@@ -13,7 +13,7 @@
  *  Call assigned interrupt response
  * 
  */
-void pit_isr(struct InterruptFrame iframe);
+void pit_isr(struct InterruptFrame* iframe);
 
 /**
  *  Assign default interrupt response

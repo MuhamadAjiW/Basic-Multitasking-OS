@@ -69,7 +69,7 @@
  * 
  * @param cpu        CPU information when interrupt is raised
  */
-typedef void (*InterruptHandler)(struct InterruptFrame cpu);
+typedef void (*InterruptHandler)(struct InterruptFrame* cpu);
 
 // I/O port wait, around 1-4 microsecond, for I/O synchronization purpose
 void io_wait(void);

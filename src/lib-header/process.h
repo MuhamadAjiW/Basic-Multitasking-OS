@@ -55,7 +55,6 @@ struct PCB
     uint32_t pid;                           // id
     struct PageDirectory* cr3;              // virtual address space
     uint32_t k_stack;                       // kernel stack address
-    struct Context* context;                // Context to switch to
 
     // Static context to switch to    
     struct Context context_static;              // Context to switch to
@@ -171,7 +170,7 @@ void process_clean(uint32_t pid);
  *  Contains the main Scheduling algorithm
  *  Also hooked as the callback to PIT IRQ
  */
-void process_schedule(struct InterruptFrame iframe);
+void process_schedule(struct InterruptFrame* iframe);
 
 // PS purposes
 /**

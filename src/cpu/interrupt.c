@@ -96,7 +96,7 @@ void main_interrupt_handler(struct InterruptFrame iframe) {
         else if (iframe.int_number == 0x30)
             handler = syscall_handlers[iframe.cpu.general.eax];
         
-        if(handler) handler(iframe);
+        if(handler) handler(&iframe);
 
         // Refresh PIC
         pic_ack(irq_num);

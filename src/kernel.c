@@ -27,7 +27,6 @@ void kernel_setup(void) {
     
     gdt_install_tss();
     set_tss_register_kernel();
-    set_tss_kernel_current_stack();
     process_initialize();
 
     activate_interrupts();
@@ -45,6 +44,7 @@ void kernel_setup(void) {
     register_irq_handler(IRQ_TIMER, pit_isr);
     activate_irq(IRQ_TIMER);
 
+    __asm__ volatile ("cli");   // Stop interrupts when creating a process
     struct FAT32DriverRequest shell = {
         .buf                   = (void*) 0,
         .name                  = "sh",
@@ -72,8 +72,11 @@ void kernel_setup(void) {
     // };
     // process_create_user_proc(bounce);
 
+    __asm__ volatile ("sti");   // reenable interrupts
+
     // the kernel acts as a garbage collector afterwards
-    while (true){
-        process_clean_scan();
-    }
+    while (true);
+    // while (true){
+    //     process_clean_scan();
+    // }
 }

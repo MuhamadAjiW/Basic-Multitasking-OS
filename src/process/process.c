@@ -27,6 +27,9 @@ void process_initialize(){
     current_process = &process_array[0];
     current_process->pid = 0;
     current_process->k_stack = KERNEL_VMEMORY_OFFSET + PAGE_FRAME_SIZE - 4;
+    tss.esp0 = KERNEL_VMEMORY_OFFSET + PAGE_FRAME_SIZE - 4;
+    // current_process->k_stack = KERNEL_VMEMORY_OFFSET;
+    // tss.esp0 = KERNEL_VMEMORY_OFFSET;
     
     current_process->name[0] = 'k';
     current_process->name[1] = 'e';
@@ -100,13 +103,10 @@ uint32_t process_generate_pid(){
 }
 
 uint8_t process_create_user_proc(struct FAT32DriverRequest request){
-    __asm__ volatile ("cli");   // Stop interrupts when creating a process
-
     //TODO: check process and resource availability
         
         // Kunjaw:
         if(num_process == MAX_PROCESS) {
-            __asm__ volatile ("sti");   // reenable interrupts
             return 0;
         }
 
@@ -115,7 +115,6 @@ uint8_t process_create_user_proc(struct FAT32DriverRequest request){
         
         // Check resource availability
         if (!paging_allocate_check(frame_amount) || frame_amount > MAX_PROCESS_FRAMES){
-            __asm__ volatile ("sti");   // reenable interrupts
             return 0;
         }
     
@@ -151,9 +150,10 @@ uint8_t process_create_user_proc(struct FAT32DriverRequest request){
         }
 
         // kernel stack
-        uint32_t k_stack = (pid + 1) * PAGE_FRAME_SIZE + KERNEL_VMEMORY_OFFSET - 4;
-        process_array[pid].virt_addr_used[frame_amount - 1] = (void*) k_stack;
-        paging_allocate_page_frame((void*) k_stack, page_dir);
+        // uint32_t k_stack = (pid + 1) * PAGE_FRAME_SIZE + KERNEL_VMEMORY_OFFSET - 4;
+        // process_array[pid].virt_addr_used[frame_amount - 1] = (void*) k_stack;
+        // paging_allocate_page_frame((void*) k_stack, page_dir);
+        uint32_t k_stack = KERNEL_VMEMORY_OFFSET + PAGE_FRAME_SIZE - 4;
 
     // Assign process as the last entry on the linked list
     process_array[pid].previous_pid = last_process_pid;
@@ -178,32 +178,6 @@ uint8_t process_create_user_proc(struct FAT32DriverRequest request){
     uint32_t cs = GDT_USER_CODE_SEGMENT_SELECTOR | PRIVILEGE_USER;
     uint32_t ds = GDT_USER_DATA_SEGMENT_SELECTOR | PRIVILEGE_USER;
 
-    // Set InterruptFrame to be at the bottom of the given kernel stack
-    // volatile uint32_t* userss = (uint32_t*)( k_stack - 4);
-    // *userss = ds;
-    // volatile uint32_t* useresp = userss - 1;
-    // *useresp = u_stack;
-    // uint8_t* k_esp = (uint8_t*) useresp;
-
-    // k_esp -= sizeof(struct InterruptFrame);
-    // struct InterruptFrame* iframe = (struct InterruptFrame*) k_esp;
-    // memset(iframe, 0, sizeof(struct InterruptFrame));
-
-    // iframe->int_stack.cs = cs;
-    // iframe->cpu.segment.ds = ds;
-    // iframe->int_stack.eflags = EFLAGS_USER_PROC;
-
-    // Note: entry is assumed to be always set at 0 when linking a program
-    // iframe->int_stack.eip = (uint32_t) request.buf;
-
-    // k_esp -= sizeof(struct Context);
-    // struct Context* context = (struct Context*) k_esp;
-    // context->edi = 0;
-    // context->esi = 0;
-    // context->ebx = 0;
-    // context->ebp = 0;
-    // context->eip = (uint32_t) restore_context;
-
     struct InterruptFrame emptyFrame = {0};
     process_array[pid].cpu_state = emptyFrame;
     process_array[pid].cpu_state.cpu.segment.ds = ds;
@@ -226,7 +200,6 @@ uint8_t process_create_user_proc(struct FAT32DriverRequest request){
 
     num_process++;
 
-    __asm__ volatile ("sti");   // reenable interrupts
     return 1;
 }
 
@@ -276,13 +249,13 @@ void process_clean(uint32_t pid){
     __asm__ volatile ("sti");   // reenable interrupts
 }
 
-void process_switch(struct PCB* old, struct PCB* new, __attribute__((unused)) struct InterruptFrame iframe){
+void process_switch(struct PCB* old, struct PCB* new, struct InterruptFrame* iframe){
     tss.esp0 = new->k_stack;
 
     // We need to get old process's kernel stack before switching page tables
     // Doesn't need to clear it when a process is done
     // It doesn't matter since we are copying and reloading them each time
-    paging_clone_directory_entry((void*)(old->k_stack), &process_page_dir[old->pid], &process_page_dir[new->pid]);
+    // paging_clone_directory_entry((void*)(old->k_stack), &process_page_dir[old->pid], &process_page_dir[new->pid]);
 
     // Switching page tables
     paging_use_page_dir(new->cr3);
@@ -291,12 +264,15 @@ void process_switch(struct PCB* old, struct PCB* new, __attribute__((unused)) st
     paging_flush_tlb_single((void*) old->k_stack);
     paging_flush_tlb_range((void*) 0, (void*) (new->frame_amount * PAGE_FRAME_SIZE));
 
-    old->cpu_state = iframe;
+    old->cpu_state = *iframe;
+    volatile uint32_t* address = (uint32_t*)((uint32_t)(iframe + 1));
+    old->useresp = *address;
+    old->userss = *(address + 1);
 
     switch_context(&(new->cpu_state));
 }
 
-void process_schedule(struct InterruptFrame iframe){
+void process_schedule(struct InterruptFrame* iframe){
     // TODO: implement scheduling algorithm
 
         // Template, ga kunjaw sih ini bebas aja mau implementasinya

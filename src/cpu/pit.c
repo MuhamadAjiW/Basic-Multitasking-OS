@@ -9,7 +9,7 @@ void tick_counter(){
     tick++;
 }
 
-void pit_isr(struct InterruptFrame iframe){
+void pit_isr(struct InterruptFrame* iframe){
     tick_counter();
     process_schedule(iframe);
 }
